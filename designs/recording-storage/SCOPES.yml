@@ -86,4 +86,4 @@ tasks:
       - Empty state when no pending uploads
     depends_on: [2]
     effort: 2
-    status: implementing
+    status: completed
