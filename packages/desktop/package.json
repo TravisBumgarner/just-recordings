@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "preview": "electron-vite preview"
+    "preview": "electron-vite preview",
+    "test": "echo \"Tests will be configured in Task 2\" && exit 0"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",

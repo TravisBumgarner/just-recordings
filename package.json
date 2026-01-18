@@ -9,8 +9,11 @@
     "dev": "concurrently -n api,web -c blue,green \"npm run dev:api\" \"npm run dev:web\"",
     "dev:api": "npm run dev -w @just-recordings/api",
     "dev:web": "npm run dev -w @just-recordings/web",
+    "dev:desktop": "npm run dev -w @just-recordings/desktop",
     "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present"
+    "build:desktop": "npm run build -w @just-recordings/desktop",
+    "test": "npm run test --workspaces --if-present",
+    "test:desktop": "npm run test -w @just-recordings/desktop"
   },
   "devDependencies": {
     "concurrently": "8.2.2"

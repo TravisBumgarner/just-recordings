@@ -103,4 +103,4 @@ tasks:
       - Environment example file for desktop package
     depends_on: [1]
     effort: 1
-    status: scoped
+    status: implementing
