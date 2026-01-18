@@ -3,6 +3,7 @@ import multer from 'multer';
 import { randomUUID } from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
+import { saveRecordingMetadata } from './recordings.js';
 
 const router = Router();
 
@@ -90,7 +91,7 @@ router.post(
 // POST /api/dev/upload/:uploadId/finalize - Merge chunks into final file
 router.post('/:uploadId/finalize', async (req: Request, res: Response) => {
   const { uploadId } = req.params;
-  const { totalChunks } = req.body;
+  const { totalChunks, filename, mimeType, duration } = req.body;
 
   // Validate uploadId to prevent path traversal
   if (!isValidUUID(uploadId)) {
@@ -129,6 +130,17 @@ router.post('/:uploadId/finalize', async (req: Request, res: Response) => {
   // Write merged file
   const mergedData = Buffer.concat(chunks);
   await fs.writeFile(finalPath, mergedData);
+
+  // Save recording metadata
+  await saveRecordingMetadata({
+    id: fileId,
+    name: filename || 'Untitled Recording',
+    mimeType: mimeType || 'video/webm',
+    duration: duration || 0,
+    fileSize: mergedData.length,
+    createdAt: new Date().toISOString(),
+    path: finalPath,
+  });
 
   // Cleanup temp directory
   await fs.rm(chunkDir, { recursive: true, force: true });
