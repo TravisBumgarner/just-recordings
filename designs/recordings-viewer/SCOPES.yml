@@ -1,0 +1,54 @@
+project: Recordings Viewer
+repo: travisbumgarner/just-recordings
+design_file: designs/recordings-viewer/DESIGN.md
+scoping_date: 2026-01-18
+
+milestones:
+  - number: 5
+    title: "5. Recordings Viewer"
+    description: Add a recordings viewing page to the web app with a grid view of all recordings and single recording playback.
+    branch:
+      working: 5-recordings-viewer
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 38
+    milestone: 5
+    title: Create recordings list page with grid view
+    description: |
+      Create a new page in the web app that displays all saved recordings in a grid
+      layout. Users should be able to see their recordings and navigate to view
+      individual recordings.
+    acceptance_criteria:
+      - New route /recordings added to the app
+      - Page fetches and displays all recordings from RecorderService
+      - Recordings displayed in a responsive grid layout
+      - Each recording card shows name, duration, creation date, file size
+      - Clicking a recording navigates to the single recording view
+      - Loading state shown while fetching recordings
+      - Empty state shown when no recordings exist
+      - Navigation link added to access recordings page
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 2
+    github_issue: 39
+    milestone: 5
+    title: Create single recording viewer page
+    description: |
+      Create a page to view and play a single recording. Users should be able to
+      watch the video, see recording details, and navigate back to the recordings list.
+    acceptance_criteria:
+      - New route /recordings/:id added to the app
+      - Page fetches the specific recording by ID from RecorderService
+      - Video player displays and plays the recording blob
+      - Recording metadata displayed (name, duration, date, file size)
+      - Back navigation to recordings list
+      - Loading state while fetching recording
+      - Error state when recording not found
+      - Delete recording functionality with confirmation
+    depends_on: [1]
+    effort: 2
+    status: scoped
