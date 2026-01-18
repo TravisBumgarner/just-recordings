@@ -74,7 +74,7 @@ tasks:
       - Export RecorderService from src/index.ts
     depends_on: [2]
     effort: 3
-    status: implementing
+    status: completed
 
   - id: 4
     github_issue: 24
