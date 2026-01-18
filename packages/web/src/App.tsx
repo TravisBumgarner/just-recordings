@@ -5,6 +5,7 @@ import { RecorderService, createUploader } from '@just-recordings/recorder';
 import Home from './pages/Home';
 import Recording from './pages/Recording';
 import RecordingsList from './pages/RecordingsList';
+import RecordingViewer from './pages/RecordingViewer';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -19,6 +20,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/recording" element={<Recording recorderService={recorderService} uploader={uploader} />} />
         <Route path="/recordings" element={<RecordingsList recorderService={recorderService} />} />
+        <Route path="/recordings/:id" element={<RecordingViewer recorderService={recorderService} />} />
       </Routes>
     </>
   );
