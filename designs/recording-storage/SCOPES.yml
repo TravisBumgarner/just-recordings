@@ -1,0 +1,89 @@
+project: Recording Storage Architecture
+repo: travisbumgarner/just-recordings
+design_file: designs/recording-storage/DESIGN.md
+scoping_date: 2026-01-18
+
+milestones:
+  - number: 6
+    title: "6. Recording Storage Architecture"
+    description: Fix recording storage flow - IndexedDB as upload queue, server as source of truth for viewing, upload status monitoring.
+    branch:
+      working: 6-recording-storage
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 42
+    milestone: 6
+    title: Add server API endpoints for recordings management
+    description: |
+      Add API endpoints to list, retrieve metadata, serve video files, and delete
+      recordings stored on the server. The server becomes the source of truth for
+      viewing recordings.
+    acceptance_criteria:
+      - GET /api/recordings - List all recordings with metadata
+      - GET /api/recordings/:id - Get single recording metadata
+      - GET /api/recordings/:id/video - Serve the video file for playback
+      - DELETE /api/recordings/:id - Delete a recording
+      - Recording metadata persisted (JSON file or SQLite)
+      - Update upload finalize endpoint to save metadata
+      - Unit tests for all endpoints
+    depends_on: []
+    effort: 3
+    status: scoped
+
+  - id: 2
+    github_issue: 43
+    milestone: 6
+    title: Update recording flow to use IndexedDB as upload queue
+    description: |
+      Change the recording flow so that recordings are first saved to IndexedDB
+      (as a temporary queue), then uploaded to the server in the background.
+      After successful upload, remove from IndexedDB.
+    acceptance_criteria:
+      - Recording page saves to IndexedDB immediately after stopping
+      - Upload happens in background after saving to IndexedDB
+      - Recording removed from IndexedDB only after successful server upload
+      - Failed uploads remain in IndexedDB for retry
+      - Recording page shows immediate feedback
+      - Handle page refresh - resume uploads from IndexedDB queue on app load
+    depends_on: [1]
+    effort: 3
+    status: scoped
+
+  - id: 3
+    github_issue: 44
+    milestone: 6
+    title: Update viewer pages to fetch from server API
+    description: |
+      Update RecordingsList and RecordingViewer pages to fetch recordings from
+      the server API instead of IndexedDB.
+    acceptance_criteria:
+      - RecordingsList fetches from GET /api/recordings
+      - RecordingViewer fetches metadata from GET /api/recordings/:id
+      - Video player uses /api/recordings/:id/video URL
+      - Delete calls DELETE /api/recordings/:id
+      - Loading and error states work correctly
+      - Update tests to mock API calls instead of RecorderService
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  - id: 4
+    github_issue: 45
+    milestone: 6
+    title: Add upload status component for IndexedDB queue
+    description: |
+      Create a UI component that displays the status of recordings in the
+      IndexedDB upload queue with retry capability for failed uploads.
+    acceptance_criteria:
+      - Component shows list of recordings pending upload
+      - Each item shows name, status, progress
+      - Upload progress percentage during active upload
+      - Retry button for failed uploads
+      - Clear/cancel option for stuck uploads
+      - Component accessible from navigation
+      - Empty state when no pending uploads
+    depends_on: [2]
+    effort: 2
+    status: scoped
