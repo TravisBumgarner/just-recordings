@@ -6,10 +6,29 @@ import path from 'path';
 
 const router = Router();
 
+// UUID v4 format validation regex
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isValidUUID(id: string): boolean {
+  return UUID_REGEX.test(id);
+}
+
+// Validate chunk index is a non-negative integer (prevents path traversal)
+function isValidChunkIndex(index: string): boolean {
+  const num = parseInt(index, 10);
+  return /^\d+$/.test(index) && Number.isInteger(num) && num >= 0;
+}
+
 // Configure multer with custom storage to handle chunk files
 const storage = multer.diskStorage({
   destination: async (req, _file, cb) => {
     const uploadId = req.params.uploadId;
+    // Validate uploadId to prevent path traversal
+    if (!isValidUUID(uploadId)) {
+      cb(new Error('Invalid upload ID'), '');
+      return;
+    }
     const chunkDir = path.join('.tmp', uploadId);
     try {
       await fs.mkdir(chunkDir, { recursive: true });
@@ -20,6 +39,11 @@ const storage = multer.diskStorage({
   },
   filename: (req, _file, cb) => {
     const index = req.body.index || '0';
+    // Validate index to prevent path traversal
+    if (!isValidChunkIndex(index)) {
+      cb(new Error('Invalid chunk index'), '');
+      return;
+    }
     cb(null, `chunk-${index}`);
   },
 });
@@ -68,6 +92,19 @@ router.post('/:uploadId/finalize', async (req: Request, res: Response) => {
   const { uploadId } = req.params;
   const { totalChunks } = req.body;
 
+  // Validate uploadId to prevent path traversal
+  if (!isValidUUID(uploadId)) {
+    res.status(400).json({ error: 'Invalid upload ID' });
+    return;
+  }
+
+  // Validate totalChunks is a positive integer
+  const numChunks = parseInt(totalChunks, 10);
+  if (!Number.isInteger(numChunks) || numChunks <= 0) {
+    res.status(400).json({ error: 'Invalid totalChunks value' });
+    return;
+  }
+
   const chunkDir = path.join('.tmp', uploadId);
   const uploadsDir = 'uploads';
   const fileId = randomUUID();
@@ -78,10 +115,15 @@ router.post('/:uploadId/finalize', async (req: Request, res: Response) => {
 
   // Read and merge chunks in order
   const chunks: Buffer[] = [];
-  for (let i = 0; i < totalChunks; i++) {
-    const chunkPath = path.join(chunkDir, `chunk-${i}`);
-    const chunkData = await fs.readFile(chunkPath);
-    chunks.push(chunkData);
+  try {
+    for (let i = 0; i < numChunks; i++) {
+      const chunkPath = path.join(chunkDir, `chunk-${i}`);
+      const chunkData = await fs.readFile(chunkPath);
+      chunks.push(chunkData);
+    }
+  } catch (error) {
+    res.status(400).json({ error: 'Missing or invalid chunks' });
+    return;
   }
 
   // Write merged file
