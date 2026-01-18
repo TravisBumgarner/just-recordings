@@ -11,7 +11,7 @@ function Home() {
         <Typography variant="body1" color="text.secondary" gutterBottom>
           Record and manage your video content
         </Typography>
-        <Box sx={{ mt: 3 }}>
+        <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
           <Button
             component={Link}
             to="/recording"
@@ -19,6 +19,14 @@ function Home() {
             color="primary"
           >
             Start Recording
+          </Button>
+          <Button
+            component={Link}
+            to="/recordings"
+            variant="outlined"
+            color="primary"
+          >
+            View Recordings
           </Button>
         </Box>
       </Box>
