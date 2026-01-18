@@ -1,0 +1,96 @@
+project: Recorder Package
+repo: travisbumgarner/just-recordings
+design_file: designs/recorder/DESIGN.md
+scoping_date: 2026-01-17
+
+milestones:
+  - number: 3
+    title: "3. Recorder Package"
+    description: Minimal video/screen recorder package using Dexie.js and IndexedDB, shared between web and desktop apps
+    branch:
+      working: 3-recorder-package
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 21
+    milestone: 3
+    title: Initialize recorder package with TypeScript and Vitest
+    description: |
+      Set up the `@just-recordings/recorder` package with proper TypeScript
+      configuration and Vitest testing framework. This creates the foundation
+      for the shared recorder library that both web and desktop apps can import.
+    acceptance_criteria:
+      - packages/recorder/package.json with name @just-recordings/recorder
+      - Dependencies dexie, dev dependencies vitest, fake-indexeddb, typescript
+      - packages/recorder/tsconfig.json extending base config
+      - packages/recorder/vitest.config.ts configured for jsdom environment
+      - packages/recorder/src/index.ts entry point (empty exports initially)
+      - Root workspace updated to include recorder package
+      - npm run test:recorder script in root package.json
+    depends_on: []
+    effort: 1
+    status: testing
+
+  - id: 2
+    github_issue: 22
+    milestone: 3
+    title: Create Dexie database schema and Recording type
+    description: |
+      Define the TypeScript types for recordings and create the Dexie database
+      class for IndexedDB storage. The Recording type captures all metadata
+      about a recorded video including the blob data itself.
+    acceptance_criteria:
+      - src/types.ts with Recording interface (id, name, blob, mimeType, duration, createdAt, fileSize)
+      - src/types.ts with RecorderState type ('idle' | 'recording' | 'paused')
+      - src/types.ts with RecordingOptions interface for mimeType and bitrate options
+      - src/db.ts with RecorderDatabase class extending Dexie
+      - Database version 1 with recordings table indexed on ++id, name, createdAt
+      - Unit tests for database instantiation using fake-indexeddb
+      - Export types and database from src/index.ts
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  - id: 3
+    github_issue: 23
+    milestone: 3
+    title: Implement RecorderService with MediaRecorder API
+    description: |
+      Create the core RecorderService class that handles screen recording using
+      the MediaRecorder API. This service manages recording state, captures video
+      data via getDisplayMedia, and collects chunks for later assembly into a
+      recording.
+    acceptance_criteria:
+      - src/RecorderService.ts with RecorderService class
+      - startScreenRecording(options?) using navigator.mediaDevices.getDisplayMedia()
+      - stopRecording() returning a Recording object (without saving)
+      - pauseRecording() and resumeRecording() methods
+      - getState() returning current RecorderState
+      - onStateChange(callback) for state subscriptions with unsubscribe function
+      - Chunk collection using ondataavailable with 1-second timeslice
+      - Default mimeType video/webm with isTypeSupported() check
+      - Unit tests with mocked MediaRecorder and getDisplayMedia
+      - Export RecorderService from src/index.ts
+    depends_on: [2]
+    effort: 3
+    status: scoped
+
+  - id: 4
+    github_issue: 24
+    milestone: 3
+    title: Add recording storage operations to RecorderService
+    description: |
+      Add CRUD operations to RecorderService for persisting recordings to
+      IndexedDB via Dexie. This allows recordings to be saved, retrieved,
+      listed, and deleted.
+    acceptance_criteria:
+      - saveRecording(recording) storing in database and returning id
+      - getRecording(id) retrieving a single recording by id
+      - getAllRecordings() returning all recordings ordered by createdAt desc
+      - deleteRecording(id) removing a recording from the database
+      - RecorderService constructor accepts optional database instance for testing
+      - Unit tests for all CRUD operations using fake-indexeddb
+    depends_on: [3]
+    effort: 2
+    status: scoped
