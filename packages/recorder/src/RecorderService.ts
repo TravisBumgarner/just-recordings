@@ -134,20 +134,20 @@ export class RecorderService {
     }
   }
 
-  // Storage operations - stubs for TDD
-  async saveRecording(_recording: Recording): Promise<number> {
-    return 0;
+  // Storage operations
+  async saveRecording(recording: Recording): Promise<number> {
+    return await this.db.recordings.add(recording);
   }
 
-  async getRecording(_id: number): Promise<Recording | undefined> {
-    return undefined;
+  async getRecording(id: number): Promise<Recording | undefined> {
+    return await this.db.recordings.get(id);
   }
 
   async getAllRecordings(): Promise<Recording[]> {
-    return [];
+    return await this.db.recordings.orderBy('createdAt').reverse().toArray();
   }
 
-  async deleteRecording(_id: number): Promise<void> {
-    // stub
+  async deleteRecording(id: number): Promise<void> {
+    await this.db.recordings.delete(id);
   }
 }
