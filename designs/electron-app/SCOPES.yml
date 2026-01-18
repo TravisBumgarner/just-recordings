@@ -30,7 +30,7 @@ tasks:
       - Root workspace updated to include desktop package
     depends_on: []
     effort: 2
-    status: implementing
+    status: completed
 
   - id: 2
     github_issue: 12
