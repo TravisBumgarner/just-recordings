@@ -31,7 +31,7 @@ tasks:
       - Navigation link added to access recordings page
     depends_on: []
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 2
     github_issue: 39
