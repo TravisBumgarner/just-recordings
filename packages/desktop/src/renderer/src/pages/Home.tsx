@@ -1,5 +1,6 @@
 import { Box, Container, Typography } from '@mui/material';
 
+// Stub: Returns placeholder values so tests fail (TDD red phase)
 function Home() {
   return (
     <Container maxWidth="lg">
