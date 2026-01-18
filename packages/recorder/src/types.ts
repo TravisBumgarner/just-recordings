@@ -1,3 +1,5 @@
+export type UploadStatus = 'pending' | 'uploading' | 'uploaded' | 'failed';
+
 export interface Recording {
   id?: number;
   name: string;
@@ -6,6 +8,11 @@ export interface Recording {
   duration: number;
   createdAt: Date;
   fileSize: number;
+  // Upload queue fields
+  uploadStatus: UploadStatus;
+  uploadProgress?: number;
+  uploadError?: string;
+  serverId?: string;
 }
 
 export type RecorderState = 'idle' | 'recording' | 'paused';

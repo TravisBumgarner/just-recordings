@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import RecordingPage from '../pages/Recording';
-import type { RecorderService, RecorderState, Recording, Uploader, UploadResult } from '@just-recordings/recorder';
+import type { RecorderService, RecorderState, Recording, UploadManager } from '@just-recordings/recorder';
 
 // Mock RecorderService
 function createMockRecorderService(initialState: RecorderState = 'idle'): {
@@ -25,6 +25,7 @@ function createMockRecorderService(initialState: RecorderState = 'idle'): {
       duration: 1000,
       createdAt: new Date(),
       fileSize: 100,
+      uploadStatus: 'pending',
     } as Recording)),
     pauseRecording: vi.fn(),
     resumeRecording: vi.fn(),
@@ -37,27 +38,25 @@ function createMockRecorderService(initialState: RecorderState = 'idle'): {
   return { service, stateCallback: (state) => stateCallback(state) };
 }
 
-// Mock Uploader
-function createMockUploader(): Uploader {
+// Mock UploadManager
+function createMockUploadManager(): UploadManager {
   return {
-    startUpload: vi.fn(() => Promise.resolve('upload-123')),
-    uploadChunk: vi.fn(() => Promise.resolve()),
-    finalizeUpload: vi.fn(() => Promise.resolve({
-      success: true,
-      fileId: 'file-123',
-      path: '/uploads/file-123.webm',
-      size: 100,
-    } as UploadResult)),
-  };
+    initialize: vi.fn(() => Promise.resolve()),
+    enqueue: vi.fn(() => Promise.resolve(1)),
+    retry: vi.fn(() => Promise.resolve()),
+    cancel: vi.fn(() => Promise.resolve()),
+    getQueue: vi.fn(() => Promise.resolve([])),
+    onQueueChange: vi.fn(() => () => {}),
+  } as unknown as UploadManager;
 }
 
 describe('RecordingPage', () => {
   let mockRecorder: { service: RecorderService; stateCallback: (state: RecorderState) => void };
-  let mockUploader: Uploader;
+  let mockUploadManager: UploadManager;
 
   beforeEach(() => {
     mockRecorder = createMockRecorderService();
-    mockUploader = createMockUploader();
+    mockUploadManager = createMockUploadManager();
   });
 
   describe('rendering', () => {
@@ -65,7 +64,7 @@ describe('RecordingPage', () => {
       render(
         <RecordingPage
           recorderService={mockRecorder.service}
-          uploader={mockUploader}
+          uploadManager={mockUploadManager}
         />
       );
 
@@ -78,7 +77,7 @@ describe('RecordingPage', () => {
       render(
         <RecordingPage
           recorderService={mockRecorder.service}
-          uploader={mockUploader}
+          uploadManager={mockUploadManager}
         />
       );
 
@@ -94,7 +93,7 @@ describe('RecordingPage', () => {
       render(
         <RecordingPage
           recorderService={mockRecorder.service}
-          uploader={mockUploader}
+          uploadManager={mockUploadManager}
         />
       );
 
@@ -116,7 +115,7 @@ describe('RecordingPage', () => {
       render(
         <RecordingPage
           recorderService={mockRecorder.service}
-          uploader={mockUploader}
+          uploadManager={mockUploadManager}
         />
       );
 
@@ -129,7 +128,7 @@ describe('RecordingPage', () => {
       render(
         <RecordingPage
           recorderService={mockRecorder.service}
-          uploader={mockUploader}
+          uploadManager={mockUploadManager}
         />
       );
 
@@ -148,25 +147,16 @@ describe('RecordingPage', () => {
     });
   });
 
-  describe('upload progress', () => {
-    it('shows upload progress indicator during upload', async () => {
-      // Create a delayed uploader to keep upload in progress
-      let resolveUpload: () => void;
-      const delayedUploader = {
-        ...createMockUploader(),
-        uploadChunk: vi.fn(() => new Promise<void>((resolve) => {
-          resolveUpload = resolve;
-        })),
-      };
-
+  describe('IndexedDB queue integration', () => {
+    it('enqueues recording to UploadManager after stopping', async () => {
       render(
         <RecordingPage
           recorderService={mockRecorder.service}
-          uploader={delayedUploader}
+          uploadManager={mockUploadManager}
         />
       );
 
-      // Change to recording state and then stop
+      // Change to recording state
       act(() => {
         mockRecorder.stateCallback('recording');
       });
@@ -177,24 +167,20 @@ describe('RecordingPage', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /stop recording/i }));
 
-      // Wait for upload progress to appear
       await waitFor(() => {
-        expect(screen.queryByTestId('upload-progress')).toBeInTheDocument();
+        expect(mockUploadManager.enqueue).toHaveBeenCalled();
       });
-
-      // Resolve the upload
-      resolveUpload!();
     });
 
-    it('hides progress indicator after upload completes', async () => {
+    it('shows immediate feedback after enqueuing (not after upload)', async () => {
       render(
         <RecordingPage
           recorderService={mockRecorder.service}
-          uploader={mockUploader}
+          uploadManager={mockUploadManager}
         />
       );
 
-      // Trigger recording and stop
+      // Change to recording state
       act(() => {
         mockRecorder.stateCallback('recording');
       });
@@ -205,23 +191,61 @@ describe('RecordingPage', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /stop recording/i }));
 
-      // Wait for upload to complete and progress to disappear
+      // Should show success feedback immediately after enqueue
       await waitFor(() => {
-        expect(screen.queryByTestId('upload-progress')).not.toBeInTheDocument();
+        expect(screen.getByTestId('success-feedback')).toBeInTheDocument();
+      });
+
+      // Feedback should mention saving/uploading in background
+      expect(screen.getByTestId('success-feedback')).toHaveTextContent(/saved|uploading/i);
+    });
+
+    it('shows error feedback when enqueue fails', async () => {
+      const failingManager = {
+        ...createMockUploadManager(),
+        enqueue: vi.fn(() => Promise.reject(new Error('Failed to save'))),
+      } as unknown as UploadManager;
+
+      render(
+        <RecordingPage
+          recorderService={mockRecorder.service}
+          uploadManager={failingManager}
+        />
+      );
+
+      // Change to recording state
+      act(() => {
+        mockRecorder.stateCallback('recording');
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /stop recording/i })).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /stop recording/i }));
+
+      // Should show error feedback
+      await waitFor(() => {
+        expect(screen.getByTestId('error-feedback')).toBeInTheDocument();
       });
     });
   });
 
   describe('feedback', () => {
-    it('shows success feedback after successful upload', async () => {
+    it('clears previous error when starting new recording', async () => {
+      const failingManager = {
+        ...createMockUploadManager(),
+        enqueue: vi.fn(() => Promise.reject(new Error('Failed to save'))),
+      } as unknown as UploadManager;
+
       render(
         <RecordingPage
           recorderService={mockRecorder.service}
-          uploader={mockUploader}
+          uploadManager={failingManager}
         />
       );
 
-      // Trigger recording and stop
+      // First recording fails
       act(() => {
         mockRecorder.stateCallback('recording');
       });
@@ -232,75 +256,20 @@ describe('RecordingPage', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /stop recording/i }));
 
-      // Wait for success feedback
-      await waitFor(() => {
-        expect(screen.getByTestId('success-feedback')).toBeInTheDocument();
-      });
-    });
-
-    it('shows error feedback when upload fails', async () => {
-      const failingUploader = {
-        ...createMockUploader(),
-        finalizeUpload: vi.fn(() => Promise.reject(new Error('Upload failed'))),
-      };
-
-      render(
-        <RecordingPage
-          recorderService={mockRecorder.service}
-          uploader={failingUploader}
-        />
-      );
-
-      // Trigger recording and stop
-      act(() => {
-        mockRecorder.stateCallback('recording');
-      });
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /stop recording/i })).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByRole('button', { name: /stop recording/i }));
-
-      // Wait for error feedback
       await waitFor(() => {
         expect(screen.getByTestId('error-feedback')).toBeInTheDocument();
       });
-    });
 
-    it('disables start button during upload', async () => {
-      // Create a delayed uploader
-      const delayedUploader: Uploader = {
-        ...createMockUploader(),
-        finalizeUpload: vi.fn(() => new Promise(() => {})), // Never resolves
-      };
-
-      render(
-        <RecordingPage
-          recorderService={mockRecorder.service}
-          uploader={delayedUploader}
-        />
-      );
-
-      // Trigger recording and stop
-      act(() => {
-        mockRecorder.stateCallback('recording');
-      });
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /stop recording/i })).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByRole('button', { name: /stop recording/i }));
-
-      // Wait for state to go back to idle
+      // Go back to idle
       act(() => {
         mockRecorder.stateCallback('idle');
       });
 
+      // Start new recording - error should be cleared
+      fireEvent.click(screen.getByRole('button', { name: /start recording/i }));
+
       await waitFor(() => {
-        const startButton = screen.getByRole('button', { name: /start recording/i });
-        expect(startButton).toBeDisabled();
+        expect(screen.queryByTestId('error-feedback')).not.toBeInTheDocument();
       });
     });
   });
