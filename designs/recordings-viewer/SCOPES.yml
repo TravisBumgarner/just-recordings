@@ -51,4 +51,4 @@ tasks:
       - Delete recording functionality with confirmation
     depends_on: [1]
     effort: 2
-    status: implementing
+    status: completed
