@@ -1,0 +1,11 @@
+{
+  "name": "@just-recordings/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "echo 'API dev script - to be implemented'",
+    "build": "echo 'API build script - to be implemented'",
+    "test": "echo 'API test script - to be implemented'"
+  }
+}
