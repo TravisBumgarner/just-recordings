@@ -30,7 +30,7 @@ tasks:
       - npm run test:recorder script in root package.json
     depends_on: []
     effort: 1
-    status: implementing
+    status: completed
 
   - id: 2
     github_issue: 22
