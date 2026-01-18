@@ -1,0 +1,106 @@
+project: Electron App Foundation
+repo: travisbumgarner/just-recordings
+design_file: designs/electron-app/DESIGN.md
+scoping_date: 2026-01-17
+
+milestones:
+  - number: 2
+    title: "2. Electron App Foundation"
+    description: Set up Electron desktop app with React, TypeScript, Material UI, and Vite, connected to the Express backend
+    branch:
+      working: 2-electron-app-foundation
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 11
+    milestone: 2
+    title: Set up Electron package with electron-vite
+    description: |
+      Initialize the Electron desktop package using electron-vite for the build
+      toolchain. This creates the foundation for the desktop app with proper
+      TypeScript configuration for main, preload, and renderer processes.
+    acceptance_criteria:
+      - packages/desktop/package.json with Electron, electron-vite, and TypeScript dependencies
+      - packages/desktop/electron.vite.config.ts with main, preload, and renderer configurations
+      - packages/desktop/tsconfig.json for renderer process extending base config
+      - packages/desktop/tsconfig.node.json for main/preload processes
+      - Basic src/main/index.ts creating a BrowserWindow
+      - Basic src/preload/index.ts with contextBridge setup
+      - Root workspace updated to include desktop package
+    depends_on: []
+    effort: 2
+    status: implementing
+
+  - id: 2
+    github_issue: 12
+    milestone: 2
+    title: Set up React renderer with Material UI
+    description: |
+      Create the React renderer process with Vite, TypeScript, and Material UI
+      configured. This mirrors the web app setup but runs inside Electron's
+      renderer process.
+    acceptance_criteria:
+      - src/renderer/index.html entry point for renderer
+      - src/renderer/src/main.tsx with React DOM render and MUI ThemeProvider
+      - src/renderer/src/App.tsx with React Router and basic layout
+      - Home page component at / route
+      - Vitest configured for renderer tests
+      - Unit test for App component renders
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  - id: 3
+    github_issue: 13
+    milestone: 2
+    title: Create API service layer for desktop app
+    description: |
+      Implement an API service module in the desktop renderer that handles
+      communication with the Express backend. Similar to the web app's API
+      service but configured for Electron's renderer process.
+    acceptance_criteria:
+      - src/renderer/src/services/api.ts with typed fetch wrapper
+      - Base URL from environment variable with fallback to http://localhost:3001/api
+      - checkHealth() function calling GET /api/health
+      - Error handling for network failures
+      - TypeScript types for API responses
+      - Unit tests for API service functions
+    depends_on: [2]
+    effort: 2
+    status: scoped
+
+  - id: 4
+    github_issue: 14
+    milestone: 2
+    title: Add Electron version display and health status to Home page
+    description: |
+      Enhance the Home page to display Electron environment information and
+      backend health status. This demonstrates the preload bridge working
+      and API connectivity.
+    acceptance_criteria:
+      - Preload script exposes Electron/Chrome/Node versions via contextBridge
+      - TypeScript declarations for exposed electron API in renderer
+      - Home page displays Electron, Chrome, and Node.js versions
+      - Home page calls health check on mount and displays status
+      - Loading and error states for health check
+      - Unit tests for Home page component
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 5
+    github_issue: 15
+    milestone: 2
+    title: Configure root dev scripts for desktop
+    description: |
+      Add root-level npm scripts to run the desktop app in development mode,
+      similar to how web and api are configured.
+    acceptance_criteria:
+      - npm run dev:desktop script in root package.json
+      - npm run build:desktop script in root package.json
+      - npm run test:desktop script in root package.json
+      - Environment example file for desktop package
+    depends_on: [1]
+    effort: 1
+    status: scoped
