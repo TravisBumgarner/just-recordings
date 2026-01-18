@@ -10,11 +10,8 @@ import {
   Grid,
   Typography,
 } from '@mui/material';
-import type { RecorderService, Recording } from '@just-recordings/recorder';
-
-export interface RecordingsListPageProps {
-  recorderService: RecorderService;
-}
+import { getRecordings } from '../services/api';
+import type { RecordingMetadata } from '../types/api';
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -32,7 +29,8 @@ function formatFileSize(bytes: number): string {
   return `${kb.toFixed(1)} KB`;
 }
 
-function formatDate(date: Date): string {
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -40,18 +38,24 @@ function formatDate(date: Date): string {
   });
 }
 
-function RecordingsListPage({ recorderService }: RecordingsListPageProps) {
-  const [recordings, setRecordings] = useState<Recording[]>([]);
+function RecordingsListPage() {
+  const [recordings, setRecordings] = useState<RecordingMetadata[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const fetchRecordings = async () => {
-      const allRecordings = await recorderService.getAllRecordings();
-      setRecordings(allRecordings);
-      setLoading(false);
+      try {
+        const allRecordings = await getRecordings();
+        setRecordings(allRecordings);
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchRecordings();
-  }, [recorderService]);
+  }, []);
 
   if (loading) {
     return (
@@ -62,6 +66,26 @@ function RecordingsListPage({ recorderService }: RecordingsListPageProps) {
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }} data-testid="loading-indicator">
             <CircularProgress />
+          </Box>
+        </Box>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="lg">
+        <Box sx={{ py: 4 }}>
+          <Typography variant="h3" component="h1" gutterBottom>
+            Recordings
+          </Typography>
+          <Box sx={{ textAlign: 'center', py: 4 }} data-testid="error-state">
+            <Typography variant="h6" color="text.secondary">
+              Failed to load recordings
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Please try again later.
+            </Typography>
           </Box>
         </Box>
       </Container>

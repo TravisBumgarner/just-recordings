@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Box,
@@ -12,11 +12,8 @@ import {
   DialogTitle,
   Typography,
 } from '@mui/material';
-import type { RecorderService, Recording } from '@just-recordings/recorder';
-
-export interface RecordingViewerPageProps {
-  recorderService: RecorderService;
-}
+import { getRecording, getVideoUrl, deleteRecording } from '../services/api';
+import type { RecordingMetadata } from '../types/api';
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -34,7 +31,8 @@ function formatFileSize(bytes: number): string {
   return `${kb.toFixed(1)} KB`;
 }
 
-function formatDate(date: Date): string {
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -42,10 +40,10 @@ function formatDate(date: Date): string {
   });
 }
 
-function RecordingViewerPage({ recorderService }: RecordingViewerPageProps) {
+function RecordingViewerPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [recording, setRecording] = useState<Recording | null>(null);
+  const [recording, setRecording] = useState<RecordingMetadata | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -58,31 +56,23 @@ function RecordingViewerPage({ recorderService }: RecordingViewerPageProps) {
         return;
       }
 
-      const recordingData = await recorderService.getRecording(parseInt(id, 10));
-      if (!recordingData) {
+      try {
+        const recordingData = await getRecording(id);
+        if (!recordingData) {
+          setError(true);
+        } else {
+          setRecording(recordingData);
+        }
+      } catch {
         setError(true);
-      } else {
-        setRecording(recordingData);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchRecording();
-  }, [id, recorderService]);
+  }, [id]);
 
-  const videoUrl = useMemo(() => {
-    if (recording?.blob) {
-      return URL.createObjectURL(recording.blob);
-    }
-    return null;
-  }, [recording]);
-
-  useEffect(() => {
-    return () => {
-      if (videoUrl) {
-        URL.revokeObjectURL(videoUrl);
-      }
-    };
-  }, [videoUrl]);
+  const videoUrl = id ? getVideoUrl(id) : undefined;
 
   const handleDeleteClick = () => {
     setDeleteDialogOpen(true);
@@ -94,7 +84,7 @@ function RecordingViewerPage({ recorderService }: RecordingViewerPageProps) {
 
   const handleDeleteConfirm = async () => {
     if (recording?.id) {
-      await recorderService.deleteRecording(recording.id);
+      await deleteRecording(recording.id);
       navigate('/recordings');
     }
   };
@@ -143,7 +133,7 @@ function RecordingViewerPage({ recorderService }: RecordingViewerPageProps) {
         <Box sx={{ mb: 3 }}>
           <video
             data-testid="video-player"
-            src={videoUrl || undefined}
+            src={videoUrl}
             controls
             style={{ width: '100%', maxHeight: '70vh' }}
           />
