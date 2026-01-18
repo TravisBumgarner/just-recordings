@@ -82,4 +82,4 @@ tasks:
       - Unit tests for the recording component
     depends_on: [2]
     effort: 2
-    status: testing
+    status: implementing
