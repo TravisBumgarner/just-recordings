@@ -1,0 +1,103 @@
+project: Web App Foundation
+repo: travisbumgarner/just-recordings
+design_file: designs/web-app/DESIGN.md
+scoping_date: 2026-01-17
+
+milestones:
+  - number: 1
+    title: "1. Web App Foundation"
+    description: Set up React frontend with Vite, TypeScript, Material UI, and Express backend in a monorepo structure
+    branch:
+      working: 1-web-app-foundation
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 1
+    milestone: 1
+    title: Set up monorepo with npm workspaces
+    description: |
+      Initialize the monorepo structure with npm workspaces for managing the
+      web frontend and API backend packages. This is the foundation that all
+      other tasks depend on.
+    acceptance_criteria:
+      - Root package.json with npm workspaces configuration pointing to packages/*
+      - Shared tsconfig.base.json with common TypeScript settings (strict mode, ES2022 target)
+      - .gitignore with Node.js defaults (node_modules, dist, .env)
+      - Root scripts for dev, build, and test that run across all packages
+    depends_on: []
+    effort: 1
+    status: scoped
+
+  - id: 2
+    github_issue: 2
+    milestone: 1
+    title: Set up Express backend with TypeScript
+    description: |
+      Create the Express backend package with TypeScript configuration,
+      health check endpoint, and development tooling.
+    acceptance_criteria:
+      - packages/api/package.json with Express, TypeScript, and dev dependencies
+      - packages/api/tsconfig.json extending the base config
+      - packages/api/src/index.ts entry point with Express server on configurable PORT
+      - GET /api/health endpoint returning { status: "ok" }
+      - CORS and JSON body parsing middleware enabled
+      - Development script using tsx watch for hot reload
+      - Unit test for health endpoint
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  - id: 3
+    github_issue: 3
+    milestone: 1
+    title: Set up React frontend with Vite, TypeScript, and Material UI
+    description: |
+      Create the React frontend package using Vite as the build tool,
+      with TypeScript and Material UI configured. Includes basic routing
+      and a home page.
+    acceptance_criteria:
+      - packages/web/package.json with React 18, Vite, TypeScript, MUI v5, React Router
+      - packages/web/tsconfig.json extending the base config
+      - packages/web/vite.config.ts with React plugin and API proxy
+      - packages/web/src/main.tsx with MUI ThemeProvider
+      - packages/web/src/App.tsx with React Router and basic layout
+      - Home page component at / route
+      - Unit test for App component renders
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  - id: 4
+    github_issue: 4
+    milestone: 1
+    title: Create API service layer for frontend-backend communication
+    description: |
+      Implement an API service module in the frontend that handles
+      communication with the Express backend using typed fetch calls.
+    acceptance_criteria:
+      - packages/web/src/services/api.ts with typed fetch wrapper
+      - Base URL from VITE_API_URL with fallback to /api
+      - checkHealth() function calling GET /api/health
+      - Error handling for network failures
+      - TypeScript types for API responses
+      - Unit tests for API service functions
+    depends_on: [2, 3]
+    effort: 2
+    status: scoped
+
+  - id: 5
+    github_issue: 5
+    milestone: 1
+    title: Configure concurrent development scripts
+    description: |
+      Set up development scripts that run both frontend and backend
+      concurrently for local development with proper proxying.
+    acceptance_criteria:
+      - Install concurrently in root package
+      - Root npm run dev starts both web and api in parallel
+      - Vite dev server proxies /api requests to backend port 3001
+      - Environment example files for both packages
+    depends_on: [2, 3]
+    effort: 1
+    status: scoped
