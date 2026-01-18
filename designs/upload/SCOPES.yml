@@ -1,0 +1,85 @@
+project: Upload Feature
+repo: travisbumgarner/just-recordings
+design_file: designs/upload/DESIGN.md
+scoping_date: 2026-01-18
+
+milestones:
+  - number: 4
+    title: "4. Upload Feature"
+    description: Add chunked upload functionality with development backend endpoint and production stubs. Integrate uploads in web and desktop apps.
+    branch:
+      working: 4-upload-feature
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 29
+    milestone: 4
+    title: Create dev-only chunked upload endpoints
+    description: |
+      Add chunked upload endpoints to the Express API that only work in development
+      mode. These endpoints receive video chunks during upload, store them temporarily,
+      and merge them into a final video file when finalized.
+    acceptance_criteria:
+      - Dev-only middleware that returns 404 if NODE_ENV !== 'development'
+      - POST /api/dev/upload/start creates upload session, returns { uploadId }
+      - POST /api/dev/upload/:uploadId/chunk receives chunk via multipart/form-data
+      - POST /api/dev/upload/:uploadId/finalize merges chunks into final video
+      - Chunks stored in temp directory, final files in ./uploads directory
+      - Unit tests for all endpoints using supertest
+    depends_on: []
+    effort: 3
+    status: testing
+
+  - id: 2
+    github_issue: 30
+    milestone: 4
+    title: Create Uploader interface with dev and production implementations
+    description: |
+      Add an Uploader abstraction to the recorder package with a development
+      implementation that uploads to the backend, and a production stub for
+      future cloud storage integration.
+    acceptance_criteria:
+      - Uploader interface with startUpload, uploadChunk, finalizeUpload methods
+      - DevUploader class that calls the backend dev endpoints
+      - ProdUploader class as stub (throws "Not implemented" error)
+      - createUploader(baseUrl, isDev) factory function
+      - Helper to chunk a Blob into smaller pieces for upload
+      - Unit tests with mocked fetch
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  - id: 3
+    github_issue: 31
+    milestone: 4
+    title: Add recording and upload UI to web app
+    description: |
+      Create a recording UI in the web app that uses RecorderService for screen
+      capture and uploads the recording via the Uploader service.
+    acceptance_criteria:
+      - Recording page/component accessible from navigation
+      - Start/Stop Recording buttons using RecorderService
+      - Upload progress indicator during chunked upload
+      - Success/error feedback after upload completes
+      - Unit tests for the recording component
+    depends_on: [2]
+    effort: 2
+    status: scoped
+
+  - id: 4
+    github_issue: 32
+    milestone: 4
+    title: Add recording and upload UI to desktop app
+    description: |
+      Create a recording UI in the desktop Electron app with the same functionality
+      as the web app, using RecorderService and Uploader.
+    acceptance_criteria:
+      - Recording page/component accessible from navigation
+      - Start/Stop Recording buttons using RecorderService
+      - Upload progress indicator during chunked upload
+      - Success/error feedback after upload completes
+      - Unit tests for the recording component
+    depends_on: [2]
+    effort: 2
+    status: scoped
