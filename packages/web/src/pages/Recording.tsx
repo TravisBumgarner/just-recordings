@@ -1,6 +1,7 @@
 import { Box, Button, Container, LinearProgress, Typography, Alert } from '@mui/material';
 import { useState, useEffect, useCallback } from 'react';
 import type { RecorderService, Recording as RecordingType, RecorderState, Uploader } from '@just-recordings/recorder';
+import { chunkBlob } from '@just-recordings/recorder';
 
 export interface RecordingPageProps {
   recorderService: RecorderService;
@@ -35,12 +36,71 @@ function RecordingPage({ recorderService, uploader }: RecordingPageProps) {
   }, [recorderService]);
 
   const handleStartRecording = useCallback(async () => {
-    // TODO: Implement start recording
-  }, []);
+    setFeedback({ type: 'none' });
+    await recorderService.startScreenRecording();
+  }, [recorderService]);
 
   const handleStopRecording = useCallback(async () => {
-    // TODO: Implement stop recording and upload
-  }, []);
+    try {
+      // Stop recording and get the recording data
+      const recording = await recorderService.stopRecording();
+
+      // Start upload
+      const uploadId = await uploader.startUpload();
+
+      // Chunk the blob
+      const chunks = chunkBlob(recording.blob);
+      const totalChunks = chunks.length;
+
+      setUploadState({
+        uploading: true,
+        progress: 0,
+        totalChunks,
+        uploadedChunks: 0,
+      });
+
+      // Upload each chunk
+      for (let i = 0; i < chunks.length; i++) {
+        await uploader.uploadChunk(uploadId, chunks[i], i);
+        setUploadState((prev) => ({
+          ...prev,
+          uploadedChunks: i + 1,
+          progress: ((i + 1) / totalChunks) * 100,
+        }));
+      }
+
+      // Finalize upload
+      const result = await uploader.finalizeUpload(uploadId, {
+        filename: recording.name,
+        mimeType: recording.mimeType,
+        totalChunks,
+      });
+
+      setUploadState({
+        uploading: false,
+        progress: 100,
+        totalChunks: 0,
+        uploadedChunks: 0,
+      });
+
+      setFeedback({
+        type: 'success',
+        message: `Upload complete! File saved to ${result.path}`,
+      });
+    } catch (error) {
+      setUploadState({
+        uploading: false,
+        progress: 0,
+        totalChunks: 0,
+        uploadedChunks: 0,
+      });
+
+      setFeedback({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Upload failed',
+      });
+    }
+  }, [recorderService, uploader]);
 
   return (
     <Container maxWidth="lg">

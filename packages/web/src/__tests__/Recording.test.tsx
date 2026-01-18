@@ -270,7 +270,7 @@ describe('RecordingPage', () => {
 
     it('disables start button during upload', async () => {
       // Create a delayed uploader
-      const delayedUploader = {
+      const delayedUploader: Uploader = {
         ...createMockUploader(),
         finalizeUpload: vi.fn(() => new Promise(() => {})), // Never resolves
       };
