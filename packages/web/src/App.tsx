@@ -1,6 +1,16 @@
-// Stub: Returns null to make tests fail (TDD red phase)
+import { CssBaseline } from '@mui/material';
+import { Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+
 function App() {
-  return null;
+  return (
+    <>
+      <CssBaseline />
+      <Routes>
+        <Route path="/" element={<Home />} />
+      </Routes>
+    </>
+  );
 }
 
 export default App;
