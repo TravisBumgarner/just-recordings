@@ -49,7 +49,7 @@ tasks:
       - Unit test for App component renders
     depends_on: [1]
     effort: 2
-    status: implementing
+    status: completed
 
   - id: 3
     github_issue: 13
