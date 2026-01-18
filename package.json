@@ -6,7 +6,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n api,web -c blue,green \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:concurrent:web": "concurrently -n api,web -c blue,green \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:concurrent:desktop": "concurrently -n api,desktop -c blue,green \"npm run dev:api\" \"npm run dev:desktop\"",
     "dev:api": "npm run dev -w @just-recordings/api",
     "dev:web": "npm run dev -w @just-recordings/web",
     "dev:desktop": "npm run dev -w @just-recordings/desktop",
