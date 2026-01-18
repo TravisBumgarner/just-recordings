@@ -2,36 +2,38 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import RecordingViewerPage from '../pages/RecordingViewer';
-import type { RecorderService, Recording } from '@just-recordings/recorder';
+import type { RecordingMetadata } from '../types/api';
 
-// Helper to create mock recording
-function createMockRecording(overrides: Partial<Recording> = {}): Recording {
+// Mock the API module
+vi.mock('../services/api', () => ({
+  getRecording: vi.fn(),
+  getVideoUrl: vi.fn((id: string) => `/api/recordings/${id}/video`),
+  deleteRecording: vi.fn(),
+  ApiError: class ApiError extends Error {
+    constructor(message: string, public statusCode?: number) {
+      super(message);
+      this.name = 'ApiError';
+    }
+  },
+}));
+
+import { getRecording, getVideoUrl, deleteRecording, ApiError } from '../services/api';
+const mockGetRecording = vi.mocked(getRecording);
+const mockGetVideoUrl = vi.mocked(getVideoUrl);
+const mockDeleteRecording = vi.mocked(deleteRecording);
+
+// Helper to create mock recording metadata
+function createMockRecording(overrides: Partial<RecordingMetadata> = {}): RecordingMetadata {
   return {
-    id: 1,
+    id: 'test-id',
     name: 'Test Recording',
-    blob: new Blob(['test video content'], { type: 'video/webm' }),
     mimeType: 'video/webm',
     duration: 90000, // 1:30
-    createdAt: new Date('2026-01-15T10:00:00'),
+    createdAt: '2026-01-15T10:00:00Z',
     fileSize: 1024 * 1024 * 2.5, // 2.5 MB
+    path: 'uploads/test.webm',
     ...overrides,
   };
-}
-
-// Mock RecorderService
-function createMockRecorderService(recording?: Recording): RecorderService {
-  return {
-    getState: vi.fn(() => 'idle'),
-    onStateChange: vi.fn(() => vi.fn()),
-    startScreenRecording: vi.fn(),
-    stopRecording: vi.fn(),
-    pauseRecording: vi.fn(),
-    resumeRecording: vi.fn(),
-    saveRecording: vi.fn(),
-    getRecording: vi.fn((id: number) => Promise.resolve(recording)),
-    getAllRecordings: vi.fn(),
-    deleteRecording: vi.fn(() => Promise.resolve()),
-  } as unknown as RecorderService;
 }
 
 // Render with router at specific path
@@ -50,34 +52,20 @@ function renderAtPath(
   );
 }
 
-// Mock URL.createObjectURL and revokeObjectURL
-const mockCreateObjectURL = vi.fn(() => 'blob:mock-url');
-const mockRevokeObjectURL = vi.fn();
-
 describe('RecordingViewerPage', () => {
-  let mockRecorderService: RecorderService;
-
   beforeEach(() => {
-    mockRecorderService = createMockRecorderService(createMockRecording());
-    global.URL.createObjectURL = mockCreateObjectURL;
-    global.URL.revokeObjectURL = mockRevokeObjectURL;
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
+    mockGetRecording.mockReset();
+    mockDeleteRecording.mockReset();
   });
 
   describe('loading state', () => {
     it('shows loading indicator while fetching recording', () => {
-      const slowService = {
-        ...createMockRecorderService(),
-        getRecording: vi.fn(() => new Promise(() => {})),
-      } as unknown as RecorderService;
+      mockGetRecording.mockImplementation(() => new Promise(() => {}));
 
       renderAtPath(
-        <RecordingViewerPage recorderService={slowService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/1']
+        ['/recordings/test-id']
       );
 
       expect(screen.getByTestId('loading-indicator')).toBeInTheDocument();
@@ -86,12 +74,12 @@ describe('RecordingViewerPage', () => {
 
   describe('error state', () => {
     it('shows error when recording not found', async () => {
-      const serviceWithNoRecording = createMockRecorderService(undefined);
+      mockGetRecording.mockResolvedValue(null);
 
       renderAtPath(
-        <RecordingViewerPage recorderService={serviceWithNoRecording} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/999']
+        ['/recordings/nonexistent']
       );
 
       await waitFor(() => {
@@ -100,12 +88,12 @@ describe('RecordingViewerPage', () => {
     });
 
     it('displays not found message', async () => {
-      const serviceWithNoRecording = createMockRecorderService(undefined);
+      mockGetRecording.mockResolvedValue(null);
 
       renderAtPath(
-        <RecordingViewerPage recorderService={serviceWithNoRecording} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/999']
+        ['/recordings/nonexistent']
       );
 
       await waitFor(() => {
@@ -115,51 +103,59 @@ describe('RecordingViewerPage', () => {
   });
 
   describe('video player', () => {
-    it('displays video element with recording blob', async () => {
+    it('displays video element with server URL', async () => {
+      mockGetRecording.mockResolvedValue(createMockRecording({ id: 'video-test' }));
+
       renderAtPath(
-        <RecordingViewerPage recorderService={mockRecorderService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/1']
+        ['/recordings/video-test']
       );
 
       await waitFor(() => {
         const video = screen.getByTestId('video-player');
         expect(video).toBeInTheDocument();
-        expect(video).toHaveAttribute('src', 'blob:mock-url');
+        expect(video).toHaveAttribute('src', '/api/recordings/video-test/video');
       });
     });
 
-    it('creates object URL from recording blob', async () => {
+    it('uses getVideoUrl to construct video source', async () => {
+      mockGetRecording.mockResolvedValue(createMockRecording({ id: 'url-test' }));
+
       renderAtPath(
-        <RecordingViewerPage recorderService={mockRecorderService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/1']
+        ['/recordings/url-test']
       );
 
       await waitFor(() => {
-        expect(mockCreateObjectURL).toHaveBeenCalled();
+        expect(mockGetVideoUrl).toHaveBeenCalledWith('url-test');
       });
     });
   });
 
   describe('recording metadata', () => {
     it('displays recording name', async () => {
+      mockGetRecording.mockResolvedValue(createMockRecording({ name: 'My Test Recording' }));
+
       renderAtPath(
-        <RecordingViewerPage recorderService={mockRecorderService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/1']
+        ['/recordings/test-id']
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Test Recording')).toBeInTheDocument();
+        expect(screen.getByText('My Test Recording')).toBeInTheDocument();
       });
     });
 
     it('displays recording duration', async () => {
+      mockGetRecording.mockResolvedValue(createMockRecording({ duration: 90000 }));
+
       renderAtPath(
-        <RecordingViewerPage recorderService={mockRecorderService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/1']
+        ['/recordings/test-id']
       );
 
       await waitFor(() => {
@@ -168,10 +164,12 @@ describe('RecordingViewerPage', () => {
     });
 
     it('displays recording date', async () => {
+      mockGetRecording.mockResolvedValue(createMockRecording({ createdAt: '2026-01-15T10:00:00Z' }));
+
       renderAtPath(
-        <RecordingViewerPage recorderService={mockRecorderService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/1']
+        ['/recordings/test-id']
       );
 
       await waitFor(() => {
@@ -180,10 +178,12 @@ describe('RecordingViewerPage', () => {
     });
 
     it('displays recording file size', async () => {
+      mockGetRecording.mockResolvedValue(createMockRecording({ fileSize: 1024 * 1024 * 2.5 }));
+
       renderAtPath(
-        <RecordingViewerPage recorderService={mockRecorderService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/1']
+        ['/recordings/test-id']
       );
 
       await waitFor(() => {
@@ -194,10 +194,12 @@ describe('RecordingViewerPage', () => {
 
   describe('navigation', () => {
     it('has back link to recordings list', async () => {
+      mockGetRecording.mockResolvedValue(createMockRecording());
+
       renderAtPath(
-        <RecordingViewerPage recorderService={mockRecorderService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/1']
+        ['/recordings/test-id']
       );
 
       await waitFor(() => {
@@ -208,25 +210,29 @@ describe('RecordingViewerPage', () => {
   });
 
   describe('fetching recording', () => {
-    it('calls getRecording with ID from URL', async () => {
+    it('calls getRecording API with ID from URL', async () => {
+      mockGetRecording.mockResolvedValue(createMockRecording());
+
       renderAtPath(
-        <RecordingViewerPage recorderService={mockRecorderService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/42']
+        ['/recordings/abc-123']
       );
 
       await waitFor(() => {
-        expect(mockRecorderService.getRecording).toHaveBeenCalledWith(42);
+        expect(mockGetRecording).toHaveBeenCalledWith('abc-123');
       });
     });
   });
 
   describe('delete functionality', () => {
     it('has delete button', async () => {
+      mockGetRecording.mockResolvedValue(createMockRecording());
+
       renderAtPath(
-        <RecordingViewerPage recorderService={mockRecorderService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/1']
+        ['/recordings/test-id']
       );
 
       await waitFor(() => {
@@ -235,10 +241,12 @@ describe('RecordingViewerPage', () => {
     });
 
     it('shows confirmation dialog when delete clicked', async () => {
+      mockGetRecording.mockResolvedValue(createMockRecording());
+
       renderAtPath(
-        <RecordingViewerPage recorderService={mockRecorderService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/1']
+        ['/recordings/test-id']
       );
 
       await waitFor(() => {
@@ -252,11 +260,14 @@ describe('RecordingViewerPage', () => {
       });
     });
 
-    it('calls deleteRecording when confirmed', async () => {
+    it('calls deleteRecording API when confirmed', async () => {
+      mockGetRecording.mockResolvedValue(createMockRecording({ id: 'delete-test' }));
+      mockDeleteRecording.mockResolvedValue(undefined);
+
       renderAtPath(
-        <RecordingViewerPage recorderService={mockRecorderService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/1']
+        ['/recordings/delete-test']
       );
 
       await waitFor(() => {
@@ -272,15 +283,18 @@ describe('RecordingViewerPage', () => {
       fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
 
       await waitFor(() => {
-        expect(mockRecorderService.deleteRecording).toHaveBeenCalledWith(1);
+        expect(mockDeleteRecording).toHaveBeenCalledWith('delete-test');
       });
     });
 
     it('navigates to recordings list after deletion', async () => {
+      mockGetRecording.mockResolvedValue(createMockRecording());
+      mockDeleteRecording.mockResolvedValue(undefined);
+
       renderAtPath(
-        <RecordingViewerPage recorderService={mockRecorderService} />,
+        <RecordingViewerPage />,
         '/recordings/:id',
-        ['/recordings/1']
+        ['/recordings/test-id']
       );
 
       await waitFor(() => {
