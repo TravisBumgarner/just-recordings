@@ -134,23 +134,19 @@ export class RecorderService {
     }
   }
 
-  // Storage operations - stubs for TDD red phase
-  async saveRecording(_recording: Recording): Promise<number> {
-    // Stub: returns 0
-    return 0;
+  async saveRecording(recording: Recording): Promise<number> {
+    return await this.db.recordings.add(recording);
   }
 
-  async getRecording(_id: number): Promise<Recording | undefined> {
-    // Stub: returns undefined
-    return undefined;
+  async getRecording(id: number): Promise<Recording | undefined> {
+    return await this.db.recordings.get(id);
   }
 
   async getAllRecordings(): Promise<Recording[]> {
-    // Stub: returns empty array
-    return [];
+    return await this.db.recordings.orderBy('createdAt').reverse().toArray();
   }
 
-  async deleteRecording(_id: number): Promise<void> {
-    // Stub: does nothing
+  async deleteRecording(id: number): Promise<void> {
+    await this.db.recordings.delete(id);
   }
 }
