@@ -28,6 +28,14 @@ function Home() {
           >
             View Recordings
           </Button>
+          <Button
+            component={Link}
+            to="/uploads"
+            variant="outlined"
+            color="secondary"
+          >
+            Upload Queue
+          </Button>
         </Box>
       </Box>
     </Container>

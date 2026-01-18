@@ -97,18 +97,18 @@ describe('UploadQueue', () => {
 
     it('shows upload status for each recording', async () => {
       const recordings = [
-        createTestRecording({ id: 1, name: 'Pending One', uploadStatus: 'pending' }),
-        createTestRecording({ id: 2, name: 'Uploading One', uploadStatus: 'uploading' }),
-        createTestRecording({ id: 3, name: 'Failed One', uploadStatus: 'failed' }),
+        createTestRecording({ id: 1, name: 'Recording A', uploadStatus: 'pending' }),
+        createTestRecording({ id: 2, name: 'Recording B', uploadStatus: 'uploading' }),
+        createTestRecording({ id: 3, name: 'Recording C', uploadStatus: 'failed' }),
       ];
       const { manager } = createMockUploadManager(recordings);
 
       renderWithRouter(<UploadQueue uploadManager={manager} />);
 
       await waitFor(() => {
-        expect(screen.getByText(/pending/i)).toBeInTheDocument();
-        expect(screen.getByText(/uploading/i)).toBeInTheDocument();
-        expect(screen.getByText(/failed/i)).toBeInTheDocument();
+        expect(screen.getByText('Pending')).toBeInTheDocument();
+        expect(screen.getByText('Uploading')).toBeInTheDocument();
+        expect(screen.getByText('Failed')).toBeInTheDocument();
       });
     });
 

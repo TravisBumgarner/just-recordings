@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Recording from './pages/Recording';
 import RecordingsList from './pages/RecordingsList';
 import RecordingViewer from './pages/RecordingViewer';
+import UploadQueue from './pages/UploadQueue';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -28,6 +29,7 @@ function App() {
         <Route path="/recording" element={<Recording recorderService={recorderService} uploadManager={uploadManager} />} />
         <Route path="/recordings" element={<RecordingsList />} />
         <Route path="/recordings/:id" element={<RecordingViewer />} />
+        <Route path="/uploads" element={<UploadQueue uploadManager={uploadManager} />} />
       </Routes>
     </>
   );
