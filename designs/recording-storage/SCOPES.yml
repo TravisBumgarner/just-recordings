@@ -49,7 +49,7 @@ tasks:
       - Handle page refresh - resume uploads from IndexedDB queue on app load
     depends_on: [1]
     effort: 3
-    status: implementing
+    status: completed
 
   - id: 3
     github_issue: 44
