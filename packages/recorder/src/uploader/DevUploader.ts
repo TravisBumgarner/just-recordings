@@ -8,26 +8,40 @@ export class DevUploader implements Uploader {
   }
 
   async startUpload(): Promise<string> {
-    return '';
+    const response = await fetch(`${this.baseUrl}/dev/upload/start`, {
+      method: 'POST',
+    });
+    const data = await response.json();
+    return data.uploadId;
   }
 
   async uploadChunk(
-    _uploadId: string,
-    _chunk: Blob,
-    _index: number
+    uploadId: string,
+    chunk: Blob,
+    index: number
   ): Promise<void> {
-    // stub
+    const formData = new FormData();
+    formData.append('index', String(index));
+    formData.append('chunk', chunk);
+
+    await fetch(`${this.baseUrl}/dev/upload/${uploadId}/chunk`, {
+      method: 'POST',
+      body: formData,
+    });
   }
 
   async finalizeUpload(
-    _uploadId: string,
-    _metadata: UploadMetadata
+    uploadId: string,
+    metadata: UploadMetadata
   ): Promise<UploadResult> {
-    return {
-      success: false,
-      fileId: '',
-      path: '',
-      size: 0,
-    };
+    const response = await fetch(
+      `${this.baseUrl}/dev/upload/${uploadId}/finalize`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(metadata),
+      }
+    );
+    return await response.json();
   }
 }

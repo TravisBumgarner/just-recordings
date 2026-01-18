@@ -48,7 +48,7 @@ tasks:
       - Unit tests with mocked fetch
     depends_on: [1]
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 3
     github_issue: 31
