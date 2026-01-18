@@ -1,0 +1,11 @@
+{
+  "name": "@just-recordings/web",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "echo 'Web dev script - to be implemented'",
+    "build": "echo 'Web build script - to be implemented'",
+    "test": "echo 'Web test script - to be implemented'"
+  }
+}
