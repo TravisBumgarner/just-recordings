@@ -1,9 +1,29 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
 
+// Mock the API service
+vi.mock('../services/api', () => ({
+  checkHealth: vi.fn().mockResolvedValue({ status: 'ok' }),
+}));
+
 describe('App', () => {
+  beforeEach(() => {
+    (window as any).api = {
+      getVersions: vi.fn().mockReturnValue({
+        electron: '28.0.0',
+        chrome: '120.0.0',
+        node: '18.18.0',
+      }),
+    };
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    delete (window as any).api;
+  });
+
   it('renders without crashing', () => {
     render(
       <MemoryRouter>

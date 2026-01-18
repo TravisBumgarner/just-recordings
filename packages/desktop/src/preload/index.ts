@@ -3,11 +3,10 @@ import { electronAPI } from '@electron-toolkit/preload';
 
 // Custom APIs for renderer
 const api = {
-  // Stub: Returns placeholder values (TDD red phase)
   getVersions: () => ({
-    electron: '',
-    chrome: '',
-    node: '',
+    electron: process.versions.electron,
+    chrome: process.versions.chrome,
+    node: process.versions.node,
   }),
 };
 
