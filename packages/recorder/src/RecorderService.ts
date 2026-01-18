@@ -1,4 +1,5 @@
 import { Recording, RecorderState, RecordingOptions } from './types';
+import { RecorderDatabase } from './db';
 
 const DEFAULT_MIME_TYPE = 'video/webm';
 const TIMESLICE_MS = 1000;
@@ -11,6 +12,11 @@ export class RecorderService {
   private chunks: Blob[] = [];
   private startTime: number = 0;
   private mimeType: string = DEFAULT_MIME_TYPE;
+  private db: RecorderDatabase;
+
+  constructor(db?: RecorderDatabase) {
+    this.db = db || new RecorderDatabase();
+  }
 
   getState(): RecorderState {
     return this.state;
@@ -126,5 +132,25 @@ export class RecorderService {
       this.mediaRecorder.resume();
       this.setState('recording');
     }
+  }
+
+  // Storage operations - stubs for TDD red phase
+  async saveRecording(_recording: Recording): Promise<number> {
+    // Stub: returns 0
+    return 0;
+  }
+
+  async getRecording(_id: number): Promise<Recording | undefined> {
+    // Stub: returns undefined
+    return undefined;
+  }
+
+  async getAllRecordings(): Promise<Recording[]> {
+    // Stub: returns empty array
+    return [];
+  }
+
+  async deleteRecording(_id: number): Promise<void> {
+    // Stub: does nothing
   }
 }
