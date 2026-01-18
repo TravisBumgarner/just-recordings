@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { RecorderService } from '../RecorderService';
+import { RecorderDatabase } from '../db';
+import { Recording } from '../types';
 
 // Mock MediaRecorder
 class MockMediaRecorder {
@@ -181,6 +183,124 @@ describe('RecorderService', () => {
       service.pauseRecording();
       service.resumeRecording();
       expect(service.getState()).toBe('recording');
+    });
+  });
+});
+
+describe('RecorderService storage operations', () => {
+  let service: RecorderService;
+  let db: RecorderDatabase;
+
+  const createTestRecording = (overrides?: Partial<Recording>): Recording => ({
+    name: 'Test Recording',
+    blob: new Blob(['test data'], { type: 'video/webm' }),
+    mimeType: 'video/webm',
+    duration: 5000,
+    createdAt: new Date(),
+    fileSize: 1024,
+    ...overrides,
+  });
+
+  beforeEach(() => {
+    db = new RecorderDatabase();
+    service = new RecorderService(db);
+  });
+
+  afterEach(async () => {
+    await db.delete();
+  });
+
+  describe('constructor', () => {
+    it('accepts an optional database instance', () => {
+      const customDb = new RecorderDatabase();
+      const serviceWithDb = new RecorderService(customDb);
+      expect(serviceWithDb).toBeInstanceOf(RecorderService);
+    });
+
+    it('creates a default database if none provided', () => {
+      const serviceWithoutDb = new RecorderService();
+      expect(serviceWithoutDb).toBeInstanceOf(RecorderService);
+    });
+  });
+
+  describe('saveRecording', () => {
+    it('stores the recording in the database', async () => {
+      const recording = createTestRecording();
+      const id = await service.saveRecording(recording);
+
+      const saved = await db.recordings.get(id);
+      expect(saved).toBeDefined();
+      expect(saved?.name).toBe('Test Recording');
+    });
+
+    it('returns the id of the saved recording', async () => {
+      const recording = createTestRecording();
+      const id = await service.saveRecording(recording);
+
+      expect(typeof id).toBe('number');
+      expect(id).toBeGreaterThan(0);
+    });
+  });
+
+  describe('getRecording', () => {
+    it('retrieves a recording by id', async () => {
+      const recording = createTestRecording({ name: 'Specific Recording' });
+      const id = await db.recordings.add(recording);
+
+      const retrieved = await service.getRecording(id);
+
+      expect(retrieved).toBeDefined();
+      expect(retrieved?.name).toBe('Specific Recording');
+    });
+
+    it('returns undefined for non-existent id', async () => {
+      const retrieved = await service.getRecording(99999);
+      expect(retrieved).toBeUndefined();
+    });
+  });
+
+  describe('getAllRecordings', () => {
+    it('returns all recordings', async () => {
+      await db.recordings.add(createTestRecording({ name: 'Recording 1' }));
+      await db.recordings.add(createTestRecording({ name: 'Recording 2' }));
+
+      const recordings = await service.getAllRecordings();
+
+      expect(recordings).toHaveLength(2);
+    });
+
+    it('returns recordings ordered by createdAt descending', async () => {
+      const olderDate = new Date('2024-01-01');
+      const newerDate = new Date('2024-01-02');
+
+      await db.recordings.add(createTestRecording({ name: 'Older', createdAt: olderDate }));
+      await db.recordings.add(createTestRecording({ name: 'Newer', createdAt: newerDate }));
+
+      const recordings = await service.getAllRecordings();
+
+      expect(recordings[0].name).toBe('Newer');
+      expect(recordings[1].name).toBe('Older');
+    });
+
+    it('returns empty array when no recordings exist', async () => {
+      const recordings = await service.getAllRecordings();
+      expect(recordings).toEqual([]);
+    });
+  });
+
+  describe('deleteRecording', () => {
+    it('removes the recording from the database', async () => {
+      const recording = createTestRecording();
+      const id = await db.recordings.add(recording);
+
+      await service.deleteRecording(id);
+
+      const deleted = await db.recordings.get(id);
+      expect(deleted).toBeUndefined();
+    });
+
+    it('does not throw when deleting non-existent id', async () => {
+      await expect(service.deleteRecording(99999)).resolves.not.toThrow();
     });
   });
 });
