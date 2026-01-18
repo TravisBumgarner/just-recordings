@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from 'electron';
+import { app, shell, BrowserWindow, desktopCapturer, session } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 
@@ -33,6 +33,19 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.just-recordings.desktop');
+
+  // Set up display media request handler for screen capture
+  session.defaultSession.setDisplayMediaRequestHandler(async (_request, callback) => {
+    const sources = await desktopCapturer.getSources({ types: ['screen', 'window'] });
+    // For now, automatically select the first screen source
+    // In a production app, you'd show a picker UI
+    const screenSource = sources.find(source => source.id.startsWith('screen:')) || sources[0];
+    if (screenSource) {
+      callback({ video: screenSource });
+    } else {
+      callback({});
+    }
+  });
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);
