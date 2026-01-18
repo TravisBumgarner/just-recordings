@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import Home from '../Home';
 
 // Mock the API service
@@ -8,6 +9,10 @@ vi.mock('../../services/api', () => ({
 }));
 
 import { checkHealth } from '../../services/api';
+
+const renderWithRouter = (ui: React.ReactElement) => {
+  return render(<MemoryRouter>{ui}</MemoryRouter>);
+};
 
 describe('Home', () => {
   const mockGetVersions = vi.fn();
@@ -33,7 +38,7 @@ describe('Home', () => {
     it('displays Electron version', async () => {
       vi.mocked(checkHealth).mockResolvedValue({ status: 'ok' });
 
-      render(<Home />);
+      renderWithRouter(<Home />);
 
       await waitFor(() => {
         expect(screen.getByText(/electron.*28\.1\.0/i)).toBeInTheDocument();
@@ -43,7 +48,7 @@ describe('Home', () => {
     it('displays Chrome version', async () => {
       vi.mocked(checkHealth).mockResolvedValue({ status: 'ok' });
 
-      render(<Home />);
+      renderWithRouter(<Home />);
 
       await waitFor(() => {
         expect(screen.getByText(/chrome.*120\.0\.0/i)).toBeInTheDocument();
@@ -53,7 +58,7 @@ describe('Home', () => {
     it('displays Node.js version', async () => {
       vi.mocked(checkHealth).mockResolvedValue({ status: 'ok' });
 
-      render(<Home />);
+      renderWithRouter(<Home />);
 
       await waitFor(() => {
         expect(screen.getByText(/node.*18\.18\.0/i)).toBeInTheDocument();
@@ -67,7 +72,7 @@ describe('Home', () => {
         () => new Promise(() => {}) // Never resolves
       );
 
-      render(<Home />);
+      renderWithRouter(<Home />);
 
       expect(screen.getByText(/loading/i)).toBeInTheDocument();
     });
@@ -75,7 +80,7 @@ describe('Home', () => {
     it('shows success state when health check passes', async () => {
       vi.mocked(checkHealth).mockResolvedValue({ status: 'ok' });
 
-      render(<Home />);
+      renderWithRouter(<Home />);
 
       await waitFor(() => {
         expect(screen.getByText(/connected/i)).toBeInTheDocument();
@@ -85,7 +90,7 @@ describe('Home', () => {
     it('shows error state when health check fails', async () => {
       vi.mocked(checkHealth).mockRejectedValue(new Error('Network error'));
 
-      render(<Home />);
+      renderWithRouter(<Home />);
 
       await waitFor(() => {
         expect(screen.getByText(/error|disconnected|failed/i)).toBeInTheDocument();
