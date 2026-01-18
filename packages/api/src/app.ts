@@ -9,8 +9,7 @@ app.use(express.json());
 
 // Routes
 app.get('/api/health', (_req, res) => {
-  // Stub: returns wrong value so tests fail (TDD red phase)
-  res.json({ status: 'not-ok' });
+  res.json({ status: 'ok' });
 });
 
 export { app };
