@@ -1,37 +1,35 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import RecordingsListPage from '../pages/RecordingsList';
-import type { RecorderService, Recording } from '@just-recordings/recorder';
+import type { RecordingMetadata } from '../types/api';
 
-// Helper to create mock recordings
-function createMockRecording(overrides: Partial<Recording> = {}): Recording {
+// Mock the API module
+vi.mock('../services/api', () => ({
+  getRecordings: vi.fn(),
+  ApiError: class ApiError extends Error {
+    constructor(message: string, public statusCode?: number) {
+      super(message);
+      this.name = 'ApiError';
+    }
+  },
+}));
+
+import { getRecordings, ApiError } from '../services/api';
+const mockGetRecordings = vi.mocked(getRecordings);
+
+// Helper to create mock recording metadata
+function createMockRecording(overrides: Partial<RecordingMetadata> = {}): RecordingMetadata {
   return {
-    id: 1,
+    id: 'test-id',
     name: 'Test Recording',
-    blob: new Blob(['test'], { type: 'video/webm' }),
     mimeType: 'video/webm',
     duration: 60000, // 1 minute in ms
-    createdAt: new Date('2026-01-15T10:00:00'),
+    createdAt: '2026-01-15T10:00:00Z',
     fileSize: 1024 * 1024, // 1 MB
+    path: 'uploads/test.webm',
     ...overrides,
   };
-}
-
-// Mock RecorderService
-function createMockRecorderService(recordings: Recording[] = []): RecorderService {
-  return {
-    getState: vi.fn(() => 'idle'),
-    onStateChange: vi.fn(() => vi.fn()),
-    startScreenRecording: vi.fn(),
-    stopRecording: vi.fn(),
-    pauseRecording: vi.fn(),
-    resumeRecording: vi.fn(),
-    saveRecording: vi.fn(),
-    getRecording: vi.fn(),
-    getAllRecordings: vi.fn(() => Promise.resolve(recordings)),
-    deleteRecording: vi.fn(),
-  } as unknown as RecorderService;
 }
 
 const renderWithRouter = (ui: React.ReactElement) => {
@@ -39,23 +37,16 @@ const renderWithRouter = (ui: React.ReactElement) => {
 };
 
 describe('RecordingsListPage', () => {
-  let mockRecorderService: RecorderService;
-
   beforeEach(() => {
-    mockRecorderService = createMockRecorderService();
+    mockGetRecordings.mockReset();
   });
 
   describe('loading state', () => {
     it('shows loading indicator while fetching recordings', () => {
-      // Create a service that never resolves
-      const slowService = {
-        ...createMockRecorderService(),
-        getAllRecordings: vi.fn(() => new Promise(() => {})),
-      } as unknown as RecorderService;
+      // Create a promise that never resolves
+      mockGetRecordings.mockImplementation(() => new Promise(() => {}));
 
-      renderWithRouter(
-        <RecordingsListPage recorderService={slowService} />
-      );
+      renderWithRouter(<RecordingsListPage />);
 
       expect(screen.getByTestId('loading-indicator')).toBeInTheDocument();
     });
@@ -63,9 +54,9 @@ describe('RecordingsListPage', () => {
 
   describe('empty state', () => {
     it('shows empty state when no recordings exist', async () => {
-      renderWithRouter(
-        <RecordingsListPage recorderService={mockRecorderService} />
-      );
+      mockGetRecordings.mockResolvedValue([]);
+
+      renderWithRouter(<RecordingsListPage />);
 
       await waitFor(() => {
         expect(screen.getByTestId('empty-state')).toBeInTheDocument();
@@ -73,9 +64,9 @@ describe('RecordingsListPage', () => {
     });
 
     it('displays helpful message in empty state', async () => {
-      renderWithRouter(
-        <RecordingsListPage recorderService={mockRecorderService} />
-      );
+      mockGetRecordings.mockResolvedValue([]);
+
+      renderWithRouter(<RecordingsListPage />);
 
       await waitFor(() => {
         expect(screen.getByText(/no recordings/i)).toBeInTheDocument();
@@ -83,17 +74,27 @@ describe('RecordingsListPage', () => {
     });
   });
 
+  describe('error state', () => {
+    it('shows error state when API fails', async () => {
+      mockGetRecordings.mockRejectedValue(new ApiError('Server error', 500));
+
+      renderWithRouter(<RecordingsListPage />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('error-state')).toBeInTheDocument();
+      });
+    });
+  });
+
   describe('recordings grid', () => {
     it('displays recordings in a grid', async () => {
       const recordings = [
-        createMockRecording({ id: 1, name: 'Recording 1' }),
-        createMockRecording({ id: 2, name: 'Recording 2' }),
+        createMockRecording({ id: '1', name: 'Recording 1' }),
+        createMockRecording({ id: '2', name: 'Recording 2' }),
       ];
-      mockRecorderService = createMockRecorderService(recordings);
+      mockGetRecordings.mockResolvedValue(recordings);
 
-      renderWithRouter(
-        <RecordingsListPage recorderService={mockRecorderService} />
-      );
+      renderWithRouter(<RecordingsListPage />);
 
       await waitFor(() => {
         expect(screen.getByText('Recording 1')).toBeInTheDocument();
@@ -103,13 +104,11 @@ describe('RecordingsListPage', () => {
 
     it('shows recording duration on card', async () => {
       const recordings = [
-        createMockRecording({ id: 1, name: 'Test', duration: 90000 }), // 1:30
+        createMockRecording({ id: '1', name: 'Test', duration: 90000 }), // 1:30
       ];
-      mockRecorderService = createMockRecorderService(recordings);
+      mockGetRecordings.mockResolvedValue(recordings);
 
-      renderWithRouter(
-        <RecordingsListPage recorderService={mockRecorderService} />
-      );
+      renderWithRouter(<RecordingsListPage />);
 
       await waitFor(() => {
         expect(screen.getByText(/1:30/)).toBeInTheDocument();
@@ -119,16 +118,14 @@ describe('RecordingsListPage', () => {
     it('shows recording creation date on card', async () => {
       const recordings = [
         createMockRecording({
-          id: 1,
+          id: '1',
           name: 'Test',
-          createdAt: new Date('2026-01-15T10:00:00'),
+          createdAt: '2026-01-15T10:00:00Z',
         }),
       ];
-      mockRecorderService = createMockRecorderService(recordings);
+      mockGetRecordings.mockResolvedValue(recordings);
 
-      renderWithRouter(
-        <RecordingsListPage recorderService={mockRecorderService} />
-      );
+      renderWithRouter(<RecordingsListPage />);
 
       await waitFor(() => {
         // Check for date in some format
@@ -139,16 +136,14 @@ describe('RecordingsListPage', () => {
     it('shows recording file size on card', async () => {
       const recordings = [
         createMockRecording({
-          id: 1,
+          id: '1',
           name: 'Test',
           fileSize: 1024 * 1024 * 2.5, // 2.5 MB
         }),
       ];
-      mockRecorderService = createMockRecorderService(recordings);
+      mockGetRecordings.mockResolvedValue(recordings);
 
-      renderWithRouter(
-        <RecordingsListPage recorderService={mockRecorderService} />
-      );
+      renderWithRouter(<RecordingsListPage />);
 
       await waitFor(() => {
         expect(screen.getByText(/2\.5.*mb/i)).toBeInTheDocument();
@@ -159,29 +154,27 @@ describe('RecordingsListPage', () => {
   describe('navigation', () => {
     it('recording cards are clickable links', async () => {
       const recordings = [
-        createMockRecording({ id: 42, name: 'Clickable Recording' }),
+        createMockRecording({ id: 'abc-123', name: 'Clickable Recording' }),
       ];
-      mockRecorderService = createMockRecorderService(recordings);
+      mockGetRecordings.mockResolvedValue(recordings);
 
-      renderWithRouter(
-        <RecordingsListPage recorderService={mockRecorderService} />
-      );
+      renderWithRouter(<RecordingsListPage />);
 
       await waitFor(() => {
         const link = screen.getByRole('link', { name: /clickable recording/i });
-        expect(link).toHaveAttribute('href', '/recordings/42');
+        expect(link).toHaveAttribute('href', '/recordings/abc-123');
       });
     });
   });
 
   describe('fetching recordings', () => {
-    it('calls getAllRecordings on mount', async () => {
-      renderWithRouter(
-        <RecordingsListPage recorderService={mockRecorderService} />
-      );
+    it('calls getRecordings API on mount', async () => {
+      mockGetRecordings.mockResolvedValue([]);
+
+      renderWithRouter(<RecordingsListPage />);
 
       await waitFor(() => {
-        expect(mockRecorderService.getAllRecordings).toHaveBeenCalled();
+        expect(mockGetRecordings).toHaveBeenCalled();
       });
     });
   });

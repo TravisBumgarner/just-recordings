@@ -19,8 +19,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/recording" element={<Recording recorderService={recorderService} uploader={uploader} />} />
-        <Route path="/recordings" element={<RecordingsList recorderService={recorderService} />} />
-        <Route path="/recordings/:id" element={<RecordingViewer recorderService={recorderService} />} />
+        <Route path="/recordings" element={<RecordingsList />} />
+        <Route path="/recordings/:id" element={<RecordingViewer />} />
       </Routes>
     </>
   );
