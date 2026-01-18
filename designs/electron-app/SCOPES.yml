@@ -68,7 +68,7 @@ tasks:
       - Unit tests for API service functions
     depends_on: [2]
     effort: 2
-    status: implementing
+    status: completed
 
   - id: 4
     github_issue: 14
