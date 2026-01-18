@@ -1,2 +1,5 @@
-// Recorder package entry point
-// Exports will be added as features are implemented
+// Types
+export type { Recording, RecorderState, RecordingOptions } from './types';
+
+// Database
+export { RecorderDatabase } from './db';
