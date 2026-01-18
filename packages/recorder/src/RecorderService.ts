@@ -1,4 +1,5 @@
 import { Recording, RecorderState, RecordingOptions } from './types';
+import { RecorderDatabase } from './db';
 
 const DEFAULT_MIME_TYPE = 'video/webm';
 const TIMESLICE_MS = 1000;
@@ -11,6 +12,11 @@ export class RecorderService {
   private chunks: Blob[] = [];
   private startTime: number = 0;
   private mimeType: string = DEFAULT_MIME_TYPE;
+  private db: RecorderDatabase;
+
+  constructor(db?: RecorderDatabase) {
+    this.db = db || new RecorderDatabase();
+  }
 
   getState(): RecorderState {
     return this.state;
@@ -126,5 +132,22 @@ export class RecorderService {
       this.mediaRecorder.resume();
       this.setState('recording');
     }
+  }
+
+  // Storage operations
+  async saveRecording(recording: Recording): Promise<number> {
+    return await this.db.recordings.add(recording);
+  }
+
+  async getRecording(id: number): Promise<Recording | undefined> {
+    return await this.db.recordings.get(id);
+  }
+
+  async getAllRecordings(): Promise<Recording[]> {
+    return await this.db.recordings.orderBy('createdAt').reverse().toArray();
+  }
+
+  async deleteRecording(id: number): Promise<void> {
+    await this.db.recordings.delete(id);
   }
 }
