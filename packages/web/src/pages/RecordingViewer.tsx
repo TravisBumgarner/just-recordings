@@ -85,7 +85,7 @@ function RecordingViewerPage() {
   const handleDeleteConfirm = async () => {
     if (recording?.id) {
       await deleteRecording(recording.id);
-      navigate('/recordings');
+      navigate('/');
     }
   };
 
@@ -109,8 +109,8 @@ function RecordingViewerPage() {
             <Typography variant="h6" color="text.secondary">
               Recording not found
             </Typography>
-            <Button component={Link} to="/recordings" sx={{ mt: 2 }}>
-              Back to Recordings
+            <Button component={Link} to="/" sx={{ mt: 2 }}>
+              Back
             </Button>
           </Box>
         </Box>
@@ -121,8 +121,8 @@ function RecordingViewerPage() {
   return (
     <Container maxWidth="lg">
       <Box sx={{ py: 4 }}>
-        <Button component={Link} to="/recordings" sx={{ mb: 2 }}>
-          Back to Recordings
+        <Button component={Link} to="/" sx={{ mb: 2 }}>
+          Back
         </Button>
 
         <Typography variant="h4" component="h1" gutterBottom>
