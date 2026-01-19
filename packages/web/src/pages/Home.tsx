@@ -17,8 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 import type { UploadManager, Recording, RecorderService, RecorderState } from '@just-recordings/recorder';
-import { getRecordings, getThumbnailUrl } from '../services/api';
-import type { RecordingMetadata } from '../types/api';
+import { getRecordings, getThumbnailUrl, type Recording as ApiRecording } from '../api';
 
 export interface HomeProps {
   recorderService: RecorderService;
@@ -42,7 +41,7 @@ function formatDate(dateString: string): string {
 }
 
 function Home({ recorderService, uploadManager }: HomeProps) {
-  const [recordings, setRecordings] = useState<RecordingMetadata[]>([]);
+  const [recordings, setRecordings] = useState<ApiRecording[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [queue, setQueue] = useState<Recording[]>([]);
@@ -50,14 +49,13 @@ function Home({ recorderService, uploadManager }: HomeProps) {
 
   useEffect(() => {
     const fetchRecordings = async () => {
-      try {
-        const allRecordings = await getRecordings();
-        setRecordings(allRecordings);
-      } catch {
+      const response = await getRecordings();
+      if (response.success) {
+        setRecordings(response.recordings);
+      } else {
         setError(true);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
     fetchRecordings();
   }, []);
@@ -81,11 +79,9 @@ function Home({ recorderService, uploadManager }: HomeProps) {
     await uploadManager.enqueue(recording);
     // Refresh recordings list after a short delay to allow upload to complete
     setTimeout(async () => {
-      try {
-        const allRecordings = await getRecordings();
-        setRecordings(allRecordings);
-      } catch {
-        // Ignore refresh errors
+      const response = await getRecordings();
+      if (response.success) {
+        setRecordings(response.recordings);
       }
     }, 1000);
   }, [recorderService, uploadManager]);

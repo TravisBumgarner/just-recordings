@@ -1,0 +1,3 @@
+export const MODAL_ID = {
+  CONFIRMATION_MODAL: 'CONFIRMATION_MODAL',
+} as const
