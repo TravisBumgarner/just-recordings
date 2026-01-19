@@ -16,11 +16,12 @@ import {
   ListItem,
   Typography,
 } from '@mui/material';
-import type { UploadManager, Recording } from '@just-recordings/recorder';
+import type { UploadManager, Recording, RecorderService, RecorderState } from '@just-recordings/recorder';
 import { getRecordings, getThumbnailUrl } from '../services/api';
 import type { RecordingMetadata } from '../types/api';
 
 export interface HomeProps {
+  recorderService: RecorderService;
   uploadManager: UploadManager;
 }
 
@@ -40,11 +41,12 @@ function formatDate(dateString: string): string {
   });
 }
 
-function Home({ uploadManager }: HomeProps) {
+function Home({ recorderService, uploadManager }: HomeProps) {
   const [recordings, setRecordings] = useState<RecordingMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [queue, setQueue] = useState<Recording[]>([]);
+  const [recorderState, setRecorderState] = useState<RecorderState>('idle');
 
   useEffect(() => {
     const fetchRecordings = async () => {
@@ -64,6 +66,29 @@ function Home({ uploadManager }: HomeProps) {
     const unsubscribe = uploadManager.onQueueChange(setQueue);
     return unsubscribe;
   }, [uploadManager]);
+
+  useEffect(() => {
+    const unsubscribe = recorderService.onStateChange(setRecorderState);
+    return unsubscribe;
+  }, [recorderService]);
+
+  const handleStartRecording = useCallback(async () => {
+    await recorderService.startScreenRecording();
+  }, [recorderService]);
+
+  const handleStopRecording = useCallback(async () => {
+    const recording = await recorderService.stopRecording();
+    await uploadManager.enqueue(recording);
+    // Refresh recordings list after a short delay to allow upload to complete
+    setTimeout(async () => {
+      try {
+        const allRecordings = await getRecordings();
+        setRecordings(allRecordings);
+      } catch {
+        // Ignore refresh errors
+      }
+    }, 1000);
+  }, [recorderService, uploadManager]);
 
   const handleRetry = useCallback(
     (id: number) => {
@@ -99,15 +124,25 @@ function Home({ uploadManager }: HomeProps) {
           <Typography variant="h3" component="h1">
             Just Recordings
           </Typography>
-          <Button
-            component={Link}
-            to="/recording"
-            variant="contained"
-            color="primary"
-            size="large"
-          >
-            Start Recording
-          </Button>
+          {recorderState === 'idle' ? (
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={handleStartRecording}
+            >
+              Start Recording
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="error"
+              size="large"
+              onClick={handleStopRecording}
+            >
+              Stop Recording
+            </Button>
+          )}
         </Box>
 
         {queue.length > 0 && (
