@@ -1,0 +1,46 @@
+project: Homepage Video Grid with Thumbnails
+repo: TravisBumgarner/just-recordings
+design_file: designs/homepage-redesign/DESIGN.md
+scoping_date: 2026-01-19
+
+milestones:
+  - number: 7
+    title: "7. Homepage Video Grid with Thumbnails"
+    description: Redesign homepage with video grid, thumbnails, upload queue list, and repositioned Start Recording button. Includes backend thumbnail generation.
+    branch:
+      working: 7-homepage-video-grid-with-thumbnails
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 56
+    milestone: 7
+    title: Homepage video grid with thumbnails and upload queue
+    description: |
+      Transform the web app homepage into a dashboard showing a grid of recorded
+      videos with thumbnails. Add upload queue display above the grid and reposition
+      the Start Recording button to the top right corner.
+
+      Backend changes:
+      - Add thumbnailPath to RecordingMetadata interface in both packages
+      - Implement thumbnail generation during upload finalization using ffmpeg
+      - Add GET /api/recordings/:id/thumbnail endpoint
+      - Delete thumbnail when recording is deleted
+
+      Frontend changes:
+      - Redesign Home.tsx with video grid showing thumbnails
+      - Position Start Recording button in top right corner
+      - Display upload queue as list above video grid
+      - Pass uploadManager prop from App.tsx to Home component
+    acceptance_criteria:
+      - thumbnailPath field added to RecordingMetadata in API and web packages
+      - Thumbnail generated from first frame during upload finalization (failure doesn't block upload)
+      - GET /api/recordings/:id/thumbnail serves thumbnail image (404 if missing)
+      - Thumbnail file deleted when recording is deleted
+      - Homepage displays recordings in responsive grid with thumbnails (placeholder fallback)
+      - Start Recording button positioned in top right corner
+      - Upload queue displayed above grid when items exist (with status, progress, retry/cancel)
+      - Unit tests for backend endpoints and frontend components
+    depends_on: []
+    effort: 3
+    status: scoped

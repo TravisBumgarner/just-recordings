@@ -46,7 +46,7 @@ function renderAtPath(
     <MemoryRouter initialEntries={initialEntries}>
       <Routes>
         <Route path={path} element={ui} />
-        <Route path="/recordings" element={<div>Recordings List</div>} />
+        <Route path="/" element={<div>Home</div>} />
       </Routes>
     </MemoryRouter>
   );
@@ -193,7 +193,7 @@ describe('RecordingViewerPage', () => {
   });
 
   describe('navigation', () => {
-    it('has back link to recordings list', async () => {
+    it('has back link to home', async () => {
       mockGetRecording.mockResolvedValue(createMockRecording());
 
       renderAtPath(
@@ -204,7 +204,7 @@ describe('RecordingViewerPage', () => {
 
       await waitFor(() => {
         const backLink = screen.getByRole('link', { name: /back/i });
-        expect(backLink).toHaveAttribute('href', '/recordings');
+        expect(backLink).toHaveAttribute('href', '/');
       });
     });
   });
@@ -287,7 +287,7 @@ describe('RecordingViewerPage', () => {
       });
     });
 
-    it('navigates to recordings list after deletion', async () => {
+    it('navigates to home after deletion', async () => {
       mockGetRecording.mockResolvedValue(createMockRecording());
       mockDeleteRecording.mockResolvedValue(undefined);
 
@@ -310,7 +310,7 @@ describe('RecordingViewerPage', () => {
       fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
 
       await waitFor(() => {
-        expect(screen.getByText('Recordings List')).toBeInTheDocument();
+        expect(screen.getByText('Home')).toBeInTheDocument();
       });
     });
   });

@@ -3,8 +3,6 @@ import { CssBaseline } from '@mui/material';
 import { Routes, Route } from 'react-router-dom';
 import { RecorderService, RecorderDatabase, UploadManager, createUploader } from '@just-recordings/recorder';
 import Home from './pages/Home';
-import Recording from './pages/Recording';
-import RecordingsList from './pages/RecordingsList';
 import RecordingViewer from './pages/RecordingViewer';
 import UploadQueue from './pages/UploadQueue';
 
@@ -25,9 +23,7 @@ function App() {
     <>
       <CssBaseline />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/recording" element={<Recording recorderService={recorderService} uploadManager={uploadManager} />} />
-        <Route path="/recordings" element={<RecordingsList />} />
+        <Route path="/" element={<Home recorderService={recorderService} uploadManager={uploadManager} />} />
         <Route path="/recordings/:id" element={<RecordingViewer />} />
         <Route path="/uploads" element={<UploadQueue uploadManager={uploadManager} />} />
       </Routes>

@@ -64,6 +64,11 @@ export function getVideoUrl(id: string): string {
   return `${BASE_URL}/recordings/${id}/video`;
 }
 
+// Get thumbnail URL for a recording
+export function getThumbnailUrl(id: string): string {
+  return `${BASE_URL}/recordings/${id}/thumbnail`;
+}
+
 // Delete a recording from server
 export async function deleteRecording(id: string): Promise<void> {
   try {

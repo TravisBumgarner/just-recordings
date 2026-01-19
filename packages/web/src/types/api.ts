@@ -10,6 +10,7 @@ export interface RecordingMetadata {
   fileSize: number;
   createdAt: string;
   path: string;
+  thumbnailPath?: string;
 }
 
 export interface RecordingsListResponse {
