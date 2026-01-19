@@ -4,6 +4,14 @@ import { app } from '../app.js';
 import fs from 'fs/promises';
 import path from 'path';
 
+// Mock the repository module
+vi.mock('../repositories/recordings.js', () => ({
+  getAllRecordings: vi.fn(async () => []),
+  getRecordingById: vi.fn(async () => null),
+  saveRecording: vi.fn(async () => {}),
+  deleteRecording: vi.fn(async () => true),
+}));
+
 describe('Upload endpoints', () => {
   beforeEach(() => {
     vi.stubEnv('NODE_ENV', 'development');

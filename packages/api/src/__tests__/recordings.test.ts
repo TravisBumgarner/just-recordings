@@ -5,15 +5,47 @@ import fs from 'fs/promises';
 import path from 'path';
 
 const UPLOADS_DIR = 'uploads';
-const METADATA_FILE = path.join(UPLOADS_DIR, 'metadata.json');
 
-// Helper to create a test recording on disk
+// Mock the repository module
+vi.mock('../repositories/recordings.js', () => {
+  let mockRecordings: Map<string, any> = new Map();
+
+  return {
+    getAllRecordings: vi.fn(async () => {
+      return Array.from(mockRecordings.values()).sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }),
+    getRecordingById: vi.fn(async (id: string) => {
+      return mockRecordings.get(id) || null;
+    }),
+    saveRecording: vi.fn(async (recording: any) => {
+      mockRecordings.set(recording.id, recording);
+    }),
+    deleteRecording: vi.fn(async (id: string) => {
+      const existed = mockRecordings.has(id);
+      mockRecordings.delete(id);
+      return existed;
+    }),
+    // Export for test manipulation
+    _mockRecordings: mockRecordings,
+    _resetMock: () => {
+      mockRecordings.clear();
+    },
+  };
+});
+
+import * as recordingsRepo from '../repositories/recordings.js';
+const mockRepo = recordingsRepo as any;
+
+// Helper to create a test recording
 async function createTestRecording(id: string, metadata: {
   name: string;
   mimeType: string;
   duration: number;
   fileSize: number;
   createdAt: string;
+  thumbnailPath?: string;
 }) {
   await fs.mkdir(UPLOADS_DIR, { recursive: true });
 
@@ -21,25 +53,16 @@ async function createTestRecording(id: string, metadata: {
   const videoPath = path.join(UPLOADS_DIR, `${id}.webm`);
   await fs.writeFile(videoPath, Buffer.from('fake video content'));
 
-  // Read existing metadata or create new
-  let allMetadata: Record<string, typeof metadata & { id: string; path: string }> = {};
-  try {
-    const existing = await fs.readFile(METADATA_FILE, 'utf-8');
-    allMetadata = JSON.parse(existing);
-  } catch {
-    // File doesn't exist yet
-  }
-
-  // Add new recording metadata
-  allMetadata[id] = {
+  const recording = {
     id,
     path: videoPath,
     ...metadata,
   };
 
-  await fs.writeFile(METADATA_FILE, JSON.stringify(allMetadata, null, 2));
+  // Add to mock repository
+  mockRepo._mockRecordings.set(id, recording);
 
-  return { id, videoPath, ...metadata };
+  return recording;
 }
 
 // Helper to clean up test files
@@ -49,6 +72,7 @@ async function cleanupTestFiles() {
   } catch {
     // Ignore errors
   }
+  mockRepo._resetMock();
 }
 
 describe('Recordings endpoints', () => {
@@ -215,13 +239,13 @@ describe('Recordings endpoints', () => {
       await request(app).delete('/api/recordings/delete-file');
 
       const exists = await fs
-        .access(recording.videoPath)
+        .access(recording.path)
         .then(() => true)
         .catch(() => false);
       expect(exists).toBe(false);
     });
 
-    it('removes recording from metadata', async () => {
+    it('removes recording from database', async () => {
       await createTestRecording('remove-meta', {
         name: 'Remove Meta',
         mimeType: 'video/webm',

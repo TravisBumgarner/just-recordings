@@ -1,0 +1,39 @@
+project: PostgreSQL Migration
+repo: TravisBumgarner/just-recordings
+design_file: designs/postgres-migration/DESIGN.md
+scoping_date: 2026-01-19
+
+milestones:
+  - number: 9
+    title: "9. PostgreSQL Migration"
+    description: Migrate API backend from JSON file storage to PostgreSQL database running in Docker
+    branch:
+      working: 9-postgres-migration
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 58
+    milestone: 9
+    title: Migrate API metadata storage from JSON to PostgreSQL
+    description: |
+      Replace the JSON file-based metadata storage with PostgreSQL database
+      running in Docker, using Drizzle ORM. This includes:
+
+      - Docker setup with PostgreSQL 16 container
+      - Drizzle schema definition for recordings table
+      - Drizzle connection pool configuration
+      - Repository layer for CRUD operations using Drizzle
+      - Route updates to use repository
+      - Removal of JSON file functions
+    acceptance_criteria:
+      - docker-compose.yml defines PostgreSQL 16 container with persistent volume
+      - Drizzle schema matches current RecordingMetadata model
+      - Connection pool configured via DATABASE_URL environment variable
+      - Repository functions implemented using Drizzle ORM
+      - All recording routes and upload finalize use repository
+      - JSON file helper functions removed
+      - API tests pass
+    depends_on: []
+    effort: 3
+    status: scoped
