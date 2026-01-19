@@ -151,6 +151,8 @@ router.post('/:uploadId/finalize', async (req: Request, res: Response) => {
         .on('end', () => resolve())
         .on('error', (err) => reject(err));
     });
+    // Verify the thumbnail file was actually created
+    await fs.access(thumbnailPath);
     savedThumbnailPath = thumbnailPath;
   } catch {
     // Thumbnail generation failed, continue without it
