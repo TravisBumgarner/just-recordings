@@ -6,17 +6,14 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:concurrent:web": "concurrently -n api,web -c blue,green \"npm run dev:api\" \"npm run dev:web\"",
-    "dev:concurrent:desktop": "concurrently -n api,desktop -c blue,green \"npm run dev:api\" \"npm run dev:desktop\"",
-    "dev:concurrent:all": "concurrently -n api,web,desktop -c blue,green,yellow \"npm run dev:api\" \"npm run dev:web\" \"npm run dev:desktop\"",
-    "dev:api": "npm run dev -w @just-recordings/api",
-    "dev:web": "npm run dev -w @just-recordings/web",
-    "dev:desktop": "npm run dev -w @just-recordings/desktop",
+    "dev:web": "docker-compose up -d && concurrently -n api,web -c blue,green \"npm run dev -w @just-recordings/api\" \"npm run dev -w @just-recordings/web\"",
+    "dev:desktop": "docker-compose up -d && concurrently -n api,desktop -c blue,yellow \"npm run dev -w @just-recordings/api\" \"npm run dev -w @just-recordings/desktop\"",
+    "dev:all": "docker-compose up -d && concurrently -n api,web,desktop -c blue,green,yellow \"npm run dev -w @just-recordings/api\" \"npm run dev -w @just-recordings/web\" \"npm run dev -w @just-recordings/desktop\"",
     "build": "npm run build --workspaces --if-present",
-    "build:desktop": "npm run build -w @just-recordings/desktop",
     "test": "npm run test --workspaces --if-present",
-    "test:desktop": "npm run test -w @just-recordings/desktop",
-    "test:recorder": "npm run test -w @just-recordings/recorder"
+    "db:up": "docker-compose up -d",
+    "db:down": "docker-compose down",
+    "db:push": "npm run db:push -w @just-recordings/api"
   },
   "devDependencies": {
     "concurrently": "8.2.2"

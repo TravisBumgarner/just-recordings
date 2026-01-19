@@ -1,58 +1,28 @@
 import { Router, Request, Response } from 'express';
 import fs from 'fs/promises';
-import path from 'path';
+import {
+  getAllRecordings,
+  getRecordingById,
+  saveRecording,
+  deleteRecording,
+  type RecordingMetadata,
+} from '../repositories/recordings.js';
 
 const router = Router();
 
-const UPLOADS_DIR = 'uploads';
-const METADATA_FILE = path.join(UPLOADS_DIR, 'metadata.json');
-
-export interface RecordingMetadata {
-  id: string;
-  name: string;
-  mimeType: string;
-  duration: number;
-  fileSize: number;
-  createdAt: string;
-  path: string;
-  thumbnailPath?: string;
-}
-
-// Helper to read all metadata
-async function readMetadata(): Promise<Record<string, RecordingMetadata>> {
-  try {
-    const content = await fs.readFile(METADATA_FILE, 'utf-8');
-    return JSON.parse(content);
-  } catch {
-    return {};
-  }
-}
-
-// Helper to write metadata
-async function writeMetadata(metadata: Record<string, RecordingMetadata>): Promise<void> {
-  await fs.mkdir(UPLOADS_DIR, { recursive: true });
-  await fs.writeFile(METADATA_FILE, JSON.stringify(metadata, null, 2));
-}
-
-// Helper to save a single recording's metadata
-export async function saveRecordingMetadata(recording: RecordingMetadata): Promise<void> {
-  const metadata = await readMetadata();
-  metadata[recording.id] = recording;
-  await writeMetadata(metadata);
-}
+// Re-export for use in upload.ts
+export { saveRecording as saveRecordingMetadata, type RecordingMetadata };
 
 // GET /api/recordings - List all recordings
 router.get('/', async (_req: Request, res: Response) => {
-  const metadata = await readMetadata();
-  const recordings = Object.values(metadata);
+  const recordings = await getAllRecordings();
   res.json({ recordings });
 });
 
 // GET /api/recordings/:id - Get single recording metadata
 router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const metadata = await readMetadata();
-  const recording = metadata[id];
+  const recording = await getRecordingById(id);
 
   if (!recording) {
     res.status(404).json({ error: 'Recording not found' });
@@ -65,8 +35,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // GET /api/recordings/:id/video - Serve video file
 router.get('/:id/video', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const metadata = await readMetadata();
-  const recording = metadata[id];
+  const recording = await getRecordingById(id);
 
   if (!recording) {
     res.status(404).json({ error: 'Recording not found' });
@@ -89,8 +58,7 @@ router.get('/:id/video', async (req: Request, res: Response) => {
 // GET /api/recordings/:id/thumbnail - Serve thumbnail image
 router.get('/:id/thumbnail', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const metadata = await readMetadata();
-  const recording = metadata[id];
+  const recording = await getRecordingById(id);
 
   if (!recording) {
     res.status(404).json({ error: 'Recording not found' });
@@ -117,8 +85,7 @@ router.get('/:id/thumbnail', async (req: Request, res: Response) => {
 // DELETE /api/recordings/:id - Delete recording
 router.delete('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const metadata = await readMetadata();
-  const recording = metadata[id];
+  const recording = await getRecordingById(id);
 
   if (!recording) {
     res.status(404).json({ error: 'Recording not found' });
@@ -141,9 +108,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
     }
   }
 
-  // Remove from metadata
-  delete metadata[id];
-  await writeMetadata(metadata);
+  // Remove from database
+  await deleteRecording(id);
 
   res.json({ success: true });
 });
