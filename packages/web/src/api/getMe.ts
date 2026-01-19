@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import config from '../config'
+import { API_BASE_URL } from './config';
+
 import { getToken } from '../services/supabase'
 
 const zodResponse = z.discriminatedUnion('success', [
@@ -25,7 +26,8 @@ export const getMe = async () => {
       error: 'No token',
     } as const
 
-  const response = await fetch(`${config.apiUrl}/users/me`, {
+
+  const response = await fetch(`${API_BASE_URL}/users/me`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -34,6 +36,8 @@ export const getMe = async () => {
   })
 
   const json = await response.json()
+
+  console.log('getMe response:', json);
 
   return zodResponse.parse(json)
 }

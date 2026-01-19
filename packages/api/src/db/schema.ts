@@ -1,5 +1,16 @@
 import { pgTable, uuid, varchar, integer, bigint, timestamp } from 'drizzle-orm/pg-core';
 
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  authId: uuid('auth_id').unique().notNull(),
+  email: varchar('email', { length: 255 }).unique().notNull(),
+  displayName: varchar('display_name', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+
 export const recordings = pgTable('recordings', {
   id: uuid('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),

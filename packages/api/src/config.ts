@@ -1,0 +1,37 @@
+import { z } from 'zod';
+
+const envSchema = z.object({
+  PORT: z.string().default('3001'),
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  DATABASE_URL: z.string().default('postgresql://postgres:postgres@localhost:5432/just_recordings'),
+  SUPABASE_URL: z.string().default(''),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().default(''),
+});
+
+const envVars = {
+  PORT: process.env.PORT,
+  NODE_ENV: process.env.NODE_ENV,
+  DATABASE_URL: process.env.DATABASE_URL,
+  SUPABASE_URL: process.env.SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+};
+
+const parsed = envSchema.safeParse(envVars);
+if (!parsed.success) {
+  throw new Error(
+    'Invalid environment variables: ' +
+      JSON.stringify(parsed.error.format(), null, 2)
+  );
+}
+
+const config = {
+  port: parseInt(parsed.data.PORT, 10),
+  nodeEnv: parsed.data.NODE_ENV,
+  databaseUrl: parsed.data.DATABASE_URL,
+  supabaseUrl: parsed.data.SUPABASE_URL,
+  supabaseServiceRoleKey: parsed.data.SUPABASE_SERVICE_ROLE_KEY,
+  isProduction: parsed.data.NODE_ENV === 'production',
+  isDevelopment: parsed.data.NODE_ENV === 'development',
+};
+
+export default config;
