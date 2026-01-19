@@ -3,7 +3,11 @@ import multer from 'multer';
 import { randomUUID } from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
+import ffmpeg from 'fluent-ffmpeg';
+import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import { saveRecordingMetadata } from './recordings.js';
+
+ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
 const router = Router();
 
@@ -131,6 +135,27 @@ router.post('/:uploadId/finalize', async (req: Request, res: Response) => {
   const mergedData = Buffer.concat(chunks);
   await fs.writeFile(finalPath, mergedData);
 
+  // Generate thumbnail from first frame
+  const thumbnailPath = path.join(uploadsDir, `${fileId}-thumb.jpg`);
+  let savedThumbnailPath: string | undefined;
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg(finalPath)
+        .screenshots({
+          timestamps: [0],
+          filename: `${fileId}-thumb.jpg`,
+          folder: uploadsDir,
+          size: '320x?',
+        })
+        .on('end', () => resolve())
+        .on('error', (err) => reject(err));
+    });
+    savedThumbnailPath = thumbnailPath;
+  } catch {
+    // Thumbnail generation failed, continue without it
+  }
+
   // Save recording metadata
   await saveRecordingMetadata({
     id: fileId,
@@ -140,6 +165,7 @@ router.post('/:uploadId/finalize', async (req: Request, res: Response) => {
     fileSize: mergedData.length,
     createdAt: new Date().toISOString(),
     path: finalPath,
+    thumbnailPath: savedThumbnailPath,
   });
 
   // Cleanup temp directory

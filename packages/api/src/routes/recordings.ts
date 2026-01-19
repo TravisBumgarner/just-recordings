@@ -15,6 +15,7 @@ export interface RecordingMetadata {
   fileSize: number;
   createdAt: string;
   path: string;
+  thumbnailPath?: string;
 }
 
 // Helper to read all metadata
@@ -85,6 +86,34 @@ router.get('/:id/video', async (req: Request, res: Response) => {
   res.send(fileContent);
 });
 
+// GET /api/recordings/:id/thumbnail - Serve thumbnail image
+router.get('/:id/thumbnail', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const metadata = await readMetadata();
+  const recording = metadata[id];
+
+  if (!recording) {
+    res.status(404).json({ error: 'Recording not found' });
+    return;
+  }
+
+  if (!recording.thumbnailPath) {
+    res.status(404).json({ error: 'Thumbnail not found' });
+    return;
+  }
+
+  try {
+    await fs.access(recording.thumbnailPath);
+  } catch {
+    res.status(404).json({ error: 'Thumbnail file not found' });
+    return;
+  }
+
+  res.setHeader('Content-Type', 'image/jpeg');
+  const fileContent = await fs.readFile(recording.thumbnailPath);
+  res.send(fileContent);
+});
+
 // DELETE /api/recordings/:id - Delete recording
 router.delete('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -101,6 +130,15 @@ router.delete('/:id', async (req: Request, res: Response) => {
     await fs.unlink(recording.path);
   } catch {
     // File might already be deleted, continue
+  }
+
+  // Delete thumbnail file if it exists
+  if (recording.thumbnailPath) {
+    try {
+      await fs.unlink(recording.thumbnailPath);
+    } catch {
+      // Thumbnail might already be deleted, continue
+    }
   }
 
   // Remove from metadata

@@ -25,7 +25,7 @@ function App() {
     <>
       <CssBaseline />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home uploadManager={uploadManager} />} />
         <Route path="/recording" element={<Recording recorderService={recorderService} uploadManager={uploadManager} />} />
         <Route path="/recordings" element={<RecordingsList />} />
         <Route path="/recordings/:id" element={<RecordingViewer />} />
