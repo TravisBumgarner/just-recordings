@@ -1,0 +1,53 @@
+project: Marketing Landing Page
+repo: travisbumgarner/just-recordings
+design_file: null  # Scoped from user requirements
+scoping_date: 2026-01-20
+
+milestones:
+  - number: 11
+    title: "2. Marketing Landing Page"
+    description: Create a marketing page for non-authenticated users showcasing Just Recordings
+    branch:
+      working: 66-marketing-landing-page
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 66
+    milestone: 11
+    title: Create marketing landing page component
+    description: |
+      Create a new `LandingPage` component that serves as the marketing page for
+      non-authenticated users. The page should be simple, clean, and communicate
+      the core value proposition of Just Recordings.
+
+      **Sections:**
+      - Hero: Large headline, tagline emphasizing simplicity, primary CTA to sign up
+      - Features: 3-4 simple bullet points (simple recording, no bloat, easy, affordable)
+      - Pricing: "Free during beta" messaging with secondary CTA
+      - Footer CTA: Final call to action
+    acceptance_criteria:
+      - Create LandingPage.tsx in packages/web/src/pages/
+      - Hero section with headline, tagline, and sign up CTA button
+      - Features section with 3-4 feature highlights using MUI components
+      - Pricing section showing "Free during beta" with sign up CTA
+      - Responsive design (works on mobile and desktop)
+    depends_on: []
+    effort: 2
+    status: testing
+
+  - id: 2
+    github_issue: 67
+    milestone: 11
+    title: Route landing page for non-authenticated users
+    description: |
+      Update the router to show the marketing `LandingPage` component for
+      non-authenticated users visiting the home route (`/`), while showing
+      the existing `Home` dashboard for authenticated users.
+    acceptance_criteria:
+      - Non-authenticated users see LandingPage at /
+      - Authenticated users see Home (recordings dashboard) at /
+      - Navigation and sign up buttons on landing page link to /signup
+    depends_on: [1]
+    effort: 1
+    status: scoped
