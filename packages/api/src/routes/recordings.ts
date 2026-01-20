@@ -6,7 +6,7 @@ import {
   saveRecording,
   deleteRecording,
   type RecordingMetadata,
-} from '../repositories/recordings.js';
+} from '../db/queries/recordings.js';
 
 const router = Router();
 

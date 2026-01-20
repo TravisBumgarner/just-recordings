@@ -1,6 +1,6 @@
 import { eq, desc } from 'drizzle-orm';
-import { db } from '../db/index.js';
-import { recordings, type Recording, type NewRecording } from '../db/schema.js';
+import { db } from '../index.js';
+import { recordings, type Recording, type NewRecording } from '../schema.js';
 
 export interface RecordingMetadata {
   id: string;

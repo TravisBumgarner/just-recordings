@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
-import { db } from '../db/index.js';
-import { users, type User, type NewUser } from '../db/schema.js';
+import { db } from '../index.js';
+import { users, type User, type NewUser } from '../schema.js';
 
 export async function getUserById(id: string): Promise<User | null> {
   const rows = await db.select().from(users).where(eq(users.id, id));
