@@ -6,11 +6,11 @@ import {
   type GetRecordingResult,
   type DeleteRecordingResult,
 } from '@just-recordings/shared';
-import { API_BASE_URL } from './config';
+import config from '../config';
 
 export const getRecordings = async (): Promise<GetRecordingsResult> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/recordings`);
+    const response = await fetch(`${config.apiBaseUrl}/recordings`);
 
     if (!response.ok) {
       return {
@@ -34,7 +34,7 @@ export const getRecordings = async (): Promise<GetRecordingsResult> => {
 
 export const getRecording = async (id: string): Promise<GetRecordingResult> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/recordings/${id}`);
+    const response = await fetch(`${config.apiBaseUrl}/recordings/${id}`);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -63,16 +63,16 @@ export const getRecording = async (id: string): Promise<GetRecordingResult> => {
 };
 
 export const getVideoUrl = (id: string): string => {
-  return `${API_BASE_URL}/recordings/${id}/video`;
+  return `${config.apiBaseUrl}/recordings/${id}/video`;
 };
 
 export const getThumbnailUrl = (id: string): string => {
-  return `${API_BASE_URL}/recordings/${id}/thumbnail`;
+  return `${config.apiBaseUrl}/recordings/${id}/thumbnail`;
 };
 
 export const deleteRecording = async (id: string): Promise<DeleteRecordingResult> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/recordings/${id}`, {
+    const response = await fetch(`${config.apiBaseUrl}/recordings/${id}`, {
       method: 'DELETE',
     });
 

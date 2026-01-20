@@ -25,6 +25,7 @@ const config = {
   supabaseUrl: parsed.data.VITE_PUBLIC_SUPABASE_URL,
   supabaseAnonKey: parsed.data.VITE_PUBLIC_SUPABASE_ANON_KEY,
   isProduction: parsed.data.VITE_PUBLIC_ENVIRONMENT === 'production',
+  apiBaseUrl: import.meta.env.VITE_API_URL || '/api',
 }
 
 export default config

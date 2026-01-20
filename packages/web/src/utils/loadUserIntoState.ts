@@ -1,4 +1,4 @@
-import { getMe } from '../api/getMe'
+import { getMe } from '../api/users'
 import { getUser } from '../services/supabase'
 import useGlobalStore from '../store'
 

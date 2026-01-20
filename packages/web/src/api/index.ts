@@ -1,4 +1,3 @@
-export { API_BASE_URL } from './config';
 export { checkHealth } from './health';
 export {
   getRecordings,
@@ -7,4 +6,4 @@ export {
   getThumbnailUrl,
   deleteRecording,
 } from './recordings';
-export { getMe } from './getMe';
+export { getMe } from './users';

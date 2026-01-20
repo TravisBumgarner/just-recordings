@@ -1,5 +1,5 @@
 import { getMeResultSchema, type GetMeResult } from '@just-recordings/shared';
-import { API_BASE_URL } from './config';
+import config from '../config';
 import { getToken } from '../services/supabase';
 
 export const getMe = async (): Promise<GetMeResult> => {
@@ -12,7 +12,7 @@ export const getMe = async (): Promise<GetMeResult> => {
     };
   }
 
-  const response = await fetch(`${API_BASE_URL}/users/me`, {
+  const response = await fetch(`${config.apiBaseUrl}/users/me`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

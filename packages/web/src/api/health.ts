@@ -1,9 +1,9 @@
 import { healthResultSchema, type HealthResult } from '@just-recordings/shared';
-import { API_BASE_URL } from './config';
+import config from '../config';
 
 export const checkHealth = async (): Promise<HealthResult> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`);
+    const response = await fetch(`${config.apiBaseUrl}/health`);
 
     if (!response.ok) {
       return {
