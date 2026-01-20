@@ -44,7 +44,7 @@ tasks:
       - Export styles via @just-recordings/shared/styles
     depends_on: []
     effort: 2
-    status: completed
+    status: scoped
 
   - id: 2
     github_issue: 70
@@ -101,7 +101,7 @@ tasks:
       - Update tests if they reference removed elements
     depends_on: []
     effort: 1
-    status: scoped
+    status: completed
 
   - id: 5
     github_issue: 73
