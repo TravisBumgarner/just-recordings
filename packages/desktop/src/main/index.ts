@@ -4,6 +4,7 @@ import {
   app,
   BrowserWindow,
   desktopCapturer,
+  ipcMain,
   Menu,
   nativeImage,
   session,
@@ -14,20 +15,29 @@ import {
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 
-// Create a simple tray icon (16x16 template image for macOS)
+const ICON_PATH = join(__dirname, '../../resources/statusbaricon.png')
+const ICON_RECORDING_PATH = join(__dirname, '../../resources/statusbaricon-recording.png')
+
+// Create tray icon from file
 function createTrayIcon(): Tray {
-  // Create a simple circle icon as a template image
-  // For macOS, template images should be black with transparency
-  const iconSize = 16
-  const icon = nativeImage.createFromDataURL(
-    `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAABwSURBVDiN7dKxDYAwDEXRf2EBRmAJRmEJRmEJRmABRqAkBYWFlBQR4qpOnOLpO3YCf9YKrMB2KJgA3TFyAM5hoAJuSWxAXwtsQFcL7EB7G7iA5jJwA/UmcAPlaeAByk3gBYpN4AXSU8D/8K8AvAFHGRNv6O9PbQAAAABJRU5ErkJggg==`,
-  )
+  const icon = nativeImage.createFromPath(ICON_PATH)
   icon.setTemplateImage(true)
 
-  const newTray = new Tray(icon.resize({ width: iconSize, height: iconSize }))
+  const newTray = new Tray(icon.resize({ width: 16, height: 16 }))
   newTray.setToolTip('Just Recordings')
 
   return newTray
+}
+
+// Update tray icon based on recording state
+function updateTrayIcon(isRecording: boolean): void {
+  if (!tray) return
+
+  const iconPath = isRecording ? ICON_RECORDING_PATH : ICON_PATH
+  const icon = nativeImage.createFromPath(iconPath)
+  icon.setTemplateImage(true)
+  tray.setImage(icon.resize({ width: 16, height: 16 }))
+  tray.setToolTip(isRecording ? 'Just Recordings - Recording...' : 'Just Recordings')
 }
 
 // Position window near the tray icon
@@ -110,6 +120,11 @@ app.whenReady().then(() => {
   if (process.platform === 'darwin') {
     app.dock.hide()
   }
+
+  // Handle recording state changes from renderer
+  ipcMain.on('recording-state-changed', (_event, isRecording: boolean) => {
+    updateTrayIcon(isRecording)
+  })
 
   // Set up display media request handler for screen capture
   session.defaultSession.setDisplayMediaRequestHandler(async (_request, callback) => {
