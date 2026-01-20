@@ -1,5 +1,5 @@
 import { electronAPI } from '@electron-toolkit/preload'
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 
 // Custom APIs for renderer
 const api = {
@@ -8,6 +8,9 @@ const api = {
     chrome: process.versions.chrome,
     node: process.versions.node,
   }),
+  setRecordingState: (isRecording: boolean) => {
+    ipcRenderer.send('recording-state-changed', isRecording)
+  },
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

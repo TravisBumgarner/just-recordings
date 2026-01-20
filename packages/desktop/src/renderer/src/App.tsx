@@ -2,7 +2,6 @@ import { createUploader, RecorderService } from '@just-recordings/recorder'
 import { CssBaseline } from '@mui/material'
 import { useMemo } from 'react'
 import { Route, Routes } from 'react-router-dom'
-import Home from './pages/Home'
 import Recording from './pages/Recording'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
@@ -15,11 +14,7 @@ function App() {
     <>
       <CssBaseline />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route
-          path="/recording"
-          element={<Recording recorderService={recorderService} uploader={uploader} />}
-        />
+        <Route path="/" element={<Recording recorderService={recorderService} uploader={uploader} />} />
       </Routes>
     </>
   )

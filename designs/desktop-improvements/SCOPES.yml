@@ -44,7 +44,7 @@ tasks:
       - Export styles via @just-recordings/shared/styles
     depends_on: []
     effort: 2
-    status: completed
+    status: scoped
 
   - id: 2
     github_issue: 70
@@ -61,7 +61,7 @@ tasks:
       - All existing tests pass
     depends_on: [1]
     effort: 1
-    status: completed
+    status: scoped
 
   - id: 3
     github_issue: 71
@@ -101,7 +101,7 @@ tasks:
       - Update tests if they reference removed elements
     depends_on: []
     effort: 1
-    status: scoped
+    status: completed
 
   - id: 5
     github_issue: 73
@@ -129,4 +129,4 @@ tasks:
       - App stays running when window is closed
     depends_on: [4]
     effort: 3
-    status: scoped
+    status: completed

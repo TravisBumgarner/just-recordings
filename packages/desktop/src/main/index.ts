@@ -1,22 +1,104 @@
 import { join } from 'node:path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { app, BrowserWindow, desktopCapturer, session, shell } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  desktopCapturer,
+  ipcMain,
+  Menu,
+  nativeImage,
+  session,
+  shell,
+  Tray,
+} from 'electron'
+
+let mainWindow: BrowserWindow | null = null
+let tray: Tray | null = null
+
+const ICON_PATH = join(__dirname, '../../resources/statusbaricon.png')
+const ICON_RECORDING_PATH = join(__dirname, '../../resources/statusbaricon-recording.png')
+
+// Create tray icon from file
+function createTrayIcon(): Tray {
+  const icon = nativeImage.createFromPath(ICON_PATH)
+  icon.setTemplateImage(true)
+
+  const newTray = new Tray(icon.resize({ width: 16, height: 16 }))
+  newTray.setToolTip('Just Recordings')
+
+  return newTray
+}
+
+// Update tray icon based on recording state
+function updateTrayIcon(isRecording: boolean): void {
+  if (!tray) return
+
+  const iconPath = isRecording ? ICON_RECORDING_PATH : ICON_PATH
+  const icon = nativeImage.createFromPath(iconPath)
+  icon.setTemplateImage(true)
+  tray.setImage(icon.resize({ width: 16, height: 16 }))
+  tray.setToolTip(isRecording ? 'Just Recordings - Recording...' : 'Just Recordings')
+}
+
+// Position window near the tray icon
+function positionWindowNearTray(): void {
+  if (!mainWindow || !tray) return
+
+  const trayBounds = tray.getBounds()
+  const windowBounds = mainWindow.getBounds()
+
+  // Position window centered horizontally below the tray icon
+  const x = Math.round(trayBounds.x + trayBounds.width / 2 - windowBounds.width / 2)
+  // Position window just below the menu bar (with small gap)
+  const y = Math.round(trayBounds.y + trayBounds.height + 4)
+
+  mainWindow.setPosition(x, y, false)
+}
+
+// Toggle window visibility
+function toggleWindow(): void {
+  if (!mainWindow) return
+
+  if (mainWindow.isVisible()) {
+    mainWindow.hide()
+  } else {
+    positionWindowNearTray()
+    mainWindow.show()
+    mainWindow.focus()
+  }
+}
 
 function createWindow(): void {
-  const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    minWidth: 800,
-    minHeight: 600,
+  mainWindow = new BrowserWindow({
+    width: 400,
+    height: 500,
+    minWidth: 300,
+    minHeight: 400,
     show: false,
+    frame: false, // Frameless window (no titlebar)
+    resizable: true,
+    skipTaskbar: true, // Hide from taskbar/Dock
+    alwaysOnTop: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
     },
   })
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+  // Hide window instead of closing (app stays running)
+  mainWindow.on('close', (event) => {
+    if (!app.isQuitting) {
+      event.preventDefault()
+      mainWindow?.hide()
+    }
+  })
+
+  // Hide window when it loses focus (optional menu bar app behavior)
+  mainWindow.on('blur', () => {
+    // Only auto-hide if not in dev mode (for easier debugging)
+    if (!is.dev) {
+      mainWindow?.hide()
+    }
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -33,6 +115,16 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.just-recordings.desktop')
+
+  // Hide from Dock on macOS
+  if (process.platform === 'darwin') {
+    app.dock.hide()
+  }
+
+  // Handle recording state changes from renderer
+  ipcMain.on('recording-state-changed', (_event, isRecording: boolean) => {
+    updateTrayIcon(isRecording)
+  })
 
   // Set up display media request handler for screen capture
   session.defaultSession.setDisplayMediaRequestHandler(async (_request, callback) => {
@@ -51,17 +143,53 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
+  // Create tray icon
+  tray = createTrayIcon()
+
+  // Set up tray click handler
+  tray.on('click', () => {
+    toggleWindow()
+  })
+
+  // Set up right-click context menu
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Show/Hide',
+      click: () => toggleWindow(),
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit',
+      click: () => {
+        ;(app as { isQuitting?: boolean }).isQuitting = true
+        app.quit()
+      },
+    },
+  ])
+  tray.on('right-click', () => {
+    tray?.popUpContextMenu(contextMenu)
+  })
+
   createWindow()
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
+    if (mainWindow) {
+      mainWindow.show()
+    } else {
       createWindow()
     }
   })
 })
 
+// Keep app running when all windows are closed (menu bar app behavior)
 app.on('window-all-closed', () => {
+  // Don't quit on macOS - app stays in menu bar
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+// Handle before-quit to allow actual quitting
+app.on('before-quit', () => {
+  ;(app as { isQuitting?: boolean }).isQuitting = true
 })

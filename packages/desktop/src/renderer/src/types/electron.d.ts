@@ -6,6 +6,7 @@ export interface ElectronVersions {
 
 export interface ElectronApi {
   getVersions: () => ElectronVersions
+  setRecordingState: (isRecording: boolean) => void
 }
 
 declare global {

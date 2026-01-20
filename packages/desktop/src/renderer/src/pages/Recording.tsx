@@ -35,6 +35,12 @@ function RecordingPage({ recorderService, uploader }: RecordingPageProps) {
     return unsubscribe
   }, [recorderService])
 
+  // Notify main process of recording state changes for tray icon
+  useEffect(() => {
+    const isRecording = recorderState !== 'idle'
+    window.api?.setRecordingState(isRecording)
+  }, [recorderState])
+
   const handleStartRecording = useCallback(async () => {
     setFeedback({ type: 'none' })
     await recorderService.startScreenRecording()
