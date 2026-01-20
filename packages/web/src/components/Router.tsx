@@ -70,6 +70,7 @@ const Router = () => {
 
         <Route path={ROUTES.error500.href()} element={<Error500 />} />
         <Route path={ROUTES.error404.href()} element={<Error404 />} />
+        <Route path="*" element={<Navigate to={ROUTES.error404.href()} />} />
       </Routes>
     </Suspense >
   )

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { ThemeProvider, createTheme } from '@mui/material';
 import App from './App';
+import './styles/global.css';
 
 const theme = createTheme();
 

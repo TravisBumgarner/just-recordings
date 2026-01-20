@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import type { Recording } from '@just-recordings/shared';
 import { getRecording, getVideoUrl, deleteRecording } from '../api';
+import PageWrapper from '@/styles/shared/PageWrapper';
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -114,7 +115,7 @@ function RecordingViewerPage() {
   }
 
   return (
-    <Container maxWidth="lg">
+    <PageWrapper width='full'>
       <Box sx={{ py: 4 }}>
         <Button component={Link} to="/" sx={{ mb: 2 }}>
           Back
@@ -176,7 +177,7 @@ function RecordingViewerPage() {
           </DialogActions>
         </Dialog>
       </Box>
-    </Container>
+    </PageWrapper>
   );
 }
 

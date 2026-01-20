@@ -5,20 +5,16 @@ import Link from '../sharedComponents/Link'
 import {
   SPACING,
 } from '../styles/styleConsts'
-import { TAB_HEIGHT } from '../styles/Theme'
+
 import Navigation from './Navigation'
+import { Typography } from '@mui/material'
+import PageWrapper from '../styles/shared/PageWrapper'
+
 const Header = () => {
   return (
     <Box sx={WrapperSX}>
       <Link href={ROUTES.home.href()} hideBaseUnderline>
-        <img
-          src="/public/favicon.png"
-          style={{
-            width: TAB_HEIGHT,
-            aspectRatio: '1 / 1',
-            display: 'block',
-          }}
-        />
+        <Typography variant='h1'>Just Recordings</Typography>
       </Link>
 
       <Box
@@ -40,7 +36,7 @@ const WrapperSX = {
   flexDirection: 'row',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: SPACING.MEDIUM.PX,
+  marginBottom: SPACING.SMALL.PX,
   padding: `${SPACING.SMALL.PX} 0`,
 }
 
