@@ -9,7 +9,7 @@ import { GiHamburgerMenu } from 'react-icons/gi'
 import { ROUTES } from '../consts'
 import Link from '../sharedComponents/Link'
 import useGlobalStore from '../store'
-import { BORDER_RADIUS } from '../styles/styleConsts'
+import { BORDER_RADIUS } from '@just-recordings/shared/styles'
 
 type Items = (keyof typeof ROUTES | 'divider')[]
 
