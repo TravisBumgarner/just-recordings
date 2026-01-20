@@ -6,7 +6,7 @@ import { useMemo } from 'react'
 import { GiPartyPopper } from 'react-icons/gi'
 import { IoMdWarning } from 'react-icons/io'
 import { IoInformationCircleOutline } from 'react-icons/io5'
-import { BORDER_RADIUS, FONT_SIZES, SPACING, subtleBackground } from '../../styles/styleConsts'
+import { BORDER_RADIUS, FONT_SIZES, SPACING, subtleBackground } from '@just-recordings/shared/styles'
 
 const Message = ({
   message,

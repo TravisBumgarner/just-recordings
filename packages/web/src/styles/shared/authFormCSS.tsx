@@ -1,4 +1,4 @@
-import { SPACING } from '../styleConsts'
+import { SPACING } from '@just-recordings/shared/styles'
 
 const authFormCSS: React.CSSProperties = {
   display: 'flex',

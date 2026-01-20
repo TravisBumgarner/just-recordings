@@ -1,21 +1,3 @@
-export const subtleBackground = (
-  theme: 'dark' | 'light',
-  subtleness: 'very' | 'slightly' = 'very',
-) => {
-  // This function could evolve over time. Adds a light overlay to the background.
-  // I think, I only want one of these functions but could want more in the future.
-
-  if (subtleness === 'slightly') {
-    return theme === 'dark'
-      ? `color-mix(in hsl, ${PALETTE.grayscale[500]}, ${PALETTE.grayscale[900]} 90%)`
-      : `color-mix(in hsl, ${PALETTE.grayscale[100]}, ${PALETTE.grayscale[50]} 50%)`
-  }
-
-  return theme === 'dark'
-    ? `color-mix(in hsl, ${PALETTE.grayscale[800]}, ${PALETTE.grayscale[900]} 80%)`
-    : `color-mix(in hsl, ${PALETTE.grayscale[100]}, ${PALETTE.grayscale[50]} 80%)`
-}
-
 export const PALETTE = {
   grayscale: {
     0: 'hsl(0 0% 100%)',
@@ -32,6 +14,24 @@ export const PALETTE = {
     900: 'hsl(0 0% 10%)',
     1000: 'hsl(0 0% 0%)',
   },
+}
+
+export const subtleBackground = (
+  theme: 'dark' | 'light',
+  subtleness: 'very' | 'slightly' = 'very',
+) => {
+  // This function could evolve over time. Adds a light overlay to the background.
+  // I think, I only want one of these functions but could want more in the future.
+
+  if (subtleness === 'slightly') {
+    return theme === 'dark'
+      ? `color-mix(in hsl, ${PALETTE.grayscale[500]}, ${PALETTE.grayscale[900]} 90%)`
+      : `color-mix(in hsl, ${PALETTE.grayscale[100]}, ${PALETTE.grayscale[50]} 50%)`
+  }
+
+  return theme === 'dark'
+    ? `color-mix(in hsl, ${PALETTE.grayscale[800]}, ${PALETTE.grayscale[900]} 80%)`
+    : `color-mix(in hsl, ${PALETTE.grayscale[100]}, ${PALETTE.grayscale[50]} 80%)`
 }
 
 export const BORDER_RADIUS = {
@@ -91,7 +91,7 @@ export const SPACING = {
   },
 } as const
 
-// // Button Styles. Used in <Button /> and Share.tsx
+// Button Styles. Used in <Button /> and Share.tsx
 export const LIGHT_BUTTON_STYLES = {
   color: PALETTE.grayscale[50],
   background: PALETTE.grayscale[800],

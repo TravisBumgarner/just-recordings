@@ -5,7 +5,7 @@ import type { SxProps } from '@mui/material/styles'
 import { type FC, useCallback } from 'react'
 import { IoMdClose } from 'react-icons/io'
 import { activeModalSignal } from '../../../signals'
-import { BORDER_RADIUS, SPACING, Z_INDICES } from '../../../styles/styleConsts'
+import { BORDER_RADIUS, SPACING, Z_INDICES } from '@just-recordings/shared/styles'
 
 interface ActiveModal {
   children: React.ReactNode | React.ReactNode[]
