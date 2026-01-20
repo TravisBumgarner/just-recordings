@@ -1,160 +1,100 @@
-import { Box, Button, Container, Grid, Paper, Typography } from '@mui/material'
+import { Box, Button, Container, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { ROUTES } from '../consts'
 
-const features = [
-  {
-    emoji: '🎥',
-    title: 'Simple Recording',
-    description: 'Record your screen with one click. No complicated setup required.',
-  },
-  {
-    emoji: '⚡',
-    title: 'Fast & Lightweight',
-    description: 'No bloat. Just the essentials you need to capture your screen.',
-  },
-  {
-    emoji: '👆',
-    title: 'Easy to Use',
-    description: 'Intuitive interface that gets out of your way.',
-  },
-  {
-    emoji: '💰',
-    title: 'Affordable',
-    description: 'Screen recording without the premium price tag.',
-  },
-]
-
 function LandingPage() {
   return (
-    <Box>
-      {/* Hero Section */}
-      <Box
-        sx={{
-          bgcolor: 'primary.main',
-          color: 'primary.contrastText',
-          py: { xs: 8, md: 12 },
-          textAlign: 'center',
-        }}
-      >
-        <Container maxWidth="md">
-          <Typography
-            variant="h2"
-            component="h1"
-            gutterBottom
-            sx={{ fontWeight: 'bold', fontSize: { xs: '2.5rem', md: '3.5rem' } }}
-          >
-            Just Recordings
-          </Typography>
-          <Typography
-            variant="h5"
-            component="p"
-            sx={{ mb: 4, opacity: 0.9, fontSize: { xs: '1.2rem', md: '1.5rem' } }}
-          >
-            Screen recording. Nothing more.
-          </Typography>
-          <Button
-            component={RouterLink}
-            to={ROUTES.signup.href()}
-            variant="contained"
-            color="secondary"
-            size="large"
-            sx={{ px: 4, py: 1.5, fontSize: '1.1rem' }}
-          >
-            Sign Up Free
-          </Button>
-        </Container>
-      </Box>
-
-      {/* Features Section */}
-      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
+    <Box
+      sx={{
+        minHeight: '80vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+      }}
+    >
+      <Container maxWidth="sm">
         <Typography
-          variant="h4"
-          component="h2"
-          textAlign="center"
-          gutterBottom
-          sx={{ mb: 6, fontWeight: 'medium' }}
+          variant="h1"
+          component="h1"
+          sx={{
+            fontWeight: 300,
+            fontSize: { xs: '3rem', md: '4.5rem' },
+            letterSpacing: '-0.02em',
+            lineHeight: 1.1,
+            mb: 3,
+          }}
         >
-          Simple by Design
+          Screen recording.
+          <br />
+          Nothing more.
         </Typography>
-        <Grid container spacing={4}>
-          {features.map((feature) => (
-            <Grid item xs={12} sm={6} md={3} key={feature.title}>
-              <Paper
-                elevation={0}
+
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{
+            fontSize: { xs: '1.1rem', md: '1.25rem' },
+            mb: 4,
+            maxWidth: '400px',
+          }}
+        >
+          No bloat. No subscriptions. Just a simple tool that records your screen.
+        </Typography>
+
+        <Box
+          component="ul"
+          sx={{
+            listStyle: 'none',
+            p: 0,
+            m: 0,
+            mb: 5,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+          }}
+        >
+          {['Save locally or to the cloud', 'Share with a link', 'Record from desktop or browser'].map(
+            (item) => (
+              <Typography
+                component="li"
+                key={item}
                 sx={{
-                  p: 3,
-                  height: '100%',
-                  textAlign: 'center',
-                  bgcolor: 'grey.50',
-                  borderRadius: 2,
+                  fontSize: { xs: '0.95rem', md: '1.05rem' },
+                  color: 'text.secondary',
+                  '&::before': {
+                    content: '"—"',
+                    mr: 1.5,
+                    opacity: 0.5,
+                  },
                 }}
               >
-                <Box sx={{ fontSize: '2.5rem', mb: 2 }}>{feature.emoji}</Box>
-                <Typography variant="h6" component="h3" gutterBottom>
-                  {feature.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {feature.description}
-                </Typography>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
+                {item}
+              </Typography>
+            ),
+          )}
+        </Box>
 
-      {/* Pricing Section */}
-      <Box sx={{ bgcolor: 'grey.100', py: { xs: 6, md: 10 } }}>
-        <Container maxWidth="sm" sx={{ textAlign: 'center' }}>
-          <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'medium' }}>
-            Pricing
-          </Typography>
-          <Paper elevation={2} sx={{ p: 4, borderRadius: 2 }}>
-            <Typography
-              variant="h3"
-              component="p"
-              color="primary"
-              gutterBottom
-              sx={{ fontWeight: 'bold' }}
-            >
-              Free
-            </Typography>
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              During Beta
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 3 }}>
-              Get full access while we're in beta. No credit card required.
-            </Typography>
-            <Button
-              component={RouterLink}
-              to={ROUTES.signup.href()}
-              variant="contained"
-              size="large"
-              sx={{ px: 4 }}
-            >
-              Get Started
-            </Button>
-          </Paper>
-        </Container>
-      </Box>
-
-      {/* Footer CTA */}
-      <Box sx={{ py: { xs: 6, md: 8 }, textAlign: 'center' }}>
-        <Container maxWidth="sm">
-          <Typography variant="h5" component="p" gutterBottom>
-            Ready to start recording?
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
           <Button
             component={RouterLink}
             to={ROUTES.signup.href()}
             variant="contained"
             size="large"
-            sx={{ px: 4, mt: 2 }}
+            sx={{
+              px: 4,
+              py: 1.5,
+              fontSize: '1rem',
+              textTransform: 'none',
+              borderRadius: 1,
+            }}
           >
-            Sign Up Now
+            Get started free
           </Button>
-        </Container>
-      </Box>
+          <Typography variant="body2" color="text.secondary">
+            Free during beta
+          </Typography>
+        </Box>
+      </Container>
     </Box>
   )
 }

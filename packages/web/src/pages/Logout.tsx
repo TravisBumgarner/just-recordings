@@ -1,4 +1,3 @@
-import { setUserId } from '@amplitude/analytics-browser'
 import Typography from '@mui/material/Typography'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -23,7 +22,6 @@ export default function Logout() {
 
       setAuthUser(null)
       setAppUser(null)
-      setUserId(undefined)
 
       // There's flickering that goes on which navigates `/` -> `/login` -> `/` when logging out while on a
       // protected route. The timeout gives a tick to the event loop, allowing the redirect to
