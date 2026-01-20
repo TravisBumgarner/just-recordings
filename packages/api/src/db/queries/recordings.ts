@@ -1,7 +1,7 @@
-import { eq, desc } from 'drizzle-orm';
-import { db } from '../index.js';
-import { recordings, type Recording as DbRecording, type NewRecording } from '../schema.js';
-import type { Recording } from '@just-recordings/shared';
+import { eq, desc } from 'drizzle-orm'
+import { db } from '../index.js'
+import { recordings, type Recording as DbRecording, type NewRecording } from '../schema.js'
+import type { Recording } from '@just-recordings/shared'
 
 function toRecording(row: DbRecording): Recording {
   return {
@@ -13,20 +13,20 @@ function toRecording(row: DbRecording): Recording {
     createdAt: row.createdAt.toISOString(),
     path: row.path,
     thumbnailPath: row.thumbnailPath ?? undefined,
-  };
+  }
 }
 
 export async function getAllRecordings(): Promise<Recording[]> {
-  const rows = await db.select().from(recordings).orderBy(desc(recordings.createdAt));
-  return rows.map(toRecording);
+  const rows = await db.select().from(recordings).orderBy(desc(recordings.createdAt))
+  return rows.map(toRecording)
 }
 
 export async function getRecordingById(id: string): Promise<Recording | null> {
-  const rows = await db.select().from(recordings).where(eq(recordings.id, id));
+  const rows = await db.select().from(recordings).where(eq(recordings.id, id))
   if (rows.length === 0) {
-    return null;
+    return null
   }
-  return toRecording(rows[0]);
+  return toRecording(rows[0])
 }
 
 export async function saveRecording(recording: Recording): Promise<void> {
@@ -39,11 +39,14 @@ export async function saveRecording(recording: Recording): Promise<void> {
     createdAt: new Date(recording.createdAt),
     path: recording.path,
     thumbnailPath: recording.thumbnailPath ?? null,
-  };
-  await db.insert(recordings).values(row);
+  }
+  await db.insert(recordings).values(row)
 }
 
 export async function deleteRecording(id: string): Promise<boolean> {
-  const result = await db.delete(recordings).where(eq(recordings.id, id)).returning({ id: recordings.id });
-  return result.length > 0;
+  const result = await db
+    .delete(recordings)
+    .where(eq(recordings.id, id))
+    .returning({ id: recordings.id })
+  return result.length > 0
 }

@@ -36,7 +36,7 @@ const ContactForm = ({
         [e.target.name]: e.target.value,
       })
     },
-    [formData]
+    [formData],
   )
 
   const handleSubmit = useCallback(
@@ -65,7 +65,7 @@ const ContactForm = ({
       }
       setIsSubmitting(false)
     },
-    [formData]
+    [formData],
   )
 
   const buttonMessage = useMemo(() => {
@@ -139,11 +139,7 @@ const ContactForm = ({
           </Button>
         </form>
         {success && (
-          <Message
-            includeVerticalMargin
-            message="Thank you for your feedback!"
-            color="success"
-          />
+          <Message includeVerticalMargin message="Thank you for your feedback!" color="success" />
         )}
         {failure && (
           <Message

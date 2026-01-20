@@ -6,8 +6,7 @@ import type { ConfirmationModalProps } from './components/ConfirmationModal'
 import ConfirmationModal from './components/ConfirmationModal'
 import { MODAL_ID } from './Modal.consts'
 
-export type ActiveModal =
-  | ConfirmationModalProps
+export type ActiveModal = ConfirmationModalProps
 
 export type ModalId = (typeof MODAL_ID)[keyof typeof MODAL_ID]
 

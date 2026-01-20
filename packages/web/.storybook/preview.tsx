@@ -7,7 +7,7 @@ export const decorators = [
       <Story />
     </AppThemeProvider>
   ),
-];
+]
 
 const preview: Preview = {
   parameters: {

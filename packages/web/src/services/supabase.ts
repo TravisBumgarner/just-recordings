@@ -3,9 +3,7 @@ import config from '../config'
 import { ROUTES } from '../consts'
 import { logger } from './logging'
 
-type Response =
-  | { success: true; data?: unknown }
-  | { error: string; success: false }
+type Response = { success: true; data?: unknown } | { error: string; success: false }
 
 export const client = createClient(config.supabaseUrl, config.supabaseAnonKey)
 

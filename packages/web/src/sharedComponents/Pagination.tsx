@@ -40,11 +40,7 @@ const PageNumber = ({
   )
 }
 
-const Pagination: React.FC<PaginationProps> = ({
-  total,
-  currentPage,
-  onPageChange,
-}) => {
+const Pagination: React.FC<PaginationProps> = ({ total, currentPage, onPageChange }) => {
   const totalPages = Math.ceil(total / PAGINATION_SIZE)
 
   const handlePrev = useCallback(() => {
@@ -63,7 +59,7 @@ const Pagination: React.FC<PaginationProps> = ({
     (page: number) => {
       onPageChange?.(page)
     },
-    [onPageChange]
+    [onPageChange],
   )
 
   // Show up to 5 page numbers, with ellipsis if needed
@@ -89,11 +85,7 @@ const Pagination: React.FC<PaginationProps> = ({
         margin: `${SPACING.MEDIUM.PX} 0`,
       }}
     >
-      <IconButton
-        size="small"
-        onClick={handlePrev}
-        disabled={currentPage === 1}
-      >
+      <IconButton size="small" onClick={handlePrev} disabled={currentPage === 1}>
         <GrFormPrevious />
       </IconButton>
       {pageNumbers[0] > 1 && <span>...</span>}
@@ -106,11 +98,7 @@ const Pagination: React.FC<PaginationProps> = ({
         />
       ))}
       {pageNumbers[pageNumbers.length - 1] < totalPages && <span>...</span>}
-      <IconButton
-        size="small"
-        onClick={handleNext}
-        disabled={currentPage === totalPages}
-      >
+      <IconButton size="small" onClick={handleNext} disabled={currentPage === totalPages}>
         <GrFormNext />
       </IconButton>
     </div>

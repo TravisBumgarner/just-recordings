@@ -12,15 +12,12 @@ const Profile = () => {
   const appUser = useGlobalStore((state) => state.appUser)
   const authUser = useGlobalStore((state) => state.authUser)
 
-
   if (!appUser || !authUser) {
     return <Navigate to="/" />
   }
 
   const isEmailAuth =
-    !!authUser &&
-    !!authUser.identities &&
-    authUser.identities[0].provider === 'email'
+    !!authUser && !!authUser.identities && authUser.identities[0].provider === 'email'
 
   const regDate = new Date(authUser.created_at).toDateString()
   return (

@@ -1,15 +1,15 @@
 export interface ElectronVersions {
-  electron: string;
-  chrome: string;
-  node: string;
+  electron: string
+  chrome: string
+  node: string
 }
 
 export interface ElectronApi {
-  getVersions: () => ElectronVersions;
+  getVersions: () => ElectronVersions
 }
 
 declare global {
   interface Window {
-    api: ElectronApi;
+    api: ElectronApi
   }
 }

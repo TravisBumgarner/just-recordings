@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react'
 import {
   Box,
   Button,
@@ -8,60 +8,60 @@ import {
   ListItem,
   LinearProgress,
   Chip,
-} from '@mui/material';
-import type { UploadManager, Recording } from '@just-recordings/recorder';
+} from '@mui/material'
+import type { UploadManager, Recording } from '@just-recordings/recorder'
 
 export interface UploadQueueProps {
-  uploadManager: UploadManager;
+  uploadManager: UploadManager
 }
 
 function UploadQueue({ uploadManager }: UploadQueueProps) {
-  const [queue, setQueue] = useState<Recording[]>([]);
+  const [queue, setQueue] = useState<Recording[]>([])
 
   useEffect(() => {
-    const unsubscribe = uploadManager.onQueueChange(setQueue);
-    return unsubscribe;
-  }, [uploadManager]);
+    const unsubscribe = uploadManager.onQueueChange(setQueue)
+    return unsubscribe
+  }, [uploadManager])
 
   const handleRetry = useCallback(
     (id: number) => {
-      uploadManager.retry(id);
+      uploadManager.retry(id)
     },
-    [uploadManager]
-  );
+    [uploadManager],
+  )
 
   const handleCancel = useCallback(
     (id: number) => {
-      uploadManager.cancel(id);
+      uploadManager.cancel(id)
     },
-    [uploadManager]
-  );
+    [uploadManager],
+  )
 
   const getStatusLabel = (status: Recording['uploadStatus']) => {
     switch (status) {
       case 'pending':
-        return 'Pending';
+        return 'Pending'
       case 'uploading':
-        return 'Uploading';
+        return 'Uploading'
       case 'failed':
-        return 'Failed';
+        return 'Failed'
       default:
-        return status;
+        return status
     }
-  };
+  }
 
   const getStatusColor = (status: Recording['uploadStatus']): 'default' | 'primary' | 'error' => {
     switch (status) {
       case 'pending':
-        return 'default';
+        return 'default'
       case 'uploading':
-        return 'primary';
+        return 'primary'
       case 'failed':
-        return 'error';
+        return 'error'
       default:
-        return 'default';
+        return 'default'
     }
-  };
+  }
 
   return (
     <Container maxWidth="lg">
@@ -145,7 +145,7 @@ function UploadQueue({ uploadManager }: UploadQueueProps) {
         )}
       </Box>
     </Container>
-  );
+  )
 }
 
-export default UploadQueue;
+export default UploadQueue

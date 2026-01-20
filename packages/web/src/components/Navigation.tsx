@@ -12,21 +12,11 @@ import Link from '../sharedComponents/Link'
 import useGlobalStore from '../store'
 import { BORDER_RADIUS } from '../styles/styleConsts'
 
-
 type Items = (keyof typeof ROUTES | 'divider')[]
 
-export const USER_ROUTES: Items = [
-  'home',
-  'settings',
-  'logout',
-]
+export const USER_ROUTES: Items = ['home', 'settings', 'logout']
 
-export const ANON_ROUTES: Items = [
-  'home',
-  'login',
-  'signup',
-]
-
+export const ANON_ROUTES: Items = ['home', 'login', 'signup']
 
 const DropdownLinks = ({ onClose }: { onClose: () => void }) => {
   const appUser = useGlobalStore((state) => state.appUser)
@@ -42,15 +32,10 @@ const DropdownLinks = ({ onClose }: { onClose: () => void }) => {
         key === 'divider' ? (
           <Divider key={key + index} />
         ) : (
-          <Link
-            key={key}
-            hideBaseUnderline
-            hideHoverUnderline
-            href={ROUTES[key].href()}
-          >
+          <Link key={key} hideBaseUnderline hideHoverUnderline href={ROUTES[key].href()}>
             <MenuItem onClick={onClose}>{ROUTES[key].label}</MenuItem>
           </Link>
-        )
+        ),
       )}
     </>
   )

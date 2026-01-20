@@ -23,11 +23,11 @@ const LABELS: Record<UpdateType, string> = {
 const UpdateComponent = ({ title, date, updates }: Update) => {
   // Flatten updates to a single array of { type, text }
   const flatUpdates: { type: UpdateType; text: string }[] = []
-    ; (['add', 'update', 'fix'] as UpdateType[]).forEach((type: UpdateType) => {
-      updates[type].forEach((text: string) => {
-        flatUpdates.push({ type, text })
-      })
+  ;(['add', 'update', 'fix'] as UpdateType[]).forEach((type: UpdateType) => {
+    updates[type].forEach((text: string) => {
+      flatUpdates.push({ type, text })
     })
+  })
   return (
     <Box>
       <Typography variant="h3">{title}</Typography>
@@ -50,9 +50,7 @@ const UPDATES: Update[] = [
     title: 'Initial Public Release',
     date: '2025-10-06',
     updates: {
-      add: [
-        'Initial release of Just Recordings',
-      ],
+      add: ['Initial release of Just Recordings'],
       update: [],
       fix: [],
     },

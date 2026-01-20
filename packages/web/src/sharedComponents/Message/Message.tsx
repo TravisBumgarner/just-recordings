@@ -7,12 +7,7 @@ import { useMemo } from 'react'
 import { GiPartyPopper } from 'react-icons/gi'
 import { IoMdWarning } from 'react-icons/io'
 import { IoInformationCircleOutline } from 'react-icons/io5'
-import {
-  BORDER_RADIUS,
-  FONT_SIZES,
-  SPACING,
-  subtleBackground,
-} from '../../styles/styleConsts'
+import { BORDER_RADIUS, FONT_SIZES, SPACING, subtleBackground } from '../../styles/styleConsts'
 
 const Message = ({
   message,
@@ -31,27 +26,12 @@ const Message = ({
 
   const icon = useMemo(() => {
     if (color === 'error') {
-      return (
-        <IoMdWarning
-          size={FONT_SIZES.LARGE.PX}
-          color={theme.palette.info.main}
-        />
-      )
+      return <IoMdWarning size={FONT_SIZES.LARGE.PX} color={theme.palette.info.main} />
     }
     if (color === 'success') {
-      return (
-        <GiPartyPopper
-          size={FONT_SIZES.LARGE.PX}
-          color={theme.palette.info.main}
-        />
-      )
+      return <GiPartyPopper size={FONT_SIZES.LARGE.PX} color={theme.palette.info.main} />
     }
-    return (
-      <IoInformationCircleOutline
-        size={FONT_SIZES.LARGE.PX}
-        color={theme.palette.info.main}
-      />
-    )
+    return <IoInformationCircleOutline size={FONT_SIZES.LARGE.PX} color={theme.palette.info.main} />
   }, [color, theme])
 
   return (
@@ -69,15 +49,9 @@ const Message = ({
         gap: SPACING.MEDIUM.PX,
       }}
     >
-      <Box
-        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      >
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Box>{icon}</Box>
-        <Typography
-          sx={{ marginLeft: SPACING.SMALL.PX }}
-          variant="h5"
-          color={'info.main'}
-        >
+        <Typography sx={{ marginLeft: SPACING.SMALL.PX }} variant="h5" color={'info.main'}>
           {message}
         </Typography>
       </Box>

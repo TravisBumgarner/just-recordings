@@ -30,13 +30,10 @@ export default function LoginPage() {
     setEmail(e.target.value)
   }, [])
 
-  const handlePasswordChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setError(null)
-      setPassword(e.target.value)
-    },
-    []
-  )
+  const handlePasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    setPassword(e.target.value)
+  }, [])
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -61,7 +58,7 @@ export default function LoginPage() {
       }
       setIsSubmitting(false)
     },
-    [navigate, email, password]
+    [navigate, email, password],
   )
 
   if (appUser) {
@@ -72,9 +69,7 @@ export default function LoginPage() {
     <PageWrapper minHeight verticallyAlign width="small">
       <form onSubmit={handleSubmit} style={authFormCSS}>
         <PageTitle text="Log In" center />
-        {error && (
-          <Message includeVerticalMargin color="error" message={error} />
-        )}
+        {error && <Message includeVerticalMargin color="error" message={error} />}
         {/* <GoogleSignInButton text="Sign in with Google" /> */}
         <TextField
           id="email"
@@ -113,10 +108,7 @@ export default function LoginPage() {
           </Typography>
           <Typography variant="body1">
             {'Forgot your password? '}
-            <Link href={ROUTES.passwordReset.href()}>
-              {ROUTES.passwordReset.label}
-            </Link>
-            .
+            <Link href={ROUTES.passwordReset.href()}>{ROUTES.passwordReset.label}</Link>.
           </Typography>
         </Box>
       </form>

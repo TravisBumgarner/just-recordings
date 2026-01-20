@@ -15,8 +15,8 @@ const useGlobalStore = create<State>()(
     }),
     {
       name: 'store',
-    }
-  )
+    },
+  ),
 )
 
 export default useGlobalStore

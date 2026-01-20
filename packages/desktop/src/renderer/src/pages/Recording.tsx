@@ -1,72 +1,77 @@
-import { Box, Button, Container, LinearProgress, Typography, Alert } from '@mui/material';
-import { useState, useEffect, useCallback } from 'react';
-import type { RecorderService, Recording as RecordingType, RecorderState, Uploader } from '@just-recordings/recorder';
-import { chunkBlob } from '@just-recordings/recorder';
+import { Box, Button, Container, LinearProgress, Typography, Alert } from '@mui/material'
+import { useState, useEffect, useCallback } from 'react'
+import type {
+  RecorderService,
+  Recording as RecordingType,
+  RecorderState,
+  Uploader,
+} from '@just-recordings/recorder'
+import { chunkBlob } from '@just-recordings/recorder'
 
 export interface RecordingPageProps {
-  recorderService: RecorderService;
-  uploader: Uploader;
+  recorderService: RecorderService
+  uploader: Uploader
 }
 
 export interface UploadState {
-  uploading: boolean;
-  progress: number;
-  totalChunks: number;
-  uploadedChunks: number;
+  uploading: boolean
+  progress: number
+  totalChunks: number
+  uploadedChunks: number
 }
 
 export type FeedbackState =
   | { type: 'none' }
   | { type: 'success'; message: string }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
 
 function RecordingPage({ recorderService, uploader }: RecordingPageProps) {
-  const [recorderState, setRecorderState] = useState<RecorderState>('idle');
+  const [recorderState, setRecorderState] = useState<RecorderState>('idle')
   const [uploadState, setUploadState] = useState<UploadState>({
     uploading: false,
     progress: 0,
     totalChunks: 0,
     uploadedChunks: 0,
-  });
-  const [feedback, setFeedback] = useState<FeedbackState>({ type: 'none' });
+  })
+  const [feedback, setFeedback] = useState<FeedbackState>({ type: 'none' })
 
   useEffect(() => {
-    const unsubscribe = recorderService.onStateChange(setRecorderState);
-    return unsubscribe;
-  }, [recorderService]);
+    const unsubscribe = recorderService.onStateChange(setRecorderState)
+    return unsubscribe
+  }, [recorderService])
 
   const handleStartRecording = useCallback(async () => {
-    setFeedback({ type: 'none' });
-    await recorderService.startScreenRecording();
-  }, [recorderService]);
+    setFeedback({ type: 'none' })
+    await recorderService.startScreenRecording()
+  }, [recorderService])
 
   const handleStopRecording = useCallback(async () => {
     try {
       // Stop recording and get the recording data
-      const recording = await recorderService.stopRecording();
+      const recording = await recorderService.stopRecording()
 
       // Start upload
-      const uploadId = await uploader.startUpload();
+      const uploadId = await uploader.startUpload()
 
       // Chunk the blob
-      const chunks = chunkBlob(recording.blob);
-      const totalChunks = chunks.length;
+      const chunks = chunkBlob(recording.blob)
+      const totalChunks = chunks.length
 
       setUploadState({
         uploading: true,
         progress: 0,
         totalChunks,
         uploadedChunks: 0,
-      });
+      })
 
       // Upload each chunk
       for (let i = 0; i < chunks.length; i++) {
-        await uploader.uploadChunk(uploadId, chunks[i], i);
+        await uploader.uploadChunk(uploadId, chunks[i], i)
         setUploadState((prev) => ({
           ...prev,
           uploadedChunks: i + 1,
           progress: ((i + 1) / totalChunks) * 100,
-        }));
+        }))
       }
 
       // Finalize upload
@@ -74,33 +79,33 @@ function RecordingPage({ recorderService, uploader }: RecordingPageProps) {
         filename: recording.name,
         mimeType: recording.mimeType,
         totalChunks,
-      });
+      })
 
       setUploadState({
         uploading: false,
         progress: 100,
         totalChunks: 0,
         uploadedChunks: 0,
-      });
+      })
 
       setFeedback({
         type: 'success',
         message: `Upload complete! File saved to ${result.path}`,
-      });
+      })
     } catch (error) {
       setUploadState({
         uploading: false,
         progress: 0,
         totalChunks: 0,
         uploadedChunks: 0,
-      });
+      })
 
       setFeedback({
         type: 'error',
         message: error instanceof Error ? error.message : 'Upload failed',
-      });
+      })
     }
-  }, [recorderService, uploader]);
+  }, [recorderService, uploader])
 
   return (
     <Container maxWidth="lg">
@@ -121,11 +126,7 @@ function RecordingPage({ recorderService, uploader }: RecordingPageProps) {
               Start Recording
             </Button>
           ) : (
-            <Button
-              variant="contained"
-              color="error"
-              onClick={handleStopRecording}
-            >
+            <Button variant="contained" color="error" onClick={handleStopRecording}>
               Stop Recording
             </Button>
           )}
@@ -137,10 +138,7 @@ function RecordingPage({ recorderService, uploader }: RecordingPageProps) {
             <Typography variant="body2" gutterBottom>
               Uploading: {uploadState.uploadedChunks} / {uploadState.totalChunks} chunks
             </Typography>
-            <LinearProgress
-              variant="determinate"
-              value={uploadState.progress}
-            />
+            <LinearProgress variant="determinate" value={uploadState.progress} />
           </Box>
         )}
 
@@ -157,7 +155,7 @@ function RecordingPage({ recorderService, uploader }: RecordingPageProps) {
         )}
       </Box>
     </Container>
-  );
+  )
 }
 
-export default RecordingPage;
+export default RecordingPage

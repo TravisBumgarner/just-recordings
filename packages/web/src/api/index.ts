@@ -1,9 +1,9 @@
-export { checkHealth } from './health';
+export { checkHealth } from './health'
 export {
   getRecordings,
   getRecording,
   getVideoUrl,
   getThumbnailUrl,
   deleteRecording,
-} from './recordings';
-export { getMe } from './users';
+} from './recordings'
+export { getMe } from './users'

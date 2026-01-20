@@ -20,7 +20,7 @@ const Modal: FC<ActiveModal> = ({ children, closeCallback, sx }) => {
       if (reason === 'backdropClick') return
       activeModalSignal.value = null
     },
-    [closeCallback]
+    [closeCallback],
   )
 
   return (

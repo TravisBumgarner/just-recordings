@@ -12,7 +12,6 @@ const TermsOfService = () => {
       <Typography variant="body1">
         <em>Coming soon</em>
       </Typography>
-
     </PageWrapper>
   )
 }

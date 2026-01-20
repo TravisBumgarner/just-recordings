@@ -15,11 +15,7 @@ import Link from '../sharedComponents/Link'
 import Loading from '../sharedComponents/Loading'
 import Message from '../sharedComponents/Message'
 import useGlobalStore from '../store'
-import {
-  getValidationError,
-  validateEmail,
-  validatePassword,
-} from '../utils/auth'
+import { getValidationError, validateEmail, validatePassword } from '../utils/auth'
 
 export default function PasswordResetPage() {
   const [error, setError] = useState<string | null>(null)
@@ -44,21 +40,15 @@ export default function PasswordResetPage() {
     setEmail(e.target.value)
   }, [])
 
-  const handlePasswordChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setError(null)
-      setPassword(e.target.value)
-    },
-    []
-  )
+  const handlePasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    setPassword(e.target.value)
+  }, [])
 
-  const handleConfirmPasswordChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setError(null)
-      setConfirmPassword(e.target.value)
-    },
-    []
-  )
+  const handleConfirmPasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    setConfirmPassword(e.target.value)
+  }, [])
 
   const handleResetRequest = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -77,7 +67,7 @@ export default function PasswordResetPage() {
 
       if (response.success) {
         setMessage(
-          'Password reset instructions have been sent to your email. Please check your inbox and spam folder.'
+          'Password reset instructions have been sent to your email. Please check your inbox and spam folder.',
         )
         setEmail('')
         // trackEvent for password reset requested could be added to analytics types
@@ -87,7 +77,7 @@ export default function PasswordResetPage() {
 
       setIsLoading(false)
     },
-    [email]
+    [email],
   )
 
   const handlePasswordUpdate = useCallback(
@@ -117,7 +107,7 @@ export default function PasswordResetPage() {
 
       setIsLoading(false)
     },
-    [password, confirmPassword, navigate]
+    [password, confirmPassword, navigate],
   )
 
   // if (isGoogleAuth) {
@@ -134,14 +124,8 @@ export default function PasswordResetPage() {
 
   return (
     <PageWrapper minHeight verticallyAlign width="small">
-      <form
-        onSubmit={appUser ? handlePasswordUpdate : handleResetRequest}
-        style={authFormCSS}
-      >
-        <PageTitle
-          text={appUser ? 'Set New Password' : 'Reset Password'}
-          center
-        />
+      <form onSubmit={appUser ? handlePasswordUpdate : handleResetRequest} style={authFormCSS}>
+        <PageTitle text={appUser ? 'Set New Password' : 'Reset Password'} center />
 
         {error && <Message color="error" message={error} />}
 
@@ -151,8 +135,7 @@ export default function PasswordResetPage() {
           // Email reset form
           <>
             <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-              Enter your email address and we'll send you instructions to reset
-              your password.
+              Enter your email address and we'll send you instructions to reset your password.
             </Typography>
             <TextField
               id="email"
@@ -165,14 +148,8 @@ export default function PasswordResetPage() {
               value={email}
               onChange={handleEmailChange}
               disabled={isLoading}
-
             />
-            <Button
-              variant="contained"
-              type="submit"
-              fullWidth
-              disabled={isLoading || !email}
-            >
+            <Button variant="contained" type="submit" fullWidth disabled={isLoading || !email}>
               {isLoading ? 'Sending...' : 'Send Reset Instructions'}
             </Button>
           </>
@@ -193,7 +170,6 @@ export default function PasswordResetPage() {
               value={password}
               onChange={handlePasswordChange}
               disabled={isLoading}
-
             />
             <TextField
               id="confirmPassword"
@@ -206,22 +182,15 @@ export default function PasswordResetPage() {
               value={confirmPassword}
               onChange={handleConfirmPasswordChange}
               disabled={isLoading}
-
             />
-            <Button
-              variant="contained"
-              type="submit"
-              fullWidth
-              disabled={isLoading}
-            >
+            <Button variant="contained" type="submit" fullWidth disabled={isLoading}>
               {isLoading ? 'Updating...' : 'Update Password'}
             </Button>
           </>
         )}
         <Box>
           <Typography variant="body1">
-            Remember your password?{' '}
-            <Link href={ROUTES.login.href()}>{ROUTES.login.label}</Link>
+            Remember your password? <Link href={ROUTES.login.href()}>{ROUTES.login.label}</Link>
           </Typography>
 
           {!appUser && (

@@ -1,6 +1,6 @@
 export const subtleBackground = (
   theme: 'dark' | 'light',
-  subtleness: 'very' | 'slightly' = 'very'
+  subtleness: 'very' | 'slightly' = 'very',
 ) => {
   // This function could evolve over time. Adds a light overlay to the background.
   // I think, I only want one of these functions but could want more in the future.
