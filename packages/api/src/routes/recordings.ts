@@ -5,13 +5,12 @@ import {
   getRecordingById,
   saveRecording,
   deleteRecording,
-  type RecordingMetadata,
 } from '../db/queries/recordings.js';
 
 const router = Router();
 
 // Re-export for use in upload.ts
-export { saveRecording as saveRecordingMetadata, type RecordingMetadata };
+export { saveRecording as saveRecordingMetadata };
 
 // GET /api/recordings - List all recordings
 router.get('/', async (_req: Request, res: Response) => {

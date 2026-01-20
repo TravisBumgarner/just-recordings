@@ -1,19 +1,9 @@
 import { eq, desc } from 'drizzle-orm';
 import { db } from '../index.js';
-import { recordings, type Recording, type NewRecording } from '../schema.js';
+import { recordings, type Recording as DbRecording, type NewRecording } from '../schema.js';
+import type { Recording } from '@just-recordings/shared';
 
-export interface RecordingMetadata {
-  id: string;
-  name: string;
-  mimeType: string;
-  duration: number;
-  fileSize: number;
-  createdAt: string;
-  path: string;
-  thumbnailPath?: string;
-}
-
-function toMetadata(row: Recording): RecordingMetadata {
+function toRecording(row: DbRecording): Recording {
   return {
     id: row.id,
     name: row.name,
@@ -26,29 +16,29 @@ function toMetadata(row: Recording): RecordingMetadata {
   };
 }
 
-export async function getAllRecordings(): Promise<RecordingMetadata[]> {
+export async function getAllRecordings(): Promise<Recording[]> {
   const rows = await db.select().from(recordings).orderBy(desc(recordings.createdAt));
-  return rows.map(toMetadata);
+  return rows.map(toRecording);
 }
 
-export async function getRecordingById(id: string): Promise<RecordingMetadata | null> {
+export async function getRecordingById(id: string): Promise<Recording | null> {
   const rows = await db.select().from(recordings).where(eq(recordings.id, id));
   if (rows.length === 0) {
     return null;
   }
-  return toMetadata(rows[0]);
+  return toRecording(rows[0]);
 }
 
-export async function saveRecording(metadata: RecordingMetadata): Promise<void> {
+export async function saveRecording(recording: Recording): Promise<void> {
   const row: NewRecording = {
-    id: metadata.id,
-    name: metadata.name,
-    mimeType: metadata.mimeType,
-    duration: metadata.duration,
-    fileSize: metadata.fileSize,
-    createdAt: new Date(metadata.createdAt),
-    path: metadata.path,
-    thumbnailPath: metadata.thumbnailPath ?? null,
+    id: recording.id,
+    name: recording.name,
+    mimeType: recording.mimeType,
+    duration: recording.duration,
+    fileSize: recording.fileSize,
+    createdAt: new Date(recording.createdAt),
+    path: recording.path,
+    thumbnailPath: recording.thumbnailPath ?? null,
   };
   await db.insert(recordings).values(row);
 }
