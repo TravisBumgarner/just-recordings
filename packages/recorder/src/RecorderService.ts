@@ -1,79 +1,79 @@
-import { Recording, RecorderState, RecordingOptions } from './types';
-import { RecorderDatabase } from './db';
+import { RecorderDatabase } from './db'
+import type { RecorderState, Recording, RecordingOptions } from './types'
 
-const DEFAULT_MIME_TYPE = 'video/webm';
-const TIMESLICE_MS = 1000;
+const DEFAULT_MIME_TYPE = 'video/webm'
+const TIMESLICE_MS = 1000
 
 export class RecorderService {
-  private state: RecorderState = 'idle';
-  private listeners: Set<(state: RecorderState) => void> = new Set();
-  private mediaRecorder: MediaRecorder | null = null;
-  private mediaStream: MediaStream | null = null;
-  private chunks: Blob[] = [];
-  private startTime: number = 0;
-  private mimeType: string = DEFAULT_MIME_TYPE;
-  private db: RecorderDatabase;
+  private state: RecorderState = 'idle'
+  private listeners: Set<(state: RecorderState) => void> = new Set()
+  private mediaRecorder: MediaRecorder | null = null
+  private mediaStream: MediaStream | null = null
+  private chunks: Blob[] = []
+  private startTime: number = 0
+  private mimeType: string = DEFAULT_MIME_TYPE
+  private db: RecorderDatabase
 
   constructor(db?: RecorderDatabase) {
-    this.db = db || new RecorderDatabase();
+    this.db = db || new RecorderDatabase()
   }
 
   getState(): RecorderState {
-    return this.state;
+    return this.state
   }
 
   onStateChange(callback: (state: RecorderState) => void): () => void {
-    this.listeners.add(callback);
+    this.listeners.add(callback)
     return () => {
-      this.listeners.delete(callback);
-    };
+      this.listeners.delete(callback)
+    }
   }
 
   private setState(newState: RecorderState): void {
-    this.state = newState;
-    this.listeners.forEach((callback) => callback(newState));
+    this.state = newState
+    this.listeners.forEach((callback) => callback(newState))
   }
 
   async startScreenRecording(options?: RecordingOptions): Promise<void> {
     // Determine mime type
-    this.mimeType = options?.mimeType || DEFAULT_MIME_TYPE;
+    this.mimeType = options?.mimeType || DEFAULT_MIME_TYPE
     if (!MediaRecorder.isTypeSupported(this.mimeType)) {
-      this.mimeType = DEFAULT_MIME_TYPE;
+      this.mimeType = DEFAULT_MIME_TYPE
     }
 
     // Get display media stream
     this.mediaStream = await navigator.mediaDevices.getDisplayMedia({
       video: true,
       audio: false,
-    });
+    })
 
     // Reset chunks
-    this.chunks = [];
+    this.chunks = []
 
     // Create MediaRecorder
     const recorderOptions: MediaRecorderOptions = {
       mimeType: this.mimeType,
-    };
+    }
     if (options?.videoBitsPerSecond) {
-      recorderOptions.videoBitsPerSecond = options.videoBitsPerSecond;
+      recorderOptions.videoBitsPerSecond = options.videoBitsPerSecond
     }
     if (options?.audioBitsPerSecond) {
-      recorderOptions.audioBitsPerSecond = options.audioBitsPerSecond;
+      recorderOptions.audioBitsPerSecond = options.audioBitsPerSecond
     }
 
-    this.mediaRecorder = new MediaRecorder(this.mediaStream, recorderOptions);
+    this.mediaRecorder = new MediaRecorder(this.mediaStream, recorderOptions)
 
     // Collect chunks
     this.mediaRecorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
-        this.chunks.push(event.data);
+        this.chunks.push(event.data)
       }
-    };
+    }
 
     // Start recording with timeslice for periodic data
-    this.mediaRecorder.start(TIMESLICE_MS);
-    this.startTime = Date.now();
-    this.setState('recording');
+    this.mediaRecorder.start(TIMESLICE_MS)
+    this.startTime = Date.now()
+    this.setState('recording')
   }
 
   async stopRecording(): Promise<Recording> {
@@ -86,16 +86,16 @@ export class RecorderService {
           duration: 0,
           createdAt: new Date(),
           fileSize: 0,
-        });
-        return;
+        })
+        return
       }
 
       this.mediaRecorder.onstop = () => {
-        const duration = Date.now() - this.startTime;
-        const blob = new Blob(this.chunks, { type: this.mimeType });
+        const duration = Date.now() - this.startTime
+        const blob = new Blob(this.chunks, { type: this.mimeType })
 
         // Stop all tracks
-        this.mediaStream?.getTracks().forEach((track) => track.stop());
+        this.mediaStream?.getTracks().forEach((track) => track.stop())
 
         // Create recording object
         const recording: Recording = {
@@ -105,49 +105,49 @@ export class RecorderService {
           duration,
           createdAt: new Date(),
           fileSize: blob.size,
-        };
+        }
 
         // Cleanup
-        this.mediaRecorder = null;
-        this.mediaStream = null;
-        this.chunks = [];
+        this.mediaRecorder = null
+        this.mediaStream = null
+        this.chunks = []
 
-        this.setState('idle');
-        resolve(recording);
-      };
+        this.setState('idle')
+        resolve(recording)
+      }
 
-      this.mediaRecorder.stop();
-    });
+      this.mediaRecorder.stop()
+    })
   }
 
   pauseRecording(): void {
     if (this.mediaRecorder && this.state === 'recording') {
-      this.mediaRecorder.pause();
-      this.setState('paused');
+      this.mediaRecorder.pause()
+      this.setState('paused')
     }
   }
 
   resumeRecording(): void {
     if (this.mediaRecorder && this.state === 'paused') {
-      this.mediaRecorder.resume();
-      this.setState('recording');
+      this.mediaRecorder.resume()
+      this.setState('recording')
     }
   }
 
   // Storage operations
   async saveRecording(recording: Recording): Promise<number> {
-    return await this.db.recordings.add(recording);
+    return await this.db.recordings.add(recording)
   }
 
   async getRecording(id: number): Promise<Recording | undefined> {
-    return await this.db.recordings.get(id);
+    return await this.db.recordings.get(id)
   }
 
   async getAllRecordings(): Promise<Recording[]> {
-    return await this.db.recordings.orderBy('createdAt').reverse().toArray();
+    return await this.db.recordings.orderBy('createdAt').reverse().toArray()
   }
 
   async deleteRecording(id: number): Promise<void> {
-    await this.db.recordings.delete(id);
+    await this.db.recordings.delete(id)
   }
 }

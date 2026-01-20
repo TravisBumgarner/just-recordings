@@ -1,25 +1,25 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { RecorderDatabase } from '../db';
-import { Recording } from '../types';
+import { beforeEach, describe, expect, it } from 'vitest'
+import { RecorderDatabase } from '../db'
+import type { Recording } from '../types'
 
 describe('RecorderDatabase', () => {
-  let db: RecorderDatabase;
+  let db: RecorderDatabase
 
   beforeEach(() => {
-    db = new RecorderDatabase();
-  });
+    db = new RecorderDatabase()
+  })
 
   it('can be instantiated', () => {
-    expect(db).toBeInstanceOf(RecorderDatabase);
-  });
+    expect(db).toBeInstanceOf(RecorderDatabase)
+  })
 
   it('has a recordings table', () => {
-    expect(db.recordings).toBeDefined();
-  });
+    expect(db.recordings).toBeDefined()
+  })
 
   it('uses the correct database name', () => {
-    expect(db.name).toBe('JustRecordingsDB');
-  });
+    expect(db.name).toBe('JustRecordingsDB')
+  })
 
   describe('recordings table', () => {
     it('can add a recording', async () => {
@@ -30,11 +30,11 @@ describe('RecorderDatabase', () => {
         duration: 5000,
         createdAt: new Date(),
         fileSize: 1024,
-      };
+      }
 
-      const id = await db.recordings.add(recording);
-      expect(id).toBeGreaterThan(0);
-    });
+      const id = await db.recordings.add(recording)
+      expect(id).toBeGreaterThan(0)
+    })
 
     it('can retrieve a recording by id', async () => {
       const recording: Recording = {
@@ -44,14 +44,14 @@ describe('RecorderDatabase', () => {
         duration: 5000,
         createdAt: new Date(),
         fileSize: 1024,
-      };
+      }
 
-      const id = await db.recordings.add(recording);
-      const retrieved = await db.recordings.get(id);
+      const id = await db.recordings.add(recording)
+      const retrieved = await db.recordings.get(id)
 
-      expect(retrieved).toBeDefined();
-      expect(retrieved?.name).toBe('Test Recording');
-    });
+      expect(retrieved).toBeDefined()
+      expect(retrieved?.name).toBe('Test Recording')
+    })
 
     it('auto-increments the id', async () => {
       const recording1: Recording = {
@@ -61,7 +61,7 @@ describe('RecorderDatabase', () => {
         duration: 1000,
         createdAt: new Date(),
         fileSize: 512,
-      };
+      }
 
       const recording2: Recording = {
         name: 'Recording 2',
@@ -70,12 +70,12 @@ describe('RecorderDatabase', () => {
         duration: 2000,
         createdAt: new Date(),
         fileSize: 1024,
-      };
+      }
 
-      const id1 = await db.recordings.add(recording1);
-      const id2 = await db.recordings.add(recording2);
+      const id1 = await db.recordings.add(recording1)
+      const id2 = await db.recordings.add(recording2)
 
-      expect(id2).toBeGreaterThan(id1);
-    });
-  });
-});
+      expect(id2).toBeGreaterThan(id1)
+    })
+  })
+})

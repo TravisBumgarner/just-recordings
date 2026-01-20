@@ -1,19 +1,17 @@
+import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-
 import { type ChangeEvent, useCallback, useState } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../consts'
 import { login } from '../services/supabase'
+import Link from '../sharedComponents/Link'
+import Message from '../sharedComponents/Message'
 import useGlobalStore from '../store'
 import authFormCSS from '../styles/shared/authFormCSS'
 import PageTitle from '../styles/shared/PageTitle'
 import PageWrapper from '../styles/shared/PageWrapper'
-
-import Box from '@mui/material/Box'
-import { Navigate, useNavigate } from 'react-router-dom'
-import Link from '../sharedComponents/Link'
-import Message from '../sharedComponents/Message'
 import { getValidationError, validateEmail } from '../utils/auth'
 import { loadUserIntoState } from '../utils/loadUserIntoState'
 
@@ -30,13 +28,10 @@ export default function LoginPage() {
     setEmail(e.target.value)
   }, [])
 
-  const handlePasswordChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setError(null)
-      setPassword(e.target.value)
-    },
-    []
-  )
+  const handlePasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    setPassword(e.target.value)
+  }, [])
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -61,7 +56,7 @@ export default function LoginPage() {
       }
       setIsSubmitting(false)
     },
-    [navigate, email, password]
+    [navigate, email, password],
   )
 
   if (appUser) {
@@ -72,9 +67,7 @@ export default function LoginPage() {
     <PageWrapper minHeight verticallyAlign width="small">
       <form onSubmit={handleSubmit} style={authFormCSS}>
         <PageTitle text="Log In" center />
-        {error && (
-          <Message includeVerticalMargin color="error" message={error} />
-        )}
+        {error && <Message includeVerticalMargin color="error" message={error} />}
         {/* <GoogleSignInButton text="Sign in with Google" /> */}
         <TextField
           id="email"
@@ -113,10 +106,7 @@ export default function LoginPage() {
           </Typography>
           <Typography variant="body1">
             {'Forgot your password? '}
-            <Link href={ROUTES.passwordReset.href()}>
-              {ROUTES.passwordReset.label}
-            </Link>
-            .
+            <Link href={ROUTES.passwordReset.href()}>{ROUTES.passwordReset.label}</Link>.
           </Typography>
         </Box>
       </form>

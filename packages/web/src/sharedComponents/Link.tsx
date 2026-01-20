@@ -61,11 +61,7 @@ const Link = ({
   }
 
   return (
-    <RouterLink
-      onClick={onClick}
-      to={href}
-      style={baseStyle as React.CSSProperties}
-    >
+    <RouterLink onClick={onClick} to={href} style={baseStyle as React.CSSProperties}>
       <Box component="span" sx={merge({ '&:hover': hoverStyle }, sx)}>
         {children}
       </Box>

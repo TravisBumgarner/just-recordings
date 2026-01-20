@@ -1,8 +1,8 @@
 import Box from '@mui/material/Box'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
-import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material/styles'
+import Typography from '@mui/material/Typography'
 import { ROUTES } from '../consts'
 import Link from '../sharedComponents/Link'
 import { FONT_SIZES, SPACING, subtleBackground } from '../styles/styleConsts'
@@ -74,16 +74,8 @@ const Footer = () => {
         backgroundColor: subtleBackground(theme.palette.mode),
       }}
     >
-      <Section
-        direction="column"
-        links={['feedback']}
-        header={'Feedback'}
-      />
-      <Section
-        direction="column"
-        links={['releaseNotes', 'privacy', 'tos']}
-        header={'Site Info'}
-      />
+      <Section direction="column" links={['feedback']} header={'Feedback'} />
+      <Section direction="column" links={['releaseNotes', 'privacy', 'tos']} header={'Site Info'} />
     </Box>
   )
 }

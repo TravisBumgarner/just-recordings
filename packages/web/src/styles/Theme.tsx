@@ -1,9 +1,5 @@
 import CssBaseline from '@mui/material/CssBaseline'
-import {
-  createTheme,
-  type ThemeOptions,
-  ThemeProvider,
-} from '@mui/material/styles'
+import { createTheme, type ThemeOptions, ThemeProvider } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import merge from 'lodash/merge'
 import { useMemo } from 'react'
@@ -151,25 +147,20 @@ const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
   palette: {
     mode,
     background: {
-      default:
-        mode === 'light' ? PALETTE.grayscale[50] : PALETTE.grayscale[900],
+      default: mode === 'light' ? PALETTE.grayscale[50] : PALETTE.grayscale[900],
       paper: mode === 'light' ? PALETTE.grayscale[50] : PALETTE.grayscale[800],
     },
     info: {
       main: mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[200],
-      contrastText:
-        mode === 'light' ? PALETTE.grayscale[200] : PALETTE.grayscale[800],
+      contrastText: mode === 'light' ? PALETTE.grayscale[200] : PALETTE.grayscale[800],
     },
     error: {
       main: mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[200],
-      contrastText:
-        mode === 'light' ? PALETTE.grayscale[200] : PALETTE.grayscale[800],
+      contrastText: mode === 'light' ? PALETTE.grayscale[200] : PALETTE.grayscale[800],
     },
     text: {
-      primary:
-        mode === 'light' ? PALETTE.grayscale[900] : PALETTE.grayscale[100],
-      secondary:
-        mode === 'light' ? PALETTE.grayscale[800] : PALETTE.grayscale[200],
+      primary: mode === 'light' ? PALETTE.grayscale[900] : PALETTE.grayscale[100],
+      secondary: mode === 'light' ? PALETTE.grayscale[800] : PALETTE.grayscale[200],
     },
     divider: mode === 'light' ? PALETTE.grayscale[200] : PALETTE.grayscale[800],
   },
@@ -198,21 +189,14 @@ const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
         switchBase: {
           color: PALETTE.grayscale[500],
           '&.Mui-checked': {
-            color:
-              mode === 'light'
-                ? PALETTE.grayscale[700]
-                : PALETTE.grayscale[200],
+            color: mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[200],
           },
           '&.Mui-checked + .MuiSwitch-track': {
-            backgroundColor:
-              mode === 'light'
-                ? PALETTE.grayscale[700]
-                : PALETTE.grayscale[200],
+            backgroundColor: mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[200],
           },
         },
         track: {
-          backgroundColor:
-            mode === 'light' ? PALETTE.grayscale[400] : PALETTE.grayscale[600],
+          backgroundColor: mode === 'light' ? PALETTE.grayscale[400] : PALETTE.grayscale[600],
         },
       },
     },
@@ -224,19 +208,14 @@ const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
     MuiTab: {
       styleOverrides: {
         root: {
-          color:
-            mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[100],
+          color: mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[100],
           '&.Mui-selected': {
             backgroundColor: PALETTE.grayscale[200],
             color: PALETTE.grayscale[900],
           },
           '&:hover': {
-            backgroundColor:
-              mode === 'light'
-                ? PALETTE.grayscale[800]
-                : PALETTE.grayscale[100],
-            color:
-              mode === 'light' ? PALETTE.grayscale[50] : PALETTE.grayscale[900],
+            backgroundColor: mode === 'light' ? PALETTE.grayscale[800] : PALETTE.grayscale[100],
+            color: mode === 'light' ? PALETTE.grayscale[50] : PALETTE.grayscale[900],
           },
         },
       },
@@ -244,19 +223,12 @@ const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
     MuiLink: {
       styleOverrides: {
         root: {
-          color:
-            mode === 'light' ? PALETTE.grayscale[800] : PALETTE.grayscale[100],
+          color: mode === 'light' ? PALETTE.grayscale[800] : PALETTE.grayscale[100],
           '&:hover': {
-            color:
-              mode === 'light'
-                ? PALETTE.grayscale[800]
-                : PALETTE.grayscale[100],
+            color: mode === 'light' ? PALETTE.grayscale[800] : PALETTE.grayscale[100],
           },
           '&:visited': {
-            color:
-              mode === 'light'
-                ? PALETTE.grayscale[800]
-                : PALETTE.grayscale[100],
+            color: mode === 'light' ? PALETTE.grayscale[800] : PALETTE.grayscale[100],
           },
         },
       },
@@ -264,18 +236,13 @@ const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          color:
-            mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[300],
+          color: mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[300],
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor:
-              mode === 'light'
-                ? PALETTE.grayscale[700]
-                : PALETTE.grayscale[300],
+            borderColor: mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[300],
           },
         },
         notchedOutline: {
-          borderColor:
-            mode === 'light' ? PALETTE.grayscale[400] : PALETTE.grayscale[600],
+          borderColor: mode === 'light' ? PALETTE.grayscale[400] : PALETTE.grayscale[600],
         },
       },
     },
@@ -283,10 +250,7 @@ const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
       styleOverrides: {
         root: {
           '&.Mui-focused': {
-            color:
-              mode === 'light'
-                ? PALETTE.grayscale[700]
-                : PALETTE.grayscale[300],
+            color: mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[300],
           },
         },
       },
@@ -294,14 +258,9 @@ const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
     MuiButton: {
       styleOverrides: {
         contained: {
-          color:
-            mode === 'light'
-              ? LIGHT_BUTTON_STYLES.color
-              : DARK_BUTTON_STYLES.color,
+          color: mode === 'light' ? LIGHT_BUTTON_STYLES.color : DARK_BUTTON_STYLES.color,
           backgroundColor:
-            mode === 'light'
-              ? LIGHT_BUTTON_STYLES.background
-              : DARK_BUTTON_STYLES.background,
+            mode === 'light' ? LIGHT_BUTTON_STYLES.background : DARK_BUTTON_STYLES.background,
           '&:hover': {
             backgroundColor:
               mode === 'light'
@@ -309,44 +268,26 @@ const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
                 : DARK_BUTTON_STYLES.hoverBackground,
           },
           '&:disabled': {
-            backgroundColor:
-              mode === 'light'
-                ? PALETTE.grayscale[400]
-                : PALETTE.grayscale[700],
+            backgroundColor: mode === 'light' ? PALETTE.grayscale[400] : PALETTE.grayscale[700],
           },
         },
         outlined: {
-          color:
-            mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[100],
-          borderColor:
-            mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[200],
+          color: mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[100],
+          borderColor: mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[200],
           '&:hover': {
-            backgroundColor:
-              mode === 'light'
-                ? PALETTE.grayscale[100]
-                : PALETTE.grayscale[700],
+            backgroundColor: mode === 'light' ? PALETTE.grayscale[100] : PALETTE.grayscale[700],
           },
           '&:disabled': {
-            textColor:
-              mode === 'light'
-                ? PALETTE.grayscale[400]
-                : PALETTE.grayscale[600],
+            textColor: mode === 'light' ? PALETTE.grayscale[400] : PALETTE.grayscale[600],
           },
         },
         text: {
-          color:
-            mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[100],
+          color: mode === 'light' ? PALETTE.grayscale[700] : PALETTE.grayscale[100],
           '&:hover': {
-            backgroundColor:
-              mode === 'light'
-                ? PALETTE.grayscale[100]
-                : PALETTE.grayscale[700],
+            backgroundColor: mode === 'light' ? PALETTE.grayscale[100] : PALETTE.grayscale[700],
           },
           '&:disabled': {
-            textColor:
-              mode === 'light'
-                ? PALETTE.grayscale[400]
-                : PALETTE.grayscale[700],
+            textColor: mode === 'light' ? PALETTE.grayscale[400] : PALETTE.grayscale[700],
           },
         },
       },
@@ -354,18 +295,13 @@ const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
   },
 })
 
-const lightTheme = createTheme(
-  merge(baseThemeOptions, getThemeOptions('light'))
-)
+const lightTheme = createTheme(merge(baseThemeOptions, getThemeOptions('light')))
 const darkTheme = createTheme(merge(baseThemeOptions, getThemeOptions('dark')))
 
 const AppThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
 
-  const theme = useMemo(
-    () => (prefersDarkMode ? darkTheme : lightTheme),
-    [prefersDarkMode]
-  )
+  const theme = useMemo(() => (prefersDarkMode ? darkTheme : lightTheme), [prefersDarkMode])
 
   return (
     <ThemeProvider theme={theme}>

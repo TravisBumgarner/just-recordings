@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import type { Recording } from '@just-recordings/shared'
 import {
   Box,
   Button,
@@ -11,90 +10,94 @@ import {
   DialogContentText,
   DialogTitle,
   Typography,
-} from '@mui/material';
-import type { Recording } from '@just-recordings/shared';
-import { getRecording, getVideoUrl, deleteRecording } from '../api';
-import PageWrapper from '@/styles/shared/PageWrapper';
+} from '@mui/material'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import PageWrapper from '@/styles/shared/PageWrapper'
+import { deleteRecording, getRecording, getVideoUrl } from '../api'
 
 function formatDuration(ms: number): string {
-  const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  const totalSeconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
 }
 
 function formatFileSize(bytes: number): string {
-  const mb = bytes / (1024 * 1024);
+  const mb = bytes / (1024 * 1024)
   if (mb >= 1) {
-    return `${mb.toFixed(1)} MB`;
+    return `${mb.toFixed(1)} MB`
   }
-  const kb = bytes / 1024;
-  return `${kb.toFixed(1)} KB`;
+  const kb = bytes / 1024
+  return `${kb.toFixed(1)} KB`
 }
 
 function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+  const date = new Date(dateString)
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  });
+  })
 }
 
 function RecordingViewerPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [recording, setRecording] = useState<Recording | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const [recording, setRecording] = useState<Recording | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   useEffect(() => {
     const fetchRecording = async () => {
       if (!id) {
-        setError(true);
-        setLoading(false);
-        return;
+        setError(true)
+        setLoading(false)
+        return
       }
 
-      const response = await getRecording(id);
+      const response = await getRecording(id)
       if (response.success) {
-        setRecording(response.recording);
+        setRecording(response.recording)
       } else {
-        setError(true);
+        setError(true)
       }
-      setLoading(false);
-    };
-    fetchRecording();
-  }, [id]);
+      setLoading(false)
+    }
+    fetchRecording()
+  }, [id])
 
-  const videoUrl = id ? getVideoUrl(id) : undefined;
+  const videoUrl = id ? getVideoUrl(id) : undefined
 
   const handleDeleteClick = () => {
-    setDeleteDialogOpen(true);
-  };
+    setDeleteDialogOpen(true)
+  }
 
   const handleDeleteCancel = () => {
-    setDeleteDialogOpen(false);
-  };
+    setDeleteDialogOpen(false)
+  }
 
   const handleDeleteConfirm = async () => {
     if (recording?.id) {
-      await deleteRecording(recording.id);
-      navigate('/');
+      await deleteRecording(recording.id)
+      navigate('/')
     }
-  };
+  }
 
   if (loading) {
     return (
       <Container maxWidth="lg">
         <Box sx={{ py: 4 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }} data-testid="loading-indicator">
+          <Box
+            sx={{ display: 'flex', justifyContent: 'center', py: 4 }}
+            data-testid="loading-indicator"
+          >
             <CircularProgress />
           </Box>
         </Box>
       </Container>
-    );
+    )
   }
 
   if (error || !recording) {
@@ -111,11 +114,11 @@ function RecordingViewerPage() {
           </Box>
         </Box>
       </Container>
-    );
+    )
   }
 
   return (
-    <PageWrapper width='full'>
+    <PageWrapper width="full">
       <Box sx={{ py: 4 }}>
         <Button component={Link} to="/" sx={{ mb: 2 }}>
           Back
@@ -149,11 +152,7 @@ function RecordingViewerPage() {
         </Box>
 
         {/* Delete Button */}
-        <Button
-          variant="outlined"
-          color="error"
-          onClick={handleDeleteClick}
-        >
+        <Button variant="outlined" color="error" onClick={handleDeleteClick}>
           Delete Recording
         </Button>
 
@@ -178,7 +177,7 @@ function RecordingViewerPage() {
         </Dialog>
       </Box>
     </PageWrapper>
-  );
+  )
 }
 
-export default RecordingViewerPage;
+export default RecordingViewerPage

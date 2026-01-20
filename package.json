@@ -13,9 +13,14 @@
     "test": "npm run test --workspaces --if-present",
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",
-    "db:push": "npm run db:push -w @just-recordings/api"
+    "db:push": "npm run db:push -w @just-recordings/api",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format .",
+    "format:fix": "biome format --write ."
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.11",
     "concurrently": "8.2.2",
     "drizzle-orm": "^0.45.1"
   },

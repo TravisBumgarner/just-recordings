@@ -2,10 +2,11 @@ import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import MUIModal from '@mui/material/Modal'
 import type { SxProps } from '@mui/material/styles'
-import { useCallback, type FC } from 'react'
+import { type FC, useCallback } from 'react'
 import { IoMdClose } from 'react-icons/io'
 import { activeModalSignal } from '../../../signals'
 import { BORDER_RADIUS, SPACING, Z_INDICES } from '../../../styles/styleConsts'
+
 interface ActiveModal {
   children: React.ReactNode | React.ReactNode[]
   closeCallback?: () => void
@@ -20,7 +21,7 @@ const Modal: FC<ActiveModal> = ({ children, closeCallback, sx }) => {
       if (reason === 'backdropClick') return
       activeModalSignal.value = null
     },
-    [closeCallback]
+    [closeCallback],
   )
 
   return (

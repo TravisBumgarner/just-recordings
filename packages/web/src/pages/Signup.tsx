@@ -26,23 +26,17 @@ export default function SignupPage() {
   const appUser = useGlobalStore((state) => state.appUser)
   const navigate = useNavigate()
 
-  const handlePasswordChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setError(null)
-      const newPassword = e.target.value
-      setPassword(newPassword)
-    },
-    [setPassword]
-  )
+  const handlePasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    const newPassword = e.target.value
+    setPassword(newPassword)
+  }, [])
 
-  const handleRepeatPasswordChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setError(null)
-      const newRepeatPassword = e.target.value
-      setRepeatPassword(newRepeatPassword)
-    },
-    [setRepeatPassword]
-  )
+  const handleRepeatPasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    const newRepeatPassword = e.target.value
+    setRepeatPassword(newRepeatPassword)
+  }, [])
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -78,23 +72,18 @@ export default function SignupPage() {
           setError(response.error)
         }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'An error occurred during signup'
-        )
+        setError(err instanceof Error ? err.message : 'An error occurred during signup')
       } finally {
         setIsSubmitting(false)
       }
     },
-    [email, password, repeatPassword, navigate]
+    [email, password, repeatPassword, navigate],
   )
 
-  const handleEmailChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setError(null)
-      setEmail(e.target.value)
-    },
-    [setEmail]
-  )
+  const handleEmailChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    setEmail(e.target.value)
+  }, [])
 
   if (appUser) {
     return <Navigate to="/" />
@@ -104,9 +93,7 @@ export default function SignupPage() {
     <PageWrapper minHeight verticallyAlign width="small">
       <form onSubmit={handleSubmit} style={authFormCSS}>
         <PageTitle center text="Sign Up" />
-        {error && (
-          <Message includeVerticalMargin color="error" message={error} />
-        )}
+        {error && <Message includeVerticalMargin color="error" message={error} />}
         {/* <GoogleSignInButton text="Sign up with Google" /> */}
 
         <TextField
@@ -119,7 +106,6 @@ export default function SignupPage() {
           label="Email"
           fullWidth
           autoComplete="email"
-
         />
         <TextField
           id="password"
@@ -131,7 +117,6 @@ export default function SignupPage() {
           label="Password"
           fullWidth
           autoComplete="new-password"
-
         />
         <TextField
           id="repeatPassword"
@@ -143,7 +128,6 @@ export default function SignupPage() {
           label="Repeat Password"
           fullWidth
           autoComplete="new-password"
-
         />
         <Button
           variant="contained"

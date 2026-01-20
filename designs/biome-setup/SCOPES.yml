@@ -1,0 +1,76 @@
+project: Add Biome Linter and Formatter
+repo: travisbumgarner/just-recordings
+design_file: null  # No design file - scoped from user request
+scoping_date: 2026-01-20
+
+milestones:
+  - number: 10
+    title: "1. Add Biome Linter and Formatter"
+    description: Install and configure Biome for linting and formatting across the monorepo
+    branch:
+      working: 61-add-biome-linter-formatter
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 61
+    milestone: 10
+    title: Install Biome and create configuration
+    description: |
+      Install Biome as a dev dependency at the root of the monorepo and create the
+      `biome.json` configuration file with sensible defaults for TypeScript/React.
+    acceptance_criteria:
+      - Install `@biomejs/biome` as a dev dependency in root `package.json`
+      - Create `biome.json` with sensible defaults for TypeScript/React
+      - Configure to ignore `node_modules`, `dist`, `out`, and build artifacts
+      - Enable both linting and formatting
+    depends_on: []
+    effort: 1
+    status: completed
+
+  - id: 2
+    github_issue: 62
+    milestone: 10
+    title: Add lint and format scripts to package.json
+    description: |
+      Add npm scripts to the root `package.json` for running Biome lint and format commands.
+    acceptance_criteria:
+      - Add `lint` script that runs Biome lint on the codebase
+      - Add `lint:fix` script that auto-fixes linting issues
+      - Add `format` script that runs Biome format check
+      - Add `format:fix` script that applies formatting
+    depends_on: [1]
+    effort: 1
+    status: completed
+
+  - id: 3
+    github_issue: 63
+    milestone: 10
+    title: Format entire codebase with Biome
+    description: |
+      Run Biome format on all source files in the monorepo to establish consistent formatting.
+    acceptance_criteria:
+      - Run `biome format --write` on all packages
+      - Verify no formatting changes are needed after the initial format
+      - Ensure build completes successfully after formatting
+      - Ensure all tests pass after formatting
+    depends_on: [2]
+    effort: 2
+    status: completed
+
+  - id: 4
+    github_issue: 64
+    milestone: 10
+    title: Fix Biome lint errors across codebase
+    description: |
+      Run Biome lint and fix any errors/warnings across the codebase. Apply auto-fixes
+      where possible and manual fixes for more complex issues.
+    acceptance_criteria:
+      - Run `biome lint` and review all errors/warnings
+      - Apply auto-fixes where safe using `biome lint --write`
+      - Manually fix remaining issues or add targeted rule overrides in `biome.json`
+      - Ensure lint passes with no errors
+      - Verify build and tests still pass
+    depends_on: [3]
+    effort: 2
+    status: completed

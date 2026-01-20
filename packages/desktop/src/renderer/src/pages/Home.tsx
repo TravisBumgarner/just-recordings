@@ -1,19 +1,19 @@
-import { useEffect, useState } from 'react';
-import { Box, Button, Container, Typography } from '@mui/material';
-import { Link } from 'react-router-dom';
-import { checkHealth } from '../services/api';
+import { Box, Button, Container, Typography } from '@mui/material'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { checkHealth } from '../services/api'
 
-type HealthStatus = 'loading' | 'connected' | 'error';
+type HealthStatus = 'loading' | 'connected' | 'error'
 
 function Home() {
-  const versions = window.api.getVersions();
-  const [healthStatus, setHealthStatus] = useState<HealthStatus>('loading');
+  const versions = window.api.getVersions()
+  const [healthStatus, setHealthStatus] = useState<HealthStatus>('loading')
 
   useEffect(() => {
     checkHealth()
       .then(() => setHealthStatus('connected'))
-      .catch(() => setHealthStatus('error'));
-  }, []);
+      .catch(() => setHealthStatus('error'))
+  }, [])
 
   return (
     <Container maxWidth="lg">
@@ -26,12 +26,7 @@ function Home() {
         </Typography>
 
         <Box sx={{ mt: 3 }}>
-          <Button
-            component={Link}
-            to="/recording"
-            variant="contained"
-            color="primary"
-          >
+          <Button component={Link} to="/recording" variant="contained" color="primary">
             Start Recording
           </Button>
         </Box>
@@ -57,7 +52,7 @@ function Home() {
         </Box>
       </Box>
     </Container>
-  );
+  )
 }
 
-export default Home;
+export default Home

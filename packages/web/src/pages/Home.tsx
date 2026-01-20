@@ -1,5 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import type {
+  RecorderService,
+  RecorderState,
+  Recording,
+  UploadManager,
+} from '@just-recordings/recorder'
+import type { Recording as ApiRecording } from '@just-recordings/shared'
 import {
   Box,
   Button,
@@ -9,132 +14,121 @@ import {
   CardMedia,
   Chip,
   CircularProgress,
-  Container,
   Grid,
   LinearProgress,
   List,
   ListItem,
   Typography,
-} from '@mui/material';
-import type { UploadManager, Recording, RecorderService, RecorderState } from '@just-recordings/recorder';
-import type { Recording as ApiRecording } from '@just-recordings/shared';
-import { getRecordings, getThumbnailUrl } from '../api';
-import PageWrapper from '@/styles/shared/PageWrapper';
+} from '@mui/material'
+import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import PageWrapper from '@/styles/shared/PageWrapper'
+import { getRecordings, getThumbnailUrl } from '../api'
 
 export interface HomeProps {
-  recorderService: RecorderService;
-  uploadManager: UploadManager;
+  recorderService: RecorderService
+  uploadManager: UploadManager
 }
 
 function formatDuration(ms: number): string {
-  const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  const totalSeconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
 }
 
 function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+  const date = new Date(dateString)
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  });
+  })
 }
 
 function Home({ recorderService, uploadManager }: HomeProps) {
-  const [recordings, setRecordings] = useState<ApiRecording[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [queue, setQueue] = useState<Recording[]>([]);
-  const [recorderState, setRecorderState] = useState<RecorderState>('idle');
+  const [recordings, setRecordings] = useState<ApiRecording[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [queue, setQueue] = useState<Recording[]>([])
+  const [recorderState, setRecorderState] = useState<RecorderState>('idle')
 
   useEffect(() => {
     const fetchRecordings = async () => {
-      const response = await getRecordings();
+      const response = await getRecordings()
       if (response.success) {
-        setRecordings(response.recordings);
+        setRecordings(response.recordings)
       } else {
-        setError(true);
+        setError(true)
       }
-      setLoading(false);
-    };
-    fetchRecordings();
-  }, []);
+      setLoading(false)
+    }
+    fetchRecordings()
+  }, [])
 
   useEffect(() => {
-    const unsubscribe = uploadManager.onQueueChange(setQueue);
-    return unsubscribe;
-  }, [uploadManager]);
+    const unsubscribe = uploadManager.onQueueChange(setQueue)
+    return unsubscribe
+  }, [uploadManager])
 
   useEffect(() => {
-    const unsubscribe = recorderService.onStateChange(setRecorderState);
-    return unsubscribe;
-  }, [recorderService]);
+    const unsubscribe = recorderService.onStateChange(setRecorderState)
+    return unsubscribe
+  }, [recorderService])
 
   const handleStartRecording = useCallback(async () => {
-    await recorderService.startScreenRecording();
-  }, [recorderService]);
+    await recorderService.startScreenRecording()
+  }, [recorderService])
 
   const handleStopRecording = useCallback(async () => {
-    const recording = await recorderService.stopRecording();
-    await uploadManager.enqueue(recording);
+    const recording = await recorderService.stopRecording()
+    await uploadManager.enqueue(recording)
     // Refresh recordings list after a short delay to allow upload to complete
     setTimeout(async () => {
-      const response = await getRecordings();
+      const response = await getRecordings()
       if (response.success) {
-        setRecordings(response.recordings);
+        setRecordings(response.recordings)
       }
-    }, 1000);
-  }, [recorderService, uploadManager]);
+    }, 1000)
+  }, [recorderService, uploadManager])
 
   const handleRetry = useCallback(
     (id: number) => {
-      uploadManager.retry(id);
+      uploadManager.retry(id)
     },
-    [uploadManager]
-  );
+    [uploadManager],
+  )
 
   const handleCancel = useCallback(
     (id: number) => {
-      uploadManager.cancel(id);
+      uploadManager.cancel(id)
     },
-    [uploadManager]
-  );
+    [uploadManager],
+  )
 
   const getStatusColor = (status: Recording['uploadStatus']): 'default' | 'primary' | 'error' => {
     switch (status) {
       case 'pending':
-        return 'default';
+        return 'default'
       case 'uploading':
-        return 'primary';
+        return 'primary'
       case 'failed':
-        return 'error';
+        return 'error'
       default:
-        return 'default';
+        return 'default'
     }
-  };
+  }
 
   return (
-    <PageWrapper width='full'>
+    <PageWrapper width="full">
       <Box sx={{ py: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3 }}>
           {recorderState === 'idle' ? (
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              onClick={handleStartRecording}
-            >
+            <Button variant="contained" color="primary" size="large" onClick={handleStartRecording}>
               Start Recording
             </Button>
           ) : (
-            <Button
-              variant="contained"
-              color="error"
-              size="large"
-              onClick={handleStopRecording}
-            >
+            <Button variant="contained" color="error" size="large" onClick={handleStopRecording}>
               Stop Recording
             </Button>
           )}
@@ -214,7 +208,10 @@ function Home({ recorderService, uploadManager }: HomeProps) {
         )}
 
         {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }} data-testid="loading-indicator">
+          <Box
+            sx={{ display: 'flex', justifyContent: 'center', py: 4 }}
+            data-testid="loading-indicator"
+          >
             <CircularProgress />
           </Box>
         )}
@@ -261,8 +258,8 @@ function Home({ recorderService, uploadManager }: HomeProps) {
                         objectFit: 'cover',
                       }}
                       onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
                       }}
                     />
                     {!recording.thumbnailPath && (
@@ -285,7 +282,8 @@ function Home({ recorderService, uploadManager }: HomeProps) {
                         {recording.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {formatDuration(recording.duration)} &bull; {formatDate(recording.createdAt)}
+                        {formatDuration(recording.duration)} &bull;{' '}
+                        {formatDate(recording.createdAt)}
                       </Typography>
                     </CardContent>
                   </CardActionArea>
@@ -296,7 +294,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
         )}
       </Box>
     </PageWrapper>
-  );
+  )
 }
 
-export default Home;
+export default Home
