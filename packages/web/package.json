@@ -17,6 +17,7 @@
     "@emotion/styled": "^11.11.0",
     "@just-recordings/recorder": "*",
     "@just-recordings/shared": "^0.0.1",
+    "@mui/icons-material": "^7.3.7",
     "@mui/material": "^5.15.6",
     "@preact/signals-react": "^3.6.1",
     "@sentry/react": "^10.35.0",

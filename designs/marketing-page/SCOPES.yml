@@ -34,7 +34,7 @@ tasks:
       - Responsive design (works on mobile and desktop)
     depends_on: []
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 2
     github_issue: 67
