@@ -4,7 +4,7 @@ import type React from 'react'
 import { useCallback, useMemo } from 'react'
 import { GrFormNext, GrFormPrevious } from 'react-icons/gr'
 import { PAGINATION_SIZE } from '../consts'
-import { SPACING } from '../styles/styleConsts'
+import { SPACING } from '@just-recordings/shared/styles'
 
 interface PaginationProps {
   total: number

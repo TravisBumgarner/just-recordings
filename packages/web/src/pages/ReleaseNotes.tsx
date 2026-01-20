@@ -4,7 +4,7 @@ import ListItem from '@mui/material/ListItem'
 import Typography from '@mui/material/Typography'
 import PageTitle from '../styles/shared/PageTitle'
 import PageWrapper from '../styles/shared/PageWrapper'
-import { SPACING } from '../styles/styleConsts'
+import { SPACING } from '@just-recordings/shared/styles'
 
 type UpdateType = 'add' | 'update' | 'fix'
 type Update = {

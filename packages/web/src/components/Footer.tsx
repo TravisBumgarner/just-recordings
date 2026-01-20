@@ -5,7 +5,7 @@ import { useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import { ROUTES } from '../consts'
 import Link from '../sharedComponents/Link'
-import { FONT_SIZES, SPACING, subtleBackground } from '../styles/styleConsts'
+import { FONT_SIZES, SPACING, subtleBackground } from '@just-recordings/shared/styles'
 
 const Section = ({
   links,
