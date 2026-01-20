@@ -1,3 +1,8 @@
+import {
+  startUploadResponseSchema,
+  uploadChunkResponseSchema,
+  finalizeUploadResponseSchema,
+} from '@just-recordings/shared';
 import { Uploader, UploadMetadata, UploadResult } from './types';
 
 export class DevUploader implements Uploader {
@@ -12,7 +17,8 @@ export class DevUploader implements Uploader {
       method: 'POST',
     });
     const data = await response.json();
-    return data.uploadId;
+    const parsed = startUploadResponseSchema.parse(data);
+    return parsed.uploadId;
   }
 
   async uploadChunk(
@@ -24,10 +30,12 @@ export class DevUploader implements Uploader {
     formData.append('index', String(index));
     formData.append('chunk', chunk);
 
-    await fetch(`${this.baseUrl}/dev/upload/${uploadId}/chunk`, {
+    const response = await fetch(`${this.baseUrl}/dev/upload/${uploadId}/chunk`, {
       method: 'POST',
       body: formData,
     });
+    const data = await response.json();
+    uploadChunkResponseSchema.parse(data);
   }
 
   async finalizeUpload(
@@ -42,6 +50,7 @@ export class DevUploader implements Uploader {
         body: JSON.stringify(metadata),
       }
     );
-    return await response.json();
+    const data = await response.json();
+    return finalizeUploadResponseSchema.parse(data);
   }
 }

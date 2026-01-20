@@ -17,8 +17,9 @@ import {
   Typography,
 } from '@mui/material';
 import type { UploadManager, Recording, RecorderService, RecorderState } from '@just-recordings/recorder';
-import { getRecordings, getThumbnailUrl } from '../services/api';
-import type { RecordingMetadata } from '../types/api';
+import type { Recording as ApiRecording } from '@just-recordings/shared';
+import { getRecordings, getThumbnailUrl } from '../api';
+import PageWrapper from '@/styles/shared/PageWrapper';
 
 export interface HomeProps {
   recorderService: RecorderService;
@@ -42,7 +43,7 @@ function formatDate(dateString: string): string {
 }
 
 function Home({ recorderService, uploadManager }: HomeProps) {
-  const [recordings, setRecordings] = useState<RecordingMetadata[]>([]);
+  const [recordings, setRecordings] = useState<ApiRecording[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [queue, setQueue] = useState<Recording[]>([]);
@@ -50,14 +51,13 @@ function Home({ recorderService, uploadManager }: HomeProps) {
 
   useEffect(() => {
     const fetchRecordings = async () => {
-      try {
-        const allRecordings = await getRecordings();
-        setRecordings(allRecordings);
-      } catch {
+      const response = await getRecordings();
+      if (response.success) {
+        setRecordings(response.recordings);
+      } else {
         setError(true);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
     fetchRecordings();
   }, []);
@@ -81,11 +81,9 @@ function Home({ recorderService, uploadManager }: HomeProps) {
     await uploadManager.enqueue(recording);
     // Refresh recordings list after a short delay to allow upload to complete
     setTimeout(async () => {
-      try {
-        const allRecordings = await getRecordings();
-        setRecordings(allRecordings);
-      } catch {
-        // Ignore refresh errors
+      const response = await getRecordings();
+      if (response.success) {
+        setRecordings(response.recordings);
       }
     }, 1000);
   }, [recorderService, uploadManager]);
@@ -118,12 +116,9 @@ function Home({ recorderService, uploadManager }: HomeProps) {
   };
 
   return (
-    <Container maxWidth="lg">
+    <PageWrapper width='full'>
       <Box sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h3" component="h1">
-            Just Recordings
-          </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3 }}>
           {recorderState === 'idle' ? (
             <Button
               variant="contained"
@@ -300,7 +295,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
           </Grid>
         )}
       </Box>
-    </Container>
+    </PageWrapper>
   );
 }
 

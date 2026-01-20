@@ -1,34 +1,79 @@
-import { useMemo, useEffect } from 'react';
-import { CssBaseline } from '@mui/material';
-import { Routes, Route } from 'react-router-dom';
-import { RecorderService, RecorderDatabase, UploadManager, createUploader } from '@just-recordings/recorder';
-import Home from './pages/Home';
-import RecordingViewer from './pages/RecordingViewer';
-import UploadQueue from './pages/UploadQueue';
+import Router from './components/Router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import RenderModal from './sharedComponents/Modal';
+import { BrowserRouter } from 'react-router-dom';
+import AppThemeProvider from './styles/Theme';
+import ScrollToTop from './components/ScrollToTop';
+import useLoadUserIntoState from './hooks/useLoadUserIntoState';
+import useHealthCheck from './hooks/useHealthCheck';
+import { logger } from './services/logging';
+import Message from './sharedComponents/Message';
+import useGlobalStore from './store';
+import { Box } from '@mui/material';
+import { Z_INDICES } from './styles/styleConsts';
+import Loading from './sharedComponents/Loading';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const queryClient = new QueryClient()
 
 function App() {
-  const db = useMemo(() => new RecorderDatabase(), []);
-  const recorderService = useMemo(() => new RecorderService(db), [db]);
-  const uploader = useMemo(() => createUploader(API_BASE_URL, true), []);
-  const uploadManager = useMemo(() => new UploadManager(db, uploader), [db, uploader]);
+  useLoadUserIntoState()
+  const { isLoading, isHealthy } = useHealthCheck()
+  const loadingUser = useGlobalStore((state) => state.loadingUser)
 
-  // Initialize upload manager on app load to resume any pending uploads
-  useEffect(() => {
-    uploadManager.initialize();
-  }, [uploadManager]);
+  if (!isHealthy) {
+    logger.error('Backend is unhealthy')
+
+    return (
+      <Message
+        color="error"
+        message="The backend is currently unavailable."
+        callback={() => window.location.reload()}
+        callbackText="Retry"
+      />
+    )
+  }
+
+  if (loadingUser || isLoading) {
+
+    return (
+      <Box
+        sx={{
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
+          position: 'fixed',
+          zIndex: Z_INDICES.APP_LOADING,
+          backgroundColor: 'background.paper',
+        }}
+      >
+        <Loading />
+      </Box>
+    )
+  }
 
   return (
-    <>
-      <CssBaseline />
-      <Routes>
-        <Route path="/" element={<Home recorderService={recorderService} uploadManager={uploadManager} />} />
-        <Route path="/recordings/:id" element={<RecordingViewer />} />
-        <Route path="/uploads" element={<UploadQueue uploadManager={uploadManager} />} />
-      </Routes>
-    </>
+    <QueryClientProvider client={queryClient}>
+      <Header />
+      <Router />
+      <Footer />
+      <RenderModal />
+    </QueryClientProvider>
   );
 }
 
-export default App;
+const WrappedApp = () => {
+  return (
+    <BrowserRouter>
+      <AppThemeProvider>
+        <App />
+        <ScrollToTop />
+      </AppThemeProvider>
+    </BrowserRouter>
+  )
+}
+
+
+export default WrappedApp;

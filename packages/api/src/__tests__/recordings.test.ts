@@ -35,7 +35,7 @@ vi.mock('../repositories/recordings.js', () => {
   };
 });
 
-import * as recordingsRepo from '../repositories/recordings.js';
+import * as recordingsRepo from '../db/queries/recordings.js';
 const mockRepo = recordingsRepo as any;
 
 // Helper to create a test recording

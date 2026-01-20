@@ -12,8 +12,9 @@ import {
   DialogTitle,
   Typography,
 } from '@mui/material';
-import { getRecording, getVideoUrl, deleteRecording } from '../services/api';
-import type { RecordingMetadata } from '../types/api';
+import type { Recording } from '@just-recordings/shared';
+import { getRecording, getVideoUrl, deleteRecording } from '../api';
+import PageWrapper from '@/styles/shared/PageWrapper';
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -43,7 +44,7 @@ function formatDate(dateString: string): string {
 function RecordingViewerPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [recording, setRecording] = useState<RecordingMetadata | null>(null);
+  const [recording, setRecording] = useState<Recording | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -56,18 +57,13 @@ function RecordingViewerPage() {
         return;
       }
 
-      try {
-        const recordingData = await getRecording(id);
-        if (!recordingData) {
-          setError(true);
-        } else {
-          setRecording(recordingData);
-        }
-      } catch {
+      const response = await getRecording(id);
+      if (response.success) {
+        setRecording(response.recording);
+      } else {
         setError(true);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
     fetchRecording();
   }, [id]);
@@ -119,7 +115,7 @@ function RecordingViewerPage() {
   }
 
   return (
-    <Container maxWidth="lg">
+    <PageWrapper width='full'>
       <Box sx={{ py: 4 }}>
         <Button component={Link} to="/" sx={{ mb: 2 }}>
           Back
@@ -181,7 +177,7 @@ function RecordingViewerPage() {
           </DialogActions>
         </Dialog>
       </Box>
-    </Container>
+    </PageWrapper>
   );
 }
 
