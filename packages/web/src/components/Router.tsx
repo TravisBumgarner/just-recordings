@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { ROUTES } from '../consts'
 import Home from '../pages/Home'
+import LandingPage from '../pages/LandingPage'
 import Settings from '../pages/Settings'
 import useGlobalStore from '../store'
 
@@ -38,6 +39,20 @@ const MemberRoute = () => {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
+interface HomeRouteProps {
+  recorderService: RecorderService
+  uploadManager: UploadManager
+}
+
+const HomeRoute = ({ recorderService, uploadManager }: HomeRouteProps) => {
+  const appUser = useGlobalStore((state) => state.appUser)
+  return appUser ? (
+    <Home recorderService={recorderService} uploadManager={uploadManager} />
+  ) : (
+    <LandingPage />
+  )
+}
+
 const Router = () => {
   const db = useMemo(() => new RecorderDatabase(), [])
   const recorderService = useMemo(() => new RecorderService(db), [db])
@@ -53,7 +68,7 @@ const Router = () => {
       <Routes>
         <Route
           path={ROUTES.home.href()}
-          element={<Home recorderService={recorderService} uploadManager={uploadManager} />}
+          element={<HomeRoute recorderService={recorderService} uploadManager={uploadManager} />}
         />
         <Route path={ROUTES.recordingViewer.href()} element={<RecordingViewer />} />
         <Route
