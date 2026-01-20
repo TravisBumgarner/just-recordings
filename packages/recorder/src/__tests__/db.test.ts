@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { RecorderDatabase } from '../db'
-import { Recording } from '../types'
+import type { Recording } from '../types'
 
 describe('RecorderDatabase', () => {
   let db: RecorderDatabase

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { RecorderService } from '../RecorderService'
 import { RecorderDatabase } from '../db'
-import { Recording } from '../types'
+import type { Recording } from '../types'
 
 // Mock MediaRecorder
 class MockMediaRecorder {
@@ -11,8 +11,6 @@ class MockMediaRecorder {
   onstart: (() => void) | null = null
   onpause: (() => void) | null = null
   onresume: (() => void) | null = null
-
-  private stream: MediaStream
 
   constructor(stream: MediaStream, _options?: MediaRecorderOptions) {
     this.stream = stream
@@ -68,14 +66,14 @@ describe('RecorderService', () => {
     // Mock getDisplayMedia
     mockGetDisplayMedia = vi.fn().mockResolvedValue(new MockMediaStream())
 
-    // @ts-ignore - mocking navigator
+    // @ts-expect-error - mocking navigator
     global.navigator = {
       mediaDevices: {
         getDisplayMedia: mockGetDisplayMedia,
       },
     }
 
-    // @ts-ignore - mocking MediaRecorder
+    // @ts-expect-error - mocking MediaRecorder
     global.MediaRecorder = MockMediaRecorder as unknown as typeof MediaRecorder
   })
 

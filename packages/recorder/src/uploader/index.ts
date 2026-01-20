@@ -3,7 +3,7 @@ export { DevUploader } from './DevUploader'
 export { ProdUploader } from './ProdUploader'
 export { chunkBlob } from './chunkBlob'
 
-import { Uploader } from './types'
+import type { Uploader } from './types'
 import { DevUploader } from './DevUploader'
 import { ProdUploader } from './ProdUploader'
 

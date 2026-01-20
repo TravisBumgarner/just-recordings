@@ -166,7 +166,7 @@ describe('RecordingPage', () => {
       })
 
       // Resolve the upload
-      resolveUpload!()
+      resolveUpload?.()
     })
 
     it('hides progress indicator after upload completes', async () => {

@@ -1,5 +1,5 @@
-import { Router, Request, Response } from 'express'
-import fs from 'fs/promises'
+import { Router, type Request, type Response } from 'express'
+import fs from 'node:fs/promises'
 import {
   getAllRecordings,
   getRecordingById,

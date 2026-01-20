@@ -19,7 +19,7 @@ const envVars = {
 const parsed = envSchema.safeParse(envVars)
 if (!parsed.success) {
   throw new Error(
-    'Invalid environment variables: ' + JSON.stringify(parsed.error.format(), null, 2),
+    `Invalid environment variables: ${JSON.stringify(parsed.error.format(), null, 2)}`,
   )
 }
 

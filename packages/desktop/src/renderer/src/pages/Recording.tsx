@@ -2,7 +2,6 @@ import { Box, Button, Container, LinearProgress, Typography, Alert } from '@mui/
 import { useState, useEffect, useCallback } from 'react'
 import type {
   RecorderService,
-  Recording as RecordingType,
   RecorderState,
   Uploader,
 } from '@just-recordings/recorder'

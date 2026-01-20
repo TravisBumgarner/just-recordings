@@ -4,7 +4,8 @@ import TextField from '@mui/material/TextField'
 import Message from './Message'
 
 import Typography from '@mui/material/Typography'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import type React from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 const MAX_CHARS = 800
 
@@ -87,8 +88,7 @@ const ContactForm = ({
   }, [success, failure])
 
   return (
-    <>
-      <Box sx={{ width: '100%', maxWidth: '600px', margin: '0 auto' }}>
+    <Box sx={{ width: '100%', maxWidth: '600px', margin: '0 auto' }}>
         <form
           style={{
             display: 'flex',
@@ -149,7 +149,6 @@ const ContactForm = ({
           />
         )}
       </Box>
-    </>
   )
 }
 

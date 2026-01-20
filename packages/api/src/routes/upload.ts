@@ -1,8 +1,8 @@
-import { Router, Request, Response, NextFunction } from 'express'
+import { Router, type Request, type Response, type NextFunction } from 'express'
 import multer from 'multer'
-import { randomUUID } from 'crypto'
-import fs from 'fs/promises'
-import path from 'path'
+import { randomUUID } from 'node:crypto'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg'
 import { saveRecordingMetadata } from './recordings.js'
@@ -117,7 +117,7 @@ router.post('/:uploadId/finalize', async (req: Request, res: Response) => {
       const chunkData = await fs.readFile(chunkPath)
       chunks.push(chunkData)
     }
-  } catch (error) {
+  } catch (_error) {
     res.status(400).json({ error: 'Missing or invalid chunks' })
     return
   }

@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import request from 'supertest'
 import { app } from '../app.js'
-import fs from 'fs/promises'
-import path from 'path'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 
 const UPLOADS_DIR = 'uploads'
 
 // Mock the repository module
 vi.mock('../repositories/recordings.js', () => {
-  let mockRecordings: Map<string, any> = new Map()
+  const mockRecordings: Map<string, any> = new Map()
 
   return {
     getAllRecordings: vi.fn(async () => {

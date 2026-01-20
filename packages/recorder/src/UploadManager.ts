@@ -1,6 +1,6 @@
-import { Recording } from './types'
-import { RecorderDatabase } from './db'
-import { Uploader } from './uploader/types'
+import type { Recording } from './types'
+import type { RecorderDatabase } from './db'
+import type { Uploader } from './uploader/types'
 import { chunkBlob } from './uploader/chunkBlob'
 
 export type QueueChangeCallback = (queue: Recording[]) => void
@@ -156,7 +156,7 @@ export class UploadManager {
       }
 
       // Finalize upload
-      const result = await this.uploader.finalizeUpload(uploadId, {
+      const _result = await this.uploader.finalizeUpload(uploadId, {
         filename: recording.name,
         mimeType: recording.mimeType,
         totalChunks,

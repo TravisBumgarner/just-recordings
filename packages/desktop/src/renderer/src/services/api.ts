@@ -1,4 +1,4 @@
-import { HealthResponse, ApiError } from '../types/api'
+import { type HealthResponse, ApiError } from '../types/api'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 

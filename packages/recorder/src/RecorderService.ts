@@ -1,4 +1,4 @@
-import { Recording, RecorderState, RecordingOptions } from './types'
+import type { Recording, RecorderState, RecordingOptions } from './types'
 import { RecorderDatabase } from './db'
 
 const DEFAULT_MIME_TYPE = 'video/webm'

@@ -32,7 +32,7 @@ export default function SignupPage() {
       const newPassword = e.target.value
       setPassword(newPassword)
     },
-    [setPassword],
+    [],
   )
 
   const handleRepeatPasswordChange = useCallback(
@@ -41,7 +41,7 @@ export default function SignupPage() {
       const newRepeatPassword = e.target.value
       setRepeatPassword(newRepeatPassword)
     },
-    [setRepeatPassword],
+    [],
   )
 
   const handleSubmit = useCallback(
@@ -91,7 +91,7 @@ export default function SignupPage() {
       setError(null)
       setEmail(e.target.value)
     },
-    [setEmail],
+    [],
   )
 
   if (appUser) {

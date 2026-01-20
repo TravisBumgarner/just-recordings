@@ -1,4 +1,4 @@
-import { Uploader, UploadMetadata, UploadResult } from './types'
+import type { Uploader, UploadMetadata, UploadResult } from './types'
 
 export class ProdUploader implements Uploader {
   async startUpload(): Promise<string> {

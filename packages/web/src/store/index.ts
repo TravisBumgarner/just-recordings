@@ -1,7 +1,7 @@
-import { type User } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import { type AppUser, type State } from './types'
+import type { AppUser, State } from './types'
 
 const useGlobalStore = create<State>()(
   devtools(

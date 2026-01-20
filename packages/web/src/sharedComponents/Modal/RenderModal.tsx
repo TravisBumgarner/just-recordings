@@ -1,4 +1,4 @@
-import { type FC } from 'react'
+import type { FC } from 'react'
 
 import { useSignals } from '@preact/signals-react/runtime'
 import { activeModalSignal } from '../../signals'

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { UploadManager } from '../UploadManager'
 import { RecorderDatabase } from '../db'
-import { Recording } from '../types'
-import { Uploader } from '../uploader/types'
+import type { Recording } from '../types'
+import type { Uploader } from '../uploader/types'
 
 // Helper to create a test recording
 function createTestRecording(overrides: Partial<Recording> = {}): Recording {

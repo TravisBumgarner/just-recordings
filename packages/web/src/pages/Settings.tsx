@@ -19,7 +19,7 @@ const Profile = () => {
   const isEmailAuth =
     !!authUser && !!authUser.identities && authUser.identities[0].provider === 'email'
 
-  const regDate = new Date(authUser.created_at).toDateString()
+  const _regDate = new Date(authUser.created_at).toDateString()
   return (
     <PageWrapper width="small" minHeight>
       <PageTitle text="User Settings" marginBottom />

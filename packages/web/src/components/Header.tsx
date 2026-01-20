@@ -6,7 +6,6 @@ import { SPACING } from '../styles/styleConsts'
 
 import Navigation from './Navigation'
 import { Typography } from '@mui/material'
-import PageWrapper from '../styles/shared/PageWrapper'
 
 const Header = () => {
   return (

@@ -3,7 +3,7 @@ import {
   uploadChunkResponseSchema,
   finalizeUploadResponseSchema,
 } from '@just-recordings/shared'
-import { Uploader, UploadMetadata, UploadResult } from './types'
+import type { Uploader, UploadMetadata, UploadResult } from './types'
 
 export class DevUploader implements Uploader {
   private baseUrl: string
