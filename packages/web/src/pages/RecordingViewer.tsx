@@ -12,7 +12,8 @@ import {
   DialogTitle,
   Typography,
 } from '@mui/material';
-import { getRecording, getVideoUrl, deleteRecording, type Recording } from '../api';
+import type { Recording } from '@just-recordings/shared';
+import { getRecording, getVideoUrl, deleteRecording } from '../api';
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);

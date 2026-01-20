@@ -1,56 +1,14 @@
-import { z } from 'zod';
+import {
+  getRecordingsResultSchema,
+  getRecordingResultSchema,
+  deleteRecordingResultSchema,
+  type GetRecordingsResult,
+  type GetRecordingResult,
+  type DeleteRecordingResult,
+} from '@just-recordings/shared';
 import { API_BASE_URL } from './config';
 
-const recordingSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  mimeType: z.string(),
-  duration: z.number(),
-  fileSize: z.number(),
-  createdAt: z.string(),
-  path: z.string(),
-  thumbnailPath: z.string().optional(),
-});
-
-export type Recording = z.infer<typeof recordingSchema>;
-
-const getRecordingsResponseSchema = z.discriminatedUnion('success', [
-  z.object({
-    success: z.literal(true),
-    recordings: z.array(recordingSchema),
-  }),
-  z.object({
-    success: z.literal(false),
-    message: z.string(),
-  }),
-]);
-
-const getRecordingResponseSchema = z.discriminatedUnion('success', [
-  z.object({
-    success: z.literal(true),
-    recording: recordingSchema,
-  }),
-  z.object({
-    success: z.literal(false),
-    message: z.string(),
-  }),
-]);
-
-const deleteRecordingResponseSchema = z.discriminatedUnion('success', [
-  z.object({
-    success: z.literal(true),
-  }),
-  z.object({
-    success: z.literal(false),
-    message: z.string(),
-  }),
-]);
-
-export type GetRecordingsResponse = z.infer<typeof getRecordingsResponseSchema>;
-export type GetRecordingResponse = z.infer<typeof getRecordingResponseSchema>;
-export type DeleteRecordingResponse = z.infer<typeof deleteRecordingResponseSchema>;
-
-export const getRecordings = async (): Promise<GetRecordingsResponse> => {
+export const getRecordings = async (): Promise<GetRecordingsResult> => {
   try {
     const response = await fetch(`${API_BASE_URL}/recordings`);
 
@@ -62,7 +20,7 @@ export const getRecordings = async (): Promise<GetRecordingsResponse> => {
     }
 
     const json = await response.json();
-    return getRecordingsResponseSchema.parse({
+    return getRecordingsResultSchema.parse({
       success: true,
       recordings: json.recordings,
     });
@@ -74,7 +32,7 @@ export const getRecordings = async (): Promise<GetRecordingsResponse> => {
   }
 };
 
-export const getRecording = async (id: string): Promise<GetRecordingResponse> => {
+export const getRecording = async (id: string): Promise<GetRecordingResult> => {
   try {
     const response = await fetch(`${API_BASE_URL}/recordings/${id}`);
 
@@ -92,7 +50,7 @@ export const getRecording = async (id: string): Promise<GetRecordingResponse> =>
     }
 
     const json = await response.json();
-    return getRecordingResponseSchema.parse({
+    return getRecordingResultSchema.parse({
       success: true,
       recording: json,
     });
@@ -112,7 +70,7 @@ export const getThumbnailUrl = (id: string): string => {
   return `${API_BASE_URL}/recordings/${id}/thumbnail`;
 };
 
-export const deleteRecording = async (id: string): Promise<DeleteRecordingResponse> => {
+export const deleteRecording = async (id: string): Promise<DeleteRecordingResult> => {
   try {
     const response = await fetch(`${API_BASE_URL}/recordings/${id}`, {
       method: 'DELETE',
@@ -125,7 +83,7 @@ export const deleteRecording = async (id: string): Promise<DeleteRecordingRespon
       };
     }
 
-    return deleteRecordingResponseSchema.parse({
+    return deleteRecordingResultSchema.parse({
       success: true,
     });
   } catch (error) {

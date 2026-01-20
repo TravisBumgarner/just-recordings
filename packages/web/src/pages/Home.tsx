@@ -17,7 +17,8 @@ import {
   Typography,
 } from '@mui/material';
 import type { UploadManager, Recording, RecorderService, RecorderState } from '@just-recordings/recorder';
-import { getRecordings, getThumbnailUrl, type Recording as ApiRecording } from '../api';
+import type { Recording as ApiRecording } from '@just-recordings/shared';
+import { getRecordings, getThumbnailUrl } from '../api';
 
 export interface HomeProps {
   recorderService: RecorderService;

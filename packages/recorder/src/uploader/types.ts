@@ -1,15 +1,10 @@
-export interface UploadMetadata {
-  filename: string;
-  mimeType: string;
-  totalChunks: number;
-}
+import type {
+  FinalizeUploadRequest,
+  FinalizeUploadResponse,
+} from '@just-recordings/shared';
 
-export interface UploadResult {
-  success: boolean;
-  fileId: string;
-  path: string;
-  size: number;
-}
+export type UploadMetadata = FinalizeUploadRequest;
+export type UploadResult = FinalizeUploadResponse;
 
 export interface Uploader {
   startUpload(): Promise<string>;

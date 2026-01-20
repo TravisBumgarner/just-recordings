@@ -1,20 +1,7 @@
-import { z } from 'zod';
+import { healthResultSchema, type HealthResult } from '@just-recordings/shared';
 import { API_BASE_URL } from './config';
 
-const healthResponseSchema = z.discriminatedUnion('success', [
-  z.object({
-    success: z.literal(true),
-    status: z.enum(['ok', 'error']),
-  }),
-  z.object({
-    success: z.literal(false),
-    message: z.string(),
-  }),
-]);
-
-export type HealthResponse = z.infer<typeof healthResponseSchema>;
-
-export const checkHealth = async (): Promise<HealthResponse> => {
+export const checkHealth = async (): Promise<HealthResult> => {
   try {
     const response = await fetch(`${API_BASE_URL}/health`);
 
@@ -26,7 +13,7 @@ export const checkHealth = async (): Promise<HealthResponse> => {
     }
 
     const json = await response.json();
-    return healthResponseSchema.parse({
+    return healthResultSchema.parse({
       success: true,
       status: json.status,
     });

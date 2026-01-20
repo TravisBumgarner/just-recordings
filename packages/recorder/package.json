@@ -8,6 +8,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@just-recordings/shared": "^0.0.1",
     "dexie": "^4.0.10"
   },
   "devDependencies": {
