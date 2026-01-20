@@ -129,4 +129,4 @@ tasks:
       - App stays running when window is closed
     depends_on: [4]
     effort: 3
-    status: implementing
+    status: completed
