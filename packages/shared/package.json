@@ -13,6 +13,10 @@
     "./api": {
       "import": "./dist/api/index.js",
       "types": "./dist/api/index.d.ts"
+    },
+    "./styles": {
+      "import": "./dist/styles/index.js",
+      "types": "./dist/styles/index.d.ts"
     }
   },
   "scripts": {
@@ -20,9 +24,16 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
+    "lodash": "^4.17.21",
     "zod": "^3.24.1"
   },
+  "peerDependencies": {
+    "@mui/material": "^5.0.0",
+    "react": "^18.0.0"
+  },
   "devDependencies": {
+    "@types/lodash": "^4.17.0",
+    "@types/react": "^18.2.0",
     "typescript": "^5.3.3"
   }
 }
