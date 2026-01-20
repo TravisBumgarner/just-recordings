@@ -16,6 +16,7 @@
     "db:push": "npm run db:push -w @just-recordings/api"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.11",
     "concurrently": "8.2.2",
     "drizzle-orm": "^0.45.1"
   },
