@@ -74,4 +74,5 @@ const WrappedApp = () => {
   )
 }
 
+export { App }
 export default WrappedApp

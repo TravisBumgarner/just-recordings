@@ -50,4 +50,4 @@ tasks:
       - Navigation and sign up buttons on landing page link to /signup
     depends_on: [1]
     effort: 1
-    status: testing
+    status: implementing
