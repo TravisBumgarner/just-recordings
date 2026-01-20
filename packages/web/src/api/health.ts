@@ -1,4 +1,4 @@
-import { healthResultSchema, type HealthResult } from '@just-recordings/shared'
+import { type HealthResult, healthResultSchema } from '@just-recordings/shared'
 import config from '../config'
 
 export const checkHealth = async (): Promise<HealthResult> => {

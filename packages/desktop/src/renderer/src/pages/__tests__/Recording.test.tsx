@@ -1,6 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
-import RecordingPage from '../Recording'
 import type {
   RecorderService,
   RecorderState,
@@ -8,6 +5,9 @@ import type {
   Uploader,
   UploadResult,
 } from '@just-recordings/recorder'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import RecordingPage from '../Recording'
 
 // Mock RecorderService
 function createMockRecorderService(initialState: RecorderState = 'idle'): {

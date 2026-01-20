@@ -1,19 +1,17 @@
+import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-
 import { type ChangeEvent, useCallback, useState } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../consts'
 import { login } from '../services/supabase'
+import Link from '../sharedComponents/Link'
+import Message from '../sharedComponents/Message'
 import useGlobalStore from '../store'
 import authFormCSS from '../styles/shared/authFormCSS'
 import PageTitle from '../styles/shared/PageTitle'
 import PageWrapper from '../styles/shared/PageWrapper'
-
-import Box from '@mui/material/Box'
-import { Navigate, useNavigate } from 'react-router-dom'
-import Link from '../sharedComponents/Link'
-import Message from '../sharedComponents/Message'
 import { getValidationError, validateEmail } from '../utils/auth'
 import { loadUserIntoState } from '../utils/loadUserIntoState'
 

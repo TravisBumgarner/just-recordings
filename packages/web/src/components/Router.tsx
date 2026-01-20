@@ -1,9 +1,10 @@
-import { lazy, useEffect, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { ROUTES } from '../consts'
+import Home from '../pages/Home'
 import Settings from '../pages/Settings'
 import useGlobalStore from '../store'
-import Home from '../pages/Home'
+
 const TermsOfService = lazy(async () => await import('../pages/TermsOfService'))
 const PrivacyPolicy = lazy(async () => await import('../pages/PrivacyPolicy'))
 const ReleaseNotes = lazy(async () => await import('../pages/ReleaseNotes'))
@@ -14,15 +15,16 @@ const Error404 = lazy(async () => await import('../pages/Error404'))
 const Signup = lazy(async () => await import('../pages/Signup'))
 const Logout = lazy(async () => await import('../pages/Logout'))
 const PasswordReset = lazy(async () => await import('../pages/PasswordReset'))
-import { useMemo } from 'react'
+
 import {
-  RecorderService,
-  RecorderDatabase,
-  UploadManager,
   createUploader,
+  RecorderDatabase,
+  RecorderService,
+  UploadManager,
 } from '@just-recordings/recorder'
-import UploadQueue from '../pages/UploadQueue'
+import { useMemo } from 'react'
 import RecordingViewer from '../pages/RecordingViewer'
+import UploadQueue from '../pages/UploadQueue'
 
 const AnonymousRoute = () => {
   const appUser = useGlobalStore((state) => state.appUser)

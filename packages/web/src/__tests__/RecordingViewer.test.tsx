@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
-import RecordingViewerPage from '../pages/RecordingViewer'
 import type { Recording } from '@just-recordings/shared'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import RecordingViewerPage from '../pages/RecordingViewer'
 
 // Mock the API module
 vi.mock('../api', () => ({
@@ -11,7 +11,8 @@ vi.mock('../api', () => ({
   deleteRecording: vi.fn(),
 }))
 
-import { getRecording, getVideoUrl, deleteRecording } from '../api'
+import { deleteRecording, getRecording, getVideoUrl } from '../api'
+
 const mockGetRecording = vi.mocked(getRecording)
 const mockGetVideoUrl = vi.mocked(getVideoUrl)
 const mockDeleteRecording = vi.mocked(deleteRecording)

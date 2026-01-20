@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
-import { getOrCreateUserByAuth, } from '../db/queries/users.js'
+import { getOrCreateUserByAuth } from '../db/queries/users.js'
+import { type AuthenticatedRequest, requireAuth } from '../middleware/auth.js'
 
 const router = Router()
 

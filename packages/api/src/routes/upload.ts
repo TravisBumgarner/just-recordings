@@ -1,10 +1,10 @@
-import { Router, type Request, type Response, type NextFunction } from 'express'
-import multer from 'multer'
 import { randomUUID } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import ffmpeg from 'fluent-ffmpeg'
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg'
+import { type NextFunction, type Request, type Response, Router } from 'express'
+import ffmpeg from 'fluent-ffmpeg'
+import multer from 'multer'
 import { saveRecordingMetadata } from './recordings.js'
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path)

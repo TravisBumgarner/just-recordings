@@ -1,11 +1,7 @@
-import { Box, Button, Container, LinearProgress, Typography, Alert } from '@mui/material'
-import { useState, useEffect, useCallback } from 'react'
-import type {
-  RecorderService,
-  RecorderState,
-  Uploader,
-} from '@just-recordings/recorder'
+import type { RecorderService, RecorderState, Uploader } from '@just-recordings/recorder'
 import { chunkBlob } from '@just-recordings/recorder'
+import { Alert, Box, Button, Container, LinearProgress, Typography } from '@mui/material'
+import { useCallback, useEffect, useState } from 'react'
 
 export interface RecordingPageProps {
   recorderService: RecorderService

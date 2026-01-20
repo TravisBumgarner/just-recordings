@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import request from 'supertest'
-import { app } from '../app.js'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import request from 'supertest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { app } from '../app.js'
 
 const UPLOADS_DIR = 'uploads'
 
@@ -36,6 +36,7 @@ vi.mock('../repositories/recordings.js', () => {
 })
 
 import * as recordingsRepo from '../db/queries/recordings.js'
+
 const mockRepo = recordingsRepo as any
 
 // Helper to create a test recording

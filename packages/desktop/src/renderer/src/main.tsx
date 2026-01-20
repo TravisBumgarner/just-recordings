@@ -1,6 +1,6 @@
+import { createTheme, ThemeProvider } from '@mui/material'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { ThemeProvider, createTheme } from '@mui/material'
 import { HashRouter } from 'react-router-dom'
 import App from './App'
 

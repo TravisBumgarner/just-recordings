@@ -26,23 +26,17 @@ export default function SignupPage() {
   const appUser = useGlobalStore((state) => state.appUser)
   const navigate = useNavigate()
 
-  const handlePasswordChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setError(null)
-      const newPassword = e.target.value
-      setPassword(newPassword)
-    },
-    [],
-  )
+  const handlePasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    const newPassword = e.target.value
+    setPassword(newPassword)
+  }, [])
 
-  const handleRepeatPasswordChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setError(null)
-      const newRepeatPassword = e.target.value
-      setRepeatPassword(newRepeatPassword)
-    },
-    [],
-  )
+  const handleRepeatPasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    const newRepeatPassword = e.target.value
+    setRepeatPassword(newRepeatPassword)
+  }, [])
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -86,13 +80,10 @@ export default function SignupPage() {
     [email, password, repeatPassword, navigate],
   )
 
-  const handleEmailChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setError(null)
-      setEmail(e.target.value)
-    },
-    [],
-  )
+  const handleEmailChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    setEmail(e.target.value)
+  }, [])
 
   if (appUser) {
     return <Navigate to="/" />

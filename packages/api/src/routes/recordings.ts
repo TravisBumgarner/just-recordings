@@ -1,10 +1,10 @@
-import { Router, type Request, type Response } from 'express'
 import fs from 'node:fs/promises'
+import { type Request, type Response, Router } from 'express'
 import {
+  deleteRecording,
   getAllRecordings,
   getRecordingById,
   saveRecording,
-  deleteRecording,
 } from '../db/queries/recordings.js'
 
 const router = Router()

@@ -1,15 +1,15 @@
-import { useState, useEffect, useCallback } from 'react'
+import type { Recording, UploadManager } from '@just-recordings/recorder'
 import {
   Box,
   Button,
+  Chip,
   Container,
-  Typography,
+  LinearProgress,
   List,
   ListItem,
-  LinearProgress,
-  Chip,
+  Typography,
 } from '@mui/material'
-import type { UploadManager, Recording } from '@just-recordings/recorder'
+import { useCallback, useEffect, useState } from 'react'
 
 export interface UploadQueueProps {
   uploadManager: UploadManager

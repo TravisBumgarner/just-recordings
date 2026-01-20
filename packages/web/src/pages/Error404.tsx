@@ -1,8 +1,6 @@
 import Typography from '@mui/material/Typography'
-
-import PageWrapper from '../styles/shared/PageWrapper'
-
 import ContactForm from '../sharedComponents/ContactForm'
+import PageWrapper from '../styles/shared/PageWrapper'
 
 const Error404 = () => {
   return (

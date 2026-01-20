@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { createUploader, RecorderService } from '@just-recordings/recorder'
 import { CssBaseline } from '@mui/material'
-import { Routes, Route } from 'react-router-dom'
-import { RecorderService, createUploader } from '@just-recordings/recorder'
+import { useMemo } from 'react'
+import { Route, Routes } from 'react-router-dom'
 import Home from './pages/Home'
 import Recording from './pages/Recording'
 

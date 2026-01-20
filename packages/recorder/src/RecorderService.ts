@@ -1,5 +1,5 @@
-import type { Recording, RecorderState, RecordingOptions } from './types'
 import { RecorderDatabase } from './db'
+import type { RecorderState, Recording, RecordingOptions } from './types'
 
 const DEFAULT_MIME_TYPE = 'video/webm'
 const TIMESLICE_MS = 1000

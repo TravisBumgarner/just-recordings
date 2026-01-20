@@ -1,6 +1,6 @@
-import { app, shell, BrowserWindow, desktopCapturer, session } from 'electron'
 import { join } from 'node:path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { app, BrowserWindow, desktopCapturer, session, shell } from 'electron'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({

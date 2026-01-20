@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { UploadManager } from '../UploadManager'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecorderDatabase } from '../db'
 import type { Recording } from '../types'
+import { UploadManager } from '../UploadManager'
 import type { Uploader } from '../uploader/types'
 
 // Helper to create a test recording

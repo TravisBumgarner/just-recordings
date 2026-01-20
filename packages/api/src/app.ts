@@ -1,7 +1,7 @@
-import express from 'express'
 import cors from 'cors'
-import { uploadRouter } from './routes/upload.js'
+import express from 'express'
 import { recordingsRouter } from './routes/recordings.js'
+import { uploadRouter } from './routes/upload.js'
 import { usersRouter } from './routes/users.js'
 
 const app = express()

@@ -1,9 +1,9 @@
 export { checkHealth } from './health'
 export {
-  getRecordings,
-  getRecording,
-  getVideoUrl,
-  getThumbnailUrl,
   deleteRecording,
+  getRecording,
+  getRecordings,
+  getThumbnailUrl,
+  getVideoUrl,
 } from './recordings'
 export { getMe } from './users'

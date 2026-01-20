@@ -1,11 +1,11 @@
-import type React from 'react'
-import { useCallback, useMemo } from 'react'
-import { PAGINATION_SIZE } from '../consts'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
-import { GrFormPrevious } from 'react-icons/gr'
-import { GrFormNext } from 'react-icons/gr'
+import type React from 'react'
+import { useCallback, useMemo } from 'react'
+import { GrFormNext, GrFormPrevious } from 'react-icons/gr'
+import { PAGINATION_SIZE } from '../consts'
 import { SPACING } from '../styles/styleConsts'
+
 interface PaginationProps {
   total: number
   currentPage: number

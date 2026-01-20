@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { DevUploader } from '../uploader/DevUploader'
-import { ProdUploader } from '../uploader/ProdUploader'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createUploader } from '../uploader'
 import { chunkBlob } from '../uploader/chunkBlob'
+import { DevUploader } from '../uploader/DevUploader'
+import { ProdUploader } from '../uploader/ProdUploader'
 
 describe('DevUploader', () => {
   let uploader: DevUploader

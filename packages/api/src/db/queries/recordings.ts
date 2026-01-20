@@ -1,7 +1,7 @@
-import { eq, desc } from 'drizzle-orm'
-import { db } from '../index.js'
-import { recordings, type Recording as DbRecording, type NewRecording } from '../schema.js'
 import type { Recording } from '@just-recordings/shared'
+import { desc, eq } from 'drizzle-orm'
+import { db } from '../index.js'
+import { type Recording as DbRecording, type NewRecording, recordings } from '../schema.js'
 
 function toRecording(row: DbRecording): Recording {
   return {

@@ -1,12 +1,11 @@
-import { GiHamburgerMenu } from 'react-icons/gi'
+import Divider from '@mui/material/Divider'
 
 import IconButton from '@mui/material/IconButton'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Tooltip from '@mui/material/Tooltip'
-
-import Divider from '@mui/material/Divider'
 import { useCallback, useMemo, useState } from 'react'
+import { GiHamburgerMenu } from 'react-icons/gi'
 import { ROUTES } from '../consts'
 import Link from '../sharedComponents/Link'
 import useGlobalStore from '../store'

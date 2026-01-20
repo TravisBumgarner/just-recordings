@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import type { QueueChangeCallback, Recording, UploadManager } from '@just-recordings/recorder'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { describe, expect, it, vi } from 'vitest'
 import UploadQueue from '../pages/UploadQueue'
-import type { Recording, UploadManager, QueueChangeCallback } from '@just-recordings/recorder'
 
 // Helper to create a test recording
 function createTestRecording(overrides: Partial<Recording> = {}): Recording {

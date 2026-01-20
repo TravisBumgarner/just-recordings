@@ -1,4 +1,4 @@
-import { getMeResultSchema, type GetMeResult } from '@just-recordings/shared'
+import { type GetMeResult, getMeResultSchema } from '@just-recordings/shared'
 import config from '../config'
 import { getToken } from '../services/supabase'
 

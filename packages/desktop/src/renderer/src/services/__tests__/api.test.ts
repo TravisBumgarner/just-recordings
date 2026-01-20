@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { checkHealth, ApiError } from '../api'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ApiError, checkHealth } from '../api'
 
 describe('API Service', () => {
   const mockFetch = vi.fn()

@@ -1,6 +1,5 @@
-import type { FC } from 'react'
-
 import { useSignals } from '@preact/signals-react/runtime'
+import type { FC } from 'react'
 import { activeModalSignal } from '../../signals'
 import type { ConfirmationModalProps } from './components/ConfirmationModal'
 import ConfirmationModal from './components/ConfirmationModal'

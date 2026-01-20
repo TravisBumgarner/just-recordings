@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { RecorderService } from '../RecorderService'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecorderDatabase } from '../db'
+import { RecorderService } from '../RecorderService'
 import type { Recording } from '../types'
 
 // Mock MediaRecorder

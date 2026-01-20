@@ -1,7 +1,7 @@
 import {
+  finalizeUploadResponseSchema,
   startUploadResponseSchema,
   uploadChunkResponseSchema,
-  finalizeUploadResponseSchema,
 } from '@just-recordings/shared'
 import type { Uploader, UploadMetadata, UploadResult } from './types'
 

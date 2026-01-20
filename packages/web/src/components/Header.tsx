@@ -1,11 +1,9 @@
+import { Typography } from '@mui/material'
 import Box from '@mui/material/Box'
 import { ROUTES } from '../consts'
 import Link from '../sharedComponents/Link'
-
 import { SPACING } from '../styles/styleConsts'
-
 import Navigation from './Navigation'
-import { Typography } from '@mui/material'
 
 const Header = () => {
   return (

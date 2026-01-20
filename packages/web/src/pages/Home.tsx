@@ -1,5 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import type {
+  RecorderService,
+  RecorderState,
+  Recording,
+  UploadManager,
+} from '@just-recordings/recorder'
+import type { Recording as ApiRecording } from '@just-recordings/shared'
 import {
   Box,
   Button,
@@ -15,15 +20,10 @@ import {
   ListItem,
   Typography,
 } from '@mui/material'
-import type {
-  UploadManager,
-  Recording,
-  RecorderService,
-  RecorderState,
-} from '@just-recordings/recorder'
-import type { Recording as ApiRecording } from '@just-recordings/shared'
-import { getRecordings, getThumbnailUrl } from '../api'
+import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import PageWrapper from '@/styles/shared/PageWrapper'
+import { getRecordings, getThumbnailUrl } from '../api'
 
 export interface HomeProps {
   recorderService: RecorderService

@@ -1,7 +1,7 @@
-import type { Recording } from './types'
 import type { RecorderDatabase } from './db'
-import type { Uploader } from './uploader/types'
+import type { Recording } from './types'
 import { chunkBlob } from './uploader/chunkBlob'
+import type { Uploader } from './uploader/types'
 
 export type QueueChangeCallback = (queue: Recording[]) => void
 

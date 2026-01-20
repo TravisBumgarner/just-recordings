@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import type { Recording } from '@just-recordings/shared'
 import {
   Box,
   Button,
@@ -12,9 +11,10 @@ import {
   DialogTitle,
   Typography,
 } from '@mui/material'
-import type { Recording } from '@just-recordings/shared'
-import { getRecording, getVideoUrl, deleteRecording } from '../api'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import PageWrapper from '@/styles/shared/PageWrapper'
+import { deleteRecording, getRecording, getVideoUrl } from '../api'
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000)
