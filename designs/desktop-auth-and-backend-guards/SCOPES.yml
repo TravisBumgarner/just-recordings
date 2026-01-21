@@ -1,0 +1,291 @@
+project: Desktop Authentication & Backend Authorization
+repo: travisbumgarner/just-recordings
+design_file: designs/desktop-auth-and-backend-guards/DESIGN.md
+scoping_date: 2026-01-21
+
+milestones:
+  - number: 1
+    title: "1. Shared Auth Package"
+    description: Extract authentication logic to shared package for use by both web and desktop apps
+    branch:
+      working: 79-shared-auth-package
+      base: main
+
+  - number: 2
+    title: "2. Auth-Aware Uploading"
+    description: Add authentication token support to recorder package uploaders
+    branch:
+      working: 82-auth-aware-uploading
+      base: 79-shared-auth-package
+
+  - number: 3
+    title: "3. Backend Recording Authorization"
+    description: Add user ownership to recordings and require authentication on all recording/upload endpoints
+    branch:
+      working: 84-backend-recording-auth
+      base: 82-auth-aware-uploading
+
+  - number: 4
+    title: "4. Desktop App Authentication"
+    description: Add full authentication flow to desktop app - login, signup, password reset, and auth guards
+    branch:
+      working: 87-desktop-auth
+      base: 84-backend-recording-auth
+
+tasks:
+  - id: 1
+    github_issue: 79
+    milestone: 1
+    title: Extract auth service to shared package
+    description: |
+      Move Supabase authentication service from web app to shared package.
+
+      Create `packages/shared/src/auth/client.ts` with `createAuthClient()` function.
+      Create `packages/shared/src/auth/service.ts` with all auth functions (login, signup,
+      logout, getUser, getToken, resetPassword, updatePassword).
+
+      Functions should accept Supabase client as parameter for dependency injection.
+      Update package.json exports to include `/auth` path.
+    acceptance_criteria:
+      - createAuthClient function creates and returns a Supabase client
+      - All auth functions from web app are available in shared package
+      - Auth functions accept client as parameter for flexibility
+      - Package exports are properly configured
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 2
+    github_issue: 80
+    milestone: 1
+    title: Extract auth validation schemas to shared package
+    description: |
+      Move Zod validation schemas for authentication from web app to shared package.
+
+      Create `packages/shared/src/auth/validation.ts` with emailSchema, signupSchema,
+      password validation, and utility functions (validateEmail, validatePassword,
+      validateSignup, getValidationError).
+
+      Export MINIMUM_PASSWORD_LENGTH constant.
+    acceptance_criteria:
+      - All validation schemas moved to shared package
+      - Validation functions exported and working
+      - MINIMUM_PASSWORD_LENGTH constant available
+    depends_on: []
+    effort: 1
+    status: completed
+
+  - id: 3
+    github_issue: 81
+    milestone: 1
+    title: Update web app to use shared auth imports
+    description: |
+      Refactor web app to import auth functionality from shared package instead of local files.
+
+      Update `packages/web/src/services/supabase.ts` to use createAuthClient from shared.
+      Update `packages/web/src/utils/auth.ts` to import schemas from shared.
+      Update import statements in Login, Signup, PasswordReset pages.
+    acceptance_criteria:
+      - Web app uses shared auth client
+      - Web app uses shared validation schemas
+      - No duplicate auth code in web app
+      - All auth flows still work (login, signup, logout, password reset)
+    depends_on: [1, 2]
+    effort: 2
+    status: scoped
+
+  - id: 4
+    github_issue: 82
+    milestone: 2
+    title: Add auth token support to recorder uploaders
+    description: |
+      Update recorder package's uploader system to support passing authentication tokens.
+
+      Update Uploader interface to accept optional token getter function.
+      Update DevUploader to include Authorization header when token is available.
+      Update createUploader() factory to accept optional token getter parameter.
+    acceptance_criteria:
+      - createUploader accepts optional getToken function parameter
+      - DevUploader includes Authorization header when token is provided
+      - Uploads still work without token (backwards compatibility)
+      - TypeScript types updated
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 5
+    github_issue: 83
+    milestone: 2
+    title: Update web app to pass auth token to uploader
+    description: |
+      Update web app to pass authentication token to the uploader for authenticated uploads.
+
+      Modify uploader creation to include token getter that calls getToken() from auth service.
+    acceptance_criteria:
+      - Web app passes token getter to uploader
+      - Upload requests include Authorization header when user is logged in
+      - Uploads still work (backend doesn't require auth yet, but header is sent)
+    depends_on: [4]
+    effort: 1
+    status: scoped
+
+  - id: 6
+    github_issue: 84
+    milestone: 3
+    title: Add userId column to recordings schema and create migration
+    description: |
+      Add userId foreign key column to recordings table to associate recordings with owners.
+
+      Update `packages/api/src/db/schema.ts` to add userId column referencing users.id.
+      Create database migration to add the column.
+      Update query functions to support userId parameter.
+
+      Make column nullable initially to allow existing recordings to remain.
+    acceptance_criteria:
+      - recordings table has userId column in schema
+      - Migration created and can be run
+      - Query functions support userId parameter
+      - Existing recordings (with NULL userId) still queryable
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 7
+    github_issue: 85
+    milestone: 3
+    title: Require auth on recording endpoints and validate ownership
+    description: |
+      Add authentication requirement and ownership validation to all recording endpoints.
+
+      Apply requireAuth middleware to all routes in recordings.ts.
+      Filter GET /recordings by user's id.
+      Validate ownership on GET/DELETE :id endpoints - return 404 if not owned.
+
+      Create helper function getOwnedRecording(id, userId) for DRY code.
+    acceptance_criteria:
+      - All recording endpoints require authentication
+      - GET /recordings returns only user's own recordings
+      - GET /recordings/:id returns 404 for recordings not owned by user
+      - DELETE /recordings/:id returns 404 for recordings not owned by user
+    depends_on: [6]
+    effort: 2
+    status: scoped
+
+  - id: 8
+    github_issue: 86
+    milestone: 3
+    title: Require auth on upload endpoints and associate recordings with user
+    description: |
+      Add authentication requirement to upload endpoints and associate uploaded
+      recordings with the authenticated user.
+
+      Apply requireAuth middleware after devOnly in upload.ts.
+      Pass userId from req.user.id when saving recording metadata in finalize endpoint.
+    acceptance_criteria:
+      - All upload endpoints require authentication
+      - Uploaded recordings are associated with the authenticated user
+      - Unauthenticated upload attempts return 401
+      - Recording shows correct userId in database after upload
+    depends_on: [6]
+    effort: 1
+    status: scoped
+
+  - id: 9
+    github_issue: 87
+    milestone: 4
+    title: Set up Supabase client and auth state management for desktop
+    description: |
+      Set up Supabase authentication client and state management in the desktop app.
+
+      Create config.ts with Supabase URL/key.
+      Create services/supabase.ts using createAuthClient from shared.
+      Create Zustand store with authUser, appUser, loadingUser state.
+      Create loadUserIntoState utility function.
+    acceptance_criteria:
+      - Supabase client created with correct config
+      - Auth state store created with proper types
+      - loadUserIntoState utility works correctly
+      - Can detect if user is logged in
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 10
+    github_issue: 88
+    milestone: 4
+    title: Create Login and Signup pages for desktop
+    description: |
+      Create Login and Signup pages for desktop app authentication flow.
+
+      Login page: email/password form, calls login() from shared auth,
+      loadUserIntoState on success, error display, links to Signup/Reset.
+
+      Signup page: email/password/confirm form, validation using shared schemas,
+      shows confirmation message on success, links to Login.
+
+      Keep forms compact for 400x500px window.
+    acceptance_criteria:
+      - Login page renders with email/password form
+      - Login validates input and shows errors
+      - Successful login updates auth state
+      - Signup page renders with email/password/confirm form
+      - Signup validates input (email format, password match, min length)
+      - Successful signup shows confirmation message
+    depends_on: [9]
+    effort: 2
+    status: scoped
+
+  - id: 11
+    github_issue: 89
+    milestone: 4
+    title: Create Password Reset page for desktop
+    description: |
+      Create Password Reset page with two-phase flow for desktop app.
+
+      Phase 1 (unauthenticated): Email input, calls resetPassword(), shows success message.
+      Phase 2 (authenticated via reset link): New password + confirm fields, calls updatePassword().
+
+      Note: Reset link may redirect to web app for simplicity; user can log in on desktop after.
+    acceptance_criteria:
+      - Request reset form works (Phase 1)
+      - Set new password form works when authenticated (Phase 2)
+      - Validation shows appropriate errors
+      - Success messages displayed
+    depends_on: [9]
+    effort: 2
+    status: scoped
+
+  - id: 12
+    github_issue: 90
+    milestone: 4
+    title: Add auth routing/guards and pass token to uploader
+    description: |
+      Add authentication-based routing to desktop app and integrate auth token with uploader.
+
+      Update App.tsx to check auth state on mount and render Login/Signup/PasswordReset
+      when not authenticated, or Recording when authenticated.
+
+      Update uploader creation to pass token getter.
+      Add logout functionality (button/menu item that clears state and returns to Login).
+    acceptance_criteria:
+      - Unauthenticated users see Login page
+      - Authenticated users see Recording page
+      - Navigation between auth pages works
+      - Uploader includes auth token in requests
+      - Logout clears state and returns to Login
+    depends_on: [5, 10, 11]
+    effort: 2
+    status: scoped
+
+notes: |
+  Recording IDs are already generated server-side in upload.ts using randomUUID().
+  No changes needed for that requirement - it's already implemented correctly.
+
+  PR Order:
+  1. Shared Auth Package (additive, no breaking changes)
+  2. Auth-Aware Uploading (additive, prepares clients for auth)
+  3. Backend Authorization (breaking - requires auth from clients)
+  4. Desktop Authentication (requires 1, 2, 3 to be complete)
+
+  Each milestone's branch is based on the previous milestone's branch to allow
+  development to proceed without waiting for PR merges.
