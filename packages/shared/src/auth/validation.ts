@@ -2,36 +2,48 @@ import { z } from 'zod'
 
 export const MINIMUM_PASSWORD_LENGTH = 10
 
-// Schemas - stubs
+// Base schemas for reusability
+const emailField = z.email('Please enter a valid email address')
+const passwordField = z
+  .string()
+  .min(MINIMUM_PASSWORD_LENGTH, `Password must be at least ${MINIMUM_PASSWORD_LENGTH} characters`)
+
+// Simple schemas
 export const emailSchema = z.object({
-  email: z.string(),
+  email: emailField,
 })
 
-export const signupSchema = z.object({
-  email: z.string(),
-  password: z.string(),
-  confirmPassword: z.string(),
-})
+// Password confirmation schemas with refinement
+const passwordWithConfirmationSchema = z
+  .object({
+    password: passwordField,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  })
 
-// Validation functions - stubs
-export const validateEmail = (_email: string) => {
-  return { success: false, error: { issues: [] } } as z.SafeParseReturnType<{ email: string }, { email: string }>
-}
+export const signupSchema = z
+  .object({
+    email: emailField,
+    password: passwordField,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  })
 
-export const validatePassword = (_password: string, _confirmPassword: string) => {
-  return { success: false, error: { issues: [] } } as z.SafeParseReturnType<
-    { password: string; confirmPassword: string },
-    { password: string; confirmPassword: string }
-  >
-}
+// Utility functions for validation
+export const validateEmail = (email: string) => emailSchema.safeParse({ email })
 
-export const validateSignup = (_email: string, _password: string, _confirmPassword: string) => {
-  return { success: false, error: { issues: [] } } as z.SafeParseReturnType<
-    { email: string; password: string; confirmPassword: string },
-    { email: string; password: string; confirmPassword: string }
-  >
-}
+export const validatePassword = (password: string, confirmPassword: string) =>
+  passwordWithConfirmationSchema.safeParse({ password, confirmPassword })
 
-export const getValidationError = (result: { success: false; error: z.ZodError }): string => {
-  return result.error.issues[0]?.message || 'Validation failed'
-}
+export const validateSignup = (email: string, password: string, confirmPassword: string) =>
+  signupSchema.safeParse({ email, password, confirmPassword })
+
+// Utility to extract the first error message from Zod validation result
+export const getValidationError = (result: { success: false; error: z.ZodError }): string =>
+  result.error.issues[0]?.message || 'Validation failed'

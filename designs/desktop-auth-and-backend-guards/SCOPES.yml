@@ -73,7 +73,7 @@ tasks:
       - MINIMUM_PASSWORD_LENGTH constant available
     depends_on: []
     effort: 1
-    status: testing
+    status: implementing
 
   - id: 3
     github_issue: 81
