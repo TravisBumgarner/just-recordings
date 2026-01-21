@@ -8,47 +8,81 @@ export type GetUserResponse =
 
 export type GetTokenResponse = { token: string | undefined; success: true } | { message: string; success: false }
 
-export async function getUser(_client: AuthClient): Promise<GetUserResponse> {
-  // Stub
-  return { user: null, success: true }
+export async function getUser(client: AuthClient): Promise<GetUserResponse> {
+  const sessionExists = await client.auth.getSession()
+
+  if (!sessionExists.data.session) {
+    return { user: null, success: true }
+  }
+
+  const { data, error } = await client.auth.getUser()
+  if (error) {
+    return { error: 'Get user failed', success: false }
+  }
+
+  return { user: data.user, success: true }
 }
 
 export async function login(
-  _client: AuthClient,
-  _credentials: { email: string; password: string }
+  client: AuthClient,
+  credentials: { email: string; password: string }
 ): Promise<AuthResponse> {
-  // Stub
-  return { success: false, error: 'Not implemented' }
+  const { error, data } = await client.auth.signInWithPassword({
+    email: credentials.email,
+    password: credentials.password,
+  })
+  if (error) {
+    return { error: 'Login Failed', success: false }
+  }
+
+  return { success: true, data }
 }
 
 export async function signup(
-  _client: AuthClient,
-  _credentials: { email: string; password: string }
+  client: AuthClient,
+  credentials: { email: string; password: string }
 ): Promise<AuthResponse> {
-  // Stub
-  return { success: false, error: 'Not implemented' }
-}
-
-export async function logout(_client: AuthClient): Promise<AuthResponse> {
-  // Stub
+  const { error } = await client.auth.signUp({
+    email: credentials.email,
+    password: credentials.password,
+  })
+  if (error) {
+    return { error: 'Signup failed', success: false }
+  }
   return { success: true }
 }
 
-export async function getToken(_client: AuthClient): Promise<GetTokenResponse> {
-  // Stub
-  return { token: undefined, success: true }
+export async function logout(client: AuthClient): Promise<AuthResponse> {
+  await client.auth.signOut()
+  return { success: true }
+}
+
+export async function getToken(client: AuthClient): Promise<GetTokenResponse> {
+  const { data, error } = await client.auth.getSession()
+  if (error) {
+    return { message: 'Get token failed', success: false }
+  }
+  return { token: data.session?.access_token, success: true }
 }
 
 export async function resetPassword(
-  _client: AuthClient,
-  _email: string,
-  _redirectUrl: string
+  client: AuthClient,
+  email: string,
+  redirectUrl: string
 ): Promise<AuthResponse> {
-  // Stub
-  return { success: false, error: 'Not implemented' }
+  const { error } = await client.auth.resetPasswordForEmail(email, {
+    redirectTo: redirectUrl,
+  })
+  if (error) {
+    return { error: 'Failed to send reset email', success: false }
+  }
+  return { success: true }
 }
 
-export async function updatePassword(_client: AuthClient, _password: string): Promise<AuthResponse> {
-  // Stub
-  return { success: false, error: 'Not implemented' }
+export async function updatePassword(client: AuthClient, password: string): Promise<AuthResponse> {
+  const { error } = await client.auth.updateUser({ password })
+  if (error) {
+    return { error: 'Failed to update password', success: false }
+  }
+  return { success: true }
 }
