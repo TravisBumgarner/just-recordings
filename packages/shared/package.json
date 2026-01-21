@@ -17,11 +17,17 @@
     "./styles": {
       "import": "./dist/styles/index.js",
       "types": "./dist/styles/index.d.ts"
+    },
+    "./auth": {
+      "import": "./dist/auth/index.js",
+      "types": "./dist/auth/index.d.ts"
     }
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "lodash": "^4.17.21",
@@ -34,6 +40,7 @@
   "devDependencies": {
     "@types/lodash": "^4.17.0",
     "@types/react": "^18.2.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0"
   }
 }
