@@ -3,13 +3,13 @@ import { getUser } from '../services/supabase'
 import useGlobalStore from '../store'
 
 export const loadUserIntoState = async () => {
-  const { user } = await getUser()
+  const result = await getUser()
   let success: boolean = false
 
   const store = useGlobalStore.getState()
 
-  if (user) {
-    store.setAuthUser(user)
+  if (result.success && result.user) {
+    store.setAuthUser(result.user)
     const userDetails = await getMe()
     if (userDetails.success) {
       store.setAppUser(userDetails)

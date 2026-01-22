@@ -1,6 +1,3 @@
-// This value is controlled by Supabase, so if you change it here, be sure to also.
-export const MINIMUM_PASSWORD_LENGTH = 10
-
 export const ROUTES = {
   privacy: {
     key: 'privacy',

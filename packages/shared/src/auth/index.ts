@@ -21,4 +21,5 @@ export {
   type AuthResponse,
   type GetUserResponse,
   type GetTokenResponse,
+  type User,
 } from './service'
