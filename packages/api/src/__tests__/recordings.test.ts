@@ -2,9 +2,17 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import request from 'supertest'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { app } from '../app.js'
 
 const UPLOADS_DIR = 'uploads'
+
+// Mock the supabase lib for auth
+vi.mock('../lib/supabase.js', () => ({
+  supabase: {
+    auth: {
+      getUser: vi.fn(),
+    },
+  },
+}))
 
 // Mock the database queries module
 vi.mock('../db/queries/recordings.js', () => {
@@ -42,9 +50,13 @@ vi.mock('../db/queries/recordings.js', () => {
   }
 })
 
+import { app } from '../app.js'
 import * as recordingsRepo from '../db/queries/recordings.js'
+import { supabase } from '../lib/supabase.js'
 
 const mockRepo = recordingsRepo as any
+// biome-ignore lint/style/noNonNullAssertion: supabase is always mocked in tests
+const mockGetUser = vi.mocked(supabase!.auth.getUser)
 
 // Helper to create a test recording
 async function createTestRecording(
@@ -274,26 +286,35 @@ describe('Recordings endpoints', () => {
   describe('Upload finalize saves metadata', () => {
     beforeEach(() => {
       vi.stubEnv('NODE_ENV', 'development')
+      mockGetUser.mockResolvedValue({
+        data: { user: { id: 'test-user-id', email: 'test@example.com' } },
+        error: null,
+      } as any)
     })
 
     afterEach(() => {
       vi.unstubAllEnvs()
+      mockGetUser.mockReset()
     })
 
     it('saves recording metadata when upload finalizes', async () => {
       // Start upload
-      const startResponse = await request(app).post('/api/dev/upload/start')
+      const startResponse = await request(app)
+        .post('/api/dev/upload/start')
+        .set('Authorization', 'Bearer valid-token')
       const { uploadId } = startResponse.body
 
       // Upload chunk
       await request(app)
         .post(`/api/dev/upload/${uploadId}/chunk`)
+        .set('Authorization', 'Bearer valid-token')
         .field('index', '0')
         .attach('chunk', Buffer.from('video data'), 'chunk-0')
 
       // Finalize with metadata
       const finalizeResponse = await request(app)
         .post(`/api/dev/upload/${uploadId}/finalize`)
+        .set('Authorization', 'Bearer valid-token')
         .send({
           filename: 'My Recording',
           mimeType: 'video/webm',
