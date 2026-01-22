@@ -142,7 +142,7 @@ tasks:
       - Optional: Window size adjusted if needed
     depends_on: [6]
     effort: 1
-    status: scoped
+    status: implementing
 
 notes: |
   This pivot supersedes tasks 11 and 12 from desktop-auth-and-backend-guards/SCOPES.yml.
