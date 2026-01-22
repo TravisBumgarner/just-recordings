@@ -20,6 +20,7 @@ export const recordings = pgTable('recordings', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
   path: varchar('path', { length: 500 }).notNull(),
   thumbnailPath: varchar('thumbnail_path', { length: 500 }),
+  userId: uuid('user_id').references(() => users.id),
 })
 
 export type Recording = typeof recordings.$inferSelect
