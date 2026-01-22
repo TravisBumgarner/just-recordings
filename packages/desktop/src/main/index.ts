@@ -80,25 +80,22 @@ function createWindow(): void {
     skipTaskbar: true, // Hide from taskbar/Dock
     alwaysOnTop: false,
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, '../preload/index.cjs'),
       sandbox: false,
     },
   })
 
   // Hide window instead of closing (app stays running)
-  mainWindow.on('close', (event) => {
-    if (!app.isQuitting) {
-      event.preventDefault()
-      mainWindow?.hide()
-    }
-  })
+  // mainWindow.on('close', (event) => {
+  //   if (!app.isQuitting) {
+  //     event.preventDefault()
+  //     mainWindow?.hide()
+  //   }
+  // })
 
-  // Hide window when it loses focus (optional menu bar app behavior)
+  // Hide window when it loses focus (menu bar app behavior)
   mainWindow.on('blur', () => {
-    // Only auto-hide if not in dev mode (for easier debugging)
-    if (!is.dev) {
-      mainWindow?.hide()
-    }
+    mainWindow?.hide()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -126,6 +123,13 @@ app.whenReady().then(() => {
   // Handle recording state changes from renderer
   ipcMain.on('recording-state-changed', (_event, isRecording: boolean) => {
     updateTrayIcon(isRecording)
+  })
+
+  // Handle external URL opening
+  ipcMain.on('open-external', (_event, url: string) => {
+    shell.openExternal(url).catch((err) => {
+      console.error('Failed to open external URL:', err)
+    })
   })
 
   // Set up display media request handler for screen capture

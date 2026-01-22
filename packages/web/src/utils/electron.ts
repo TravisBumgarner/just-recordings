@@ -6,7 +6,7 @@
  * Check if the app is running inside Electron.
  * Returns true if window.api is available (exposed by Electron's preload script).
  */
-export function isElectron(): boolean {
+export function isElectronCheck(): boolean {
   return typeof window !== 'undefined' && typeof window.api !== 'undefined'
 }
 
@@ -16,4 +16,12 @@ export function isElectron(): boolean {
  */
 export function setRecordingState(isRecording: boolean): void {
   window.api?.setRecordingState(isRecording)
+}
+
+/**
+ * Open a URL in the user's default external browser.
+ * No-op when not running in Electron.
+ */
+export function openExternal(url: string): void {
+  window.api?.openExternal(url)
 }

@@ -1,16 +1,16 @@
 import {
+  type AuthResponse,
   createAuthClient,
+  type GetTokenResponse,
+  type GetUserResponse,
+  getToken as sharedGetToken,
   getUser as sharedGetUser,
   login as sharedLogin,
-  signup as sharedSignup,
   logout as sharedLogout,
-  getToken as sharedGetToken,
   resetPassword as sharedResetPassword,
+  signup as sharedSignup,
   updatePassword as sharedUpdatePassword,
-  type AuthResponse,
-  type GetUserResponse,
-  type GetTokenResponse,
-} from '@just-recordings/shared/auth'
+} from '@/auth'
 import config from '../config'
 import { ROUTES } from '../consts'
 

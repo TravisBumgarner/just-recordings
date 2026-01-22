@@ -23,7 +23,7 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageWrapper from '@/styles/shared/PageWrapper'
-import { getRecordings, getThumbnailUrl } from '../api'
+import { getRecordings, getThumbnailUrl } from '../api/recordings'
 import { setRecordingState } from '../utils/electron'
 
 export interface HomeProps {
@@ -45,6 +45,67 @@ function formatDate(dateString: string): string {
     day: 'numeric',
     year: 'numeric',
   })
+}
+
+function RecordingCard({ recording }: { recording: ApiRecording }) {
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (recording.thumbnailPath) {
+      getThumbnailUrl(recording.id).then(setThumbnailUrl)
+    }
+  }, [recording.id, recording.thumbnailPath])
+
+  return (
+    <Grid item xs={12} sm={6} md={4}>
+      <Card>
+        <CardActionArea
+          component={Link}
+          to={`/recordings/${recording.id}`}
+          aria-label={recording.name}
+        >
+          <CardMedia
+            component="img"
+            height="180"
+            image={thumbnailUrl || ''}
+            alt={recording.name}
+            sx={{
+              bgcolor: 'grey.300',
+              objectFit: 'cover',
+            }}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement
+              target.style.display = 'none'
+            }}
+          />
+          {!recording.thumbnailPath && (
+            <Box
+              sx={{
+                height: 180,
+                bgcolor: 'grey.300',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                No thumbnail
+              </Typography>
+            </Box>
+          )}
+          <CardContent>
+            <Typography variant="h6" component="h2" noWrap>
+              {recording.name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {formatDuration(recording.duration)} &bull;{' '}
+              {formatDate(recording.createdAt)}
+            </Typography>
+          </CardContent>
+        </CardActionArea>
+      </Card>
+    </Grid>
+  )
 }
 
 function Home({ recorderService, uploadManager }: HomeProps) {
@@ -244,54 +305,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
         {!loading && !error && recordings.length > 0 && (
           <Grid container spacing={3}>
             {recordings.map((recording) => (
-              <Grid item xs={12} sm={6} md={4} key={recording.id}>
-                <Card>
-                  <CardActionArea
-                    component={Link}
-                    to={`/recordings/${recording.id}`}
-                    aria-label={recording.name}
-                  >
-                    <CardMedia
-                      component="img"
-                      height="180"
-                      image={recording.thumbnailPath ? getThumbnailUrl(recording.id) : undefined}
-                      alt={recording.name}
-                      sx={{
-                        bgcolor: 'grey.300',
-                        objectFit: 'cover',
-                      }}
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.style.display = 'none'
-                      }}
-                    />
-                    {!recording.thumbnailPath && (
-                      <Box
-                        sx={{
-                          height: 180,
-                          bgcolor: 'grey.300',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Typography variant="body2" color="text.secondary">
-                          No thumbnail
-                        </Typography>
-                      </Box>
-                    )}
-                    <CardContent>
-                      <Typography variant="h6" component="h2" noWrap>
-                        {recording.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {formatDuration(recording.duration)} &bull;{' '}
-                        {formatDate(recording.createdAt)}
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              </Grid>
+              <RecordingCard key={recording.id} recording={recording} />
             ))}
           </Grid>
         )}

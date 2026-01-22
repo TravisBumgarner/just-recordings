@@ -6,11 +6,24 @@ import {
   getRecordingResultSchema,
   getRecordingsResultSchema,
 } from '@just-recordings/shared'
+import { getToken } from '@/services/supabase'
 import config from '../config'
 
 export const getRecordings = async (): Promise<GetRecordingsResult> => {
   try {
-    const response = await fetch(`${config.apiBaseUrl}/recordings`)
+    const tokenResponse = await getToken()
+    if (!tokenResponse.success || !tokenResponse.token) {
+      return {
+        success: false,
+        message: 'Unauthorized',
+      }
+    }
+
+    const response = await fetch(`${config.apiBaseUrl}/recordings`, {
+      headers: {
+        Authorization: `Bearer ${tokenResponse.token}`,
+      },
+    })
 
     if (!response.ok) {
       return {
@@ -34,7 +47,19 @@ export const getRecordings = async (): Promise<GetRecordingsResult> => {
 
 export const getRecording = async (id: string): Promise<GetRecordingResult> => {
   try {
-    const response = await fetch(`${config.apiBaseUrl}/recordings/${id}`)
+    const tokenResponse = await getToken()
+    if (!tokenResponse.success || !tokenResponse.token) {
+      return {
+        success: false,
+        message: 'Unauthorized',
+      }
+    }
+
+    const response = await fetch(`${config.apiBaseUrl}/recordings/${id}`, {
+      headers: {
+        Authorization: `Bearer ${tokenResponse.token}`,
+      },
+    })
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -62,18 +87,69 @@ export const getRecording = async (id: string): Promise<GetRecordingResult> => {
   }
 }
 
-export const getVideoUrl = (id: string): string => {
-  return `${config.apiBaseUrl}/recordings/${id}/video`
+export const getVideoUrl = async (id: string): Promise<string | null> => {
+  try {
+    const tokenResponse = await getToken()
+    if (!tokenResponse.success || !tokenResponse.token) {
+      return null
+    }
+
+    const response = await fetch(`${config.apiBaseUrl}/recordings/${id}/video`, {
+      headers: {
+        Authorization: `Bearer ${tokenResponse.token}`,
+      },
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    const blob = await response.blob()
+    return URL.createObjectURL(blob)
+  } catch {
+    return null
+  }
 }
 
-export const getThumbnailUrl = (id: string): string => {
-  return `${config.apiBaseUrl}/recordings/${id}/thumbnail`
+export const getThumbnailUrl = async (id: string): Promise<string | null> => {
+  try {
+    const tokenResponse = await getToken()
+    if (!tokenResponse.success || !tokenResponse.token) {
+      return null
+    }
+
+    const response = await fetch(`${config.apiBaseUrl}/recordings/${id}/thumbnail`, {
+      headers: {
+        Authorization: `Bearer ${tokenResponse.token}`,
+      },
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    const blob = await response.blob()
+    return URL.createObjectURL(blob)
+  } catch {
+    return null
+  }
 }
 
 export const deleteRecording = async (id: string): Promise<DeleteRecordingResult> => {
   try {
+    const tokenResponse = await getToken()
+    if (!tokenResponse.success || !tokenResponse.token) {
+      return {
+        success: false,
+        message: 'Unauthorized',
+      }
+    }
+
     const response = await fetch(`${config.apiBaseUrl}/recordings/${id}`, {
       method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${tokenResponse.token}`,
+      },
     })
 
     if (!response.ok) {

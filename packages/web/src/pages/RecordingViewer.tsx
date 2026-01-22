@@ -11,10 +11,10 @@ import {
   DialogTitle,
   Typography,
 } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import PageWrapper from '@/styles/shared/PageWrapper'
-import { deleteRecording, getRecording, getVideoUrl } from '../api'
+import { deleteRecording, getRecording, getVideoUrl } from '../api/recordings'
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000)
@@ -68,7 +68,17 @@ function RecordingViewerPage() {
     fetchRecording()
   }, [id])
 
-  const videoUrl = id ? getVideoUrl(id) : undefined
+  const [videoUrl, setVideoUrl] = useState<string | null>(null)
+  
+  useEffect(() => {
+    const fetchVideoUrl = async () => {
+      if (id) {
+        const url = await getVideoUrl(id)
+        setVideoUrl(url)
+      }
+    }
+    fetchVideoUrl()
+  }, [id])
 
   const handleDeleteClick = () => {
     setDeleteDialogOpen(true)
@@ -130,12 +140,16 @@ function RecordingViewerPage() {
 
         {/* Video Player */}
         <Box sx={{ mb: 3 }}>
-          <video
-            data-testid="video-player"
-            src={videoUrl}
-            controls
-            style={{ width: '100%', maxHeight: '70vh' }}
-          />
+          {videoUrl && (
+            <video
+              data-testid="video-player"
+              src={videoUrl}
+              controls
+              style={{ width: '100%', maxHeight: '70vh' }}
+            >
+              <track kind="captions" srcLang="en" label="English" />
+            </video>
+          )}
         </Box>
 
         {/* Metadata */}

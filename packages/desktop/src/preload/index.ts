@@ -11,6 +11,9 @@ const api = {
   setRecordingState: (isRecording: boolean) => {
     ipcRenderer.send('recording-state-changed', isRecording)
   },
+  openExternal: (url: string) => {
+    ipcRenderer.send('open-external', url)
+  },
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

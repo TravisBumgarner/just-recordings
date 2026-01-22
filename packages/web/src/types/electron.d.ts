@@ -7,6 +7,7 @@ declare global {
     api?: {
       setRecordingState: (isRecording: boolean) => void
       getVersions: () => { electron: string; chrome: string; node: string }
+      openExternal: (url: string) => void
     }
   }
 }

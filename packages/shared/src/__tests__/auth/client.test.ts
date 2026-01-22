@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { createAuthClient } from '../../auth/client'
+import { describe, expect, it } from 'vitest'
+import { createAuthClient } from '../../../../web/src/auth/client'
 
 describe('createAuthClient', () => {
   it('creates a Supabase client with provided URL and key', () => {

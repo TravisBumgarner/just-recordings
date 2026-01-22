@@ -1,9 +1,12 @@
 import type { NextFunction, Request, Response } from 'express'
+import { db } from '../db/index.js'
+import { getOrCreateUserByAuth, getUserByAuthId } from '../db/queries/users.js'
 import { supabase } from '../lib/supabase.js'
 
 export interface AuthenticatedRequest extends Request {
   user?: {
-    id: string
+    authId: string
+    userId: string
     email?: string
   }
 }
@@ -34,8 +37,16 @@ export async function requireAuth(
     return
   }
 
+  let user = await getUserByAuthId(data.user.id)
+
+  if (!user) {
+    // Create user record if it doesn't exist
+    user = await getOrCreateUserByAuth({ authId: data.user.id, email: data.user.email ?? '' })
+  }
+
   req.user = {
-    id: data.user.id,
+    authId: data.user.id,
+    userId: user?.id,
     email: data.user.email,
   }
 

@@ -1,13 +1,13 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
-  MINIMUM_PASSWORD_LENGTH,
   emailSchema,
+  getValidationError,
+  MINIMUM_PASSWORD_LENGTH,
   signupSchema,
   validateEmail,
   validatePassword,
   validateSignup,
-  getValidationError,
-} from '../../auth/validation'
+} from '../../../../web/src/auth/validation'
 
 describe('MINIMUM_PASSWORD_LENGTH', () => {
   it('should be 10', () => {

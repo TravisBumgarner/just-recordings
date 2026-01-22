@@ -1,33 +1,45 @@
 import { describe, it, expect, vi } from 'vitest'
+import type { AuthClient } from '../../../../web/src/auth/client'
 import {
+  getToken,
   getUser,
   login,
-  signup,
   logout,
-  getToken,
   resetPassword,
+  signup,
   updatePassword,
-} from '../../auth/service'
-import type { AuthClient } from '../../auth/client'
+} from '../../../../web/src/auth/service'
 
 // Create a mock Supabase client
-function createMockClient(overrides: {
-  getSession?: () => Promise<{ data: { session: { access_token: string } | null }; error: null | { message: string } }>
-  getUser?: () => Promise<{ data: { user: { id: string; email: string } | null }; error: null | { message: string } }>
-  signInWithPassword?: () => Promise<{ data: unknown; error: null | { message: string } }>
-  signUp?: () => Promise<{ data: unknown; error: null | { message: string } }>
-  signOut?: () => Promise<{ error: null | { message: string } }>
-  resetPasswordForEmail?: () => Promise<{ error: null | { message: string } }>
-  updateUser?: () => Promise<{ error: null | { message: string } }>
-} = {}): AuthClient {
+function createMockClient(
+  overrides: {
+    getSession?: () => Promise<{
+      data: { session: { access_token: string } | null }
+      error: null | { message: string }
+    }>
+    getUser?: () => Promise<{
+      data: { user: { id: string; email: string } | null }
+      error: null | { message: string }
+    }>
+    signInWithPassword?: () => Promise<{ data: unknown; error: null | { message: string } }>
+    signUp?: () => Promise<{ data: unknown; error: null | { message: string } }>
+    signOut?: () => Promise<{ error: null | { message: string } }>
+    resetPasswordForEmail?: () => Promise<{ error: null | { message: string } }>
+    updateUser?: () => Promise<{ error: null | { message: string } }>
+  } = {},
+): AuthClient {
   return {
     auth: {
-      getSession: overrides.getSession ?? vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      getUser: overrides.getUser ?? vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
-      signInWithPassword: overrides.signInWithPassword ?? vi.fn().mockResolvedValue({ data: {}, error: null }),
+      getSession:
+        overrides.getSession ?? vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      getUser:
+        overrides.getUser ?? vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      signInWithPassword:
+        overrides.signInWithPassword ?? vi.fn().mockResolvedValue({ data: {}, error: null }),
       signUp: overrides.signUp ?? vi.fn().mockResolvedValue({ data: {}, error: null }),
       signOut: overrides.signOut ?? vi.fn().mockResolvedValue({ error: null }),
-      resetPasswordForEmail: overrides.resetPasswordForEmail ?? vi.fn().mockResolvedValue({ error: null }),
+      resetPasswordForEmail:
+        overrides.resetPasswordForEmail ?? vi.fn().mockResolvedValue({ error: null }),
       updateUser: overrides.updateUser ?? vi.fn().mockResolvedValue({ error: null }),
     },
   } as unknown as AuthClient
@@ -47,8 +59,15 @@ describe('getUser', () => {
 
   it('returns user when session exists', async () => {
     const mockClient = createMockClient({
-      getSession: vi.fn().mockResolvedValue({ data: { session: { access_token: 'token' } }, error: null }),
-      getUser: vi.fn().mockResolvedValue({ data: { user: { id: '123', email: 'test@example.com' } }, error: null }),
+      getSession: vi
+        .fn()
+        .mockResolvedValue({ data: { session: { access_token: 'token' } }, error: null }),
+      getUser: vi
+        .fn()
+        .mockResolvedValue({
+          data: { user: { id: '123', email: 'test@example.com' } },
+          error: null,
+        }),
     })
     const result = await getUser(mockClient)
     expect(result.success).toBe(true)
@@ -59,8 +78,12 @@ describe('getUser', () => {
 
   it('returns error when getUser fails', async () => {
     const mockClient = createMockClient({
-      getSession: vi.fn().mockResolvedValue({ data: { session: { access_token: 'token' } }, error: null }),
-      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: { message: 'Auth error' } }),
+      getSession: vi
+        .fn()
+        .mockResolvedValue({ data: { session: { access_token: 'token' } }, error: null }),
+      getUser: vi
+        .fn()
+        .mockResolvedValue({ data: { user: null }, error: { message: 'Auth error' } }),
     })
     const result = await getUser(mockClient)
     expect(result.success).toBe(false)
@@ -78,7 +101,9 @@ describe('login', () => {
 
   it('returns error on failed login', async () => {
     const mockClient = createMockClient({
-      signInWithPassword: vi.fn().mockResolvedValue({ data: null, error: { message: 'Invalid credentials' } }),
+      signInWithPassword: vi
+        .fn()
+        .mockResolvedValue({ data: null, error: { message: 'Invalid credentials' } }),
     })
     const result = await login(mockClient, { email: 'test@example.com', password: 'wrong' })
     expect(result.success).toBe(false)
@@ -98,7 +123,10 @@ describe('signup', () => {
     const mockClient = createMockClient({
       signUp: vi.fn().mockResolvedValue({ data: null, error: { message: 'Email already exists' } }),
     })
-    const result = await signup(mockClient, { email: 'existing@example.com', password: 'password123' })
+    const result = await signup(mockClient, {
+      email: 'existing@example.com',
+      password: 'password123',
+    })
     expect(result.success).toBe(false)
   })
 })
@@ -116,7 +144,9 @@ describe('logout', () => {
 describe('getToken', () => {
   it('returns token when session exists', async () => {
     const mockClient = createMockClient({
-      getSession: vi.fn().mockResolvedValue({ data: { session: { access_token: 'my-token' } }, error: null }),
+      getSession: vi
+        .fn()
+        .mockResolvedValue({ data: { session: { access_token: 'my-token' } }, error: null }),
     })
     const result = await getToken(mockClient)
     expect(result.success).toBe(true)

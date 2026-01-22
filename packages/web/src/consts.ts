@@ -12,7 +12,7 @@ export const ROUTES = {
   home: {
     key: 'home',
     href: () => '/',
-    label: 'Just Recordings',
+    label: 'Home',
   },
   login: {
     key: 'login',

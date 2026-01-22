@@ -1,8 +1,10 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { ROUTES } from '../consts'
-import Home from '../pages/Home'
-import LandingPage from '../pages/LandingPage'
+import HomeDesktop from '../pages/Home.Desktop'
+import HomeWeb from '../pages/Home.Web'
+import LandingPageDesktop from '../pages/LandingPage.Desktop'
+import LandingPageHome from '../pages/LandingPage.Web'
 import Settings from '../pages/Settings'
 import useGlobalStore from '../store'
 
@@ -43,18 +45,28 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 interface HomeRouteProps {
   recorderService: RecorderService
   uploadManager: UploadManager
+  isElectron: boolean
 }
 
-const HomeRoute = ({ recorderService, uploadManager }: HomeRouteProps) => {
+const HomeRoute = ({ recorderService, uploadManager, isElectron }: HomeRouteProps) => {
   const appUser = useGlobalStore((state) => state.appUser)
+
+  if (isElectron) {
+    return appUser ? (
+      <HomeDesktop recorderService={recorderService} uploadManager={uploadManager} />
+    ) : (
+      <LandingPageDesktop />
+    )
+  }
+
   return appUser ? (
-    <Home recorderService={recorderService} uploadManager={uploadManager} />
+    <HomeWeb recorderService={recorderService} uploadManager={uploadManager} />
   ) : (
-    <LandingPage />
+    <LandingPageHome />
   )
 }
 
-const Router = () => {
+const Router = ({ isElectron }: { isElectron: boolean }) => {
   const db = useMemo(() => new RecorderDatabase(), [])
   const recorderService = useMemo(() => new RecorderService(db), [db])
   const tokenGetter = useMemo(() => createTokenGetter(), [])
@@ -70,7 +82,13 @@ const Router = () => {
       <Routes>
         <Route
           path={ROUTES.home.href()}
-          element={<HomeRoute recorderService={recorderService} uploadManager={uploadManager} />}
+          element={
+            <HomeRoute
+              isElectron={isElectron}
+              recorderService={recorderService}
+              uploadManager={uploadManager}
+            />
+          }
         />
         <Route path={ROUTES.recordingViewer.href()} element={<RecordingViewer />} />
         <Route
