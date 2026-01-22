@@ -208,7 +208,7 @@ tasks:
       - Can detect if user is logged in
     depends_on: [3]
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 10
     github_issue: 88

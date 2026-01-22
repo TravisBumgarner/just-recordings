@@ -1,5 +1,6 @@
-// Stub - to be implemented with Zustand
+import { create } from 'zustand'
 import type { User } from '@just-recordings/shared/auth'
+import { getUser } from '../services/supabase'
 
 export interface AuthState {
   authUser: User | null
@@ -9,18 +10,21 @@ export interface AuthState {
   clearAuth: () => void
 }
 
-// Stub store - will be replaced with Zustand implementation
-export const useAuthStore = (): AuthState => {
-  return {
-    authUser: null,
-    loadingUser: true,
-    setAuthUser: () => {},
-    setLoadingUser: () => {},
-    clearAuth: () => {},
-  }
-}
+export const useAuthStore = create<AuthState>((set) => ({
+  authUser: null,
+  loadingUser: true,
+  setAuthUser: (user) => set({ authUser: user }),
+  setLoadingUser: (loading) => set({ loadingUser: loading }),
+  clearAuth: () => set({ authUser: null, loadingUser: false }),
+}))
 
 // Utility function to load user into state
 export async function loadUserIntoState(): Promise<void> {
-  // Stub - to be implemented
+  const result = await getUser()
+  if (result.success && result.user) {
+    useAuthStore.getState().setAuthUser(result.user)
+  } else {
+    useAuthStore.getState().setAuthUser(null)
+  }
+  useAuthStore.getState().setLoadingUser(false)
 }

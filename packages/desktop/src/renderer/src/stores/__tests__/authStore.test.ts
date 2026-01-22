@@ -13,11 +13,8 @@ const mockGetUser = vi.mocked(getUser)
 
 describe('authStore', () => {
   beforeEach(() => {
-    // Reset store state before each test
-    const { result } = renderHook(() => useAuthStore())
-    act(() => {
-      result.current.clearAuth()
-    })
+    // Reset store state to initial values before each test
+    useAuthStore.setState({ authUser: null, loadingUser: true })
     mockGetUser.mockReset()
   })
 

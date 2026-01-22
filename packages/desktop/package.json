@@ -16,11 +16,12 @@
     "@emotion/styled": "^11.11.0",
     "@just-recordings/recorder": "*",
     "@just-recordings/shared": "^0.0.1",
-    "lodash": "^4.17.21",
     "@mui/material": "^5.15.6",
+    "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.21.3"
+    "react-router-dom": "^6.21.3",
+    "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.2",
