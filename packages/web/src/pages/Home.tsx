@@ -24,6 +24,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageWrapper from '@/styles/shared/PageWrapper'
 import { getRecordings, getThumbnailUrl } from '../api'
+import { setRecordingState } from '../utils/electron'
 
 export interface HomeProps {
   recorderService: RecorderService
@@ -78,9 +79,11 @@ function Home({ recorderService, uploadManager }: HomeProps) {
 
   const handleStartRecording = useCallback(async () => {
     await recorderService.startScreenRecording()
+    setRecordingState(true)
   }, [recorderService])
 
   const handleStopRecording = useCallback(async () => {
+    setRecordingState(false)
     const recording = await recorderService.stopRecording()
     await uploadManager.enqueue(recording)
     // Refresh recordings list after a short delay to allow upload to complete
