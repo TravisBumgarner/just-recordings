@@ -148,7 +148,7 @@ tasks:
       - Existing recordings (with NULL userId) still queryable
     depends_on: []
     effort: 2
-    status: implementing
+    status: completed
 
   - id: 7
     github_issue: 85
