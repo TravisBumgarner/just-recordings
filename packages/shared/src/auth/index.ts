@@ -7,3 +7,18 @@ export {
   validateSignup,
   getValidationError,
 } from './validation'
+
+export { createAuthClient, type AuthClient } from './client'
+
+export {
+  getUser,
+  login,
+  signup,
+  logout,
+  getToken,
+  resetPassword,
+  updatePassword,
+  type AuthResponse,
+  type GetUserResponse,
+  type GetTokenResponse,
+} from './service'

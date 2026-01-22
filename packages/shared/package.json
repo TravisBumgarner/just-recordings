@@ -30,6 +30,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.90.1",
     "lodash": "^4.17.21",
     "zod": "^4.3.5"
   },
