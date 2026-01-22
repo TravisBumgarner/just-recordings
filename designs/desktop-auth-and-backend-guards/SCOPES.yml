@@ -240,42 +240,28 @@ tasks:
     milestone: 4
     title: Create Password Reset page for desktop
     description: |
-      Create Password Reset page with two-phase flow for desktop app.
-
-      Phase 1 (unauthenticated): Email input, calls resetPassword(), shows success message.
-      Phase 2 (authenticated via reset link): New password + confirm fields, calls updatePassword().
-
-      Note: Reset link may redirect to web app for simplicity; user can log in on desktop after.
+      SUPERSEDED by desktop-web-integration pivot.
+      Desktop now imports web app's Password Reset page directly.
+      See designs/desktop-web-integration/SCOPES.yml
     acceptance_criteria:
-      - Request reset form works (Phase 1)
-      - Set new password form works when authenticated (Phase 2)
-      - Validation shows appropriate errors
-      - Success messages displayed
+      - N/A - superseded
     depends_on: [9]
     effort: 2
-    status: scoped
+    status: superseded
 
   - id: 12
     github_issue: 90
     milestone: 4
     title: Add auth routing/guards and pass token to uploader
     description: |
-      Add authentication-based routing to desktop app and integrate auth token with uploader.
-
-      Update App.tsx to check auth state on mount and render Login/Signup/PasswordReset
-      when not authenticated, or Recording when authenticated.
-
-      Update uploader creation to pass token getter.
-      Add logout functionality (button/menu item that clears state and returns to Login).
+      SUPERSEDED by desktop-web-integration pivot.
+      Desktop now imports web app's routing and auth guards directly.
+      See designs/desktop-web-integration/SCOPES.yml
     acceptance_criteria:
-      - Unauthenticated users see Login page
-      - Authenticated users see Recording page
-      - Navigation between auth pages works
-      - Uploader includes auth token in requests
-      - Logout clears state and returns to Login
+      - N/A - superseded
     depends_on: [5, 10, 11]
     effort: 2
-    status: scoped
+    status: superseded
 
 notes: |
   Recording IDs are already generated server-side in upload.ts using randomUUID().
