@@ -7,8 +7,7 @@
  * Returns true if window.api is available (exposed by Electron's preload script).
  */
 export function isElectron(): boolean {
-  // Stub - will be implemented
-  return false
+  return typeof window !== 'undefined' && typeof window.api !== 'undefined'
 }
 
 /**
@@ -16,5 +15,5 @@ export function isElectron(): boolean {
  * No-op when not running in Electron.
  */
 export function setRecordingState(isRecording: boolean): void {
-  // Stub - will be implemented
+  window.api?.setRecordingState(isRecording)
 }

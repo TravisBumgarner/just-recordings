@@ -28,7 +28,7 @@ tasks:
       - No TypeScript errors when accessing window.api
     depends_on: []
     effort: 1
-    status: testing
+    status: implementing
 
   - id: 2
     github_issue: 102
