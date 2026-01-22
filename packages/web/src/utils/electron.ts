@@ -6,7 +6,7 @@
  * Check if the app is running inside Electron.
  * Returns true if window.api is available (exposed by Electron's preload script).
  */
-export function isElectron(): boolean {
+export function isElectronCheck(): boolean {
   return typeof window !== 'undefined' && typeof window.api !== 'undefined'
 }
 

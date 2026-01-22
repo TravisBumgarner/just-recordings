@@ -14,8 +14,8 @@ vi.mock('../api', () => ({
   getThumbnailUrl: vi.fn(),
 }))
 
+import Home from '../pages/Home.Web'
 import { setRecordingState } from '../utils/electron'
-import Home from '../pages/Home'
 
 // Create mock recorder service
 const createMockRecorderService = () => ({

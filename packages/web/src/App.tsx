@@ -1,3 +1,4 @@
+import { AppThemeProvider, Z_INDICES } from '@just-recordings/shared/styles'
 import { Box } from '@mui/material'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
@@ -12,8 +13,7 @@ import Loading from './sharedComponents/Loading'
 import Message from './sharedComponents/Message'
 import RenderModal from './sharedComponents/Modal'
 import useGlobalStore from './store'
-import { isElectron } from './utils/electron'
-import { AppThemeProvider, Z_INDICES } from '@just-recordings/shared/styles'
+import { isElectronCheck } from './utils/electron'
 
 const queryClient = new QueryClient()
 
@@ -54,13 +54,13 @@ function App() {
   }
 
   // Hide footer in desktop app to save vertical space in the smaller window
-  const showFooter = !isElectron()
+  const isElectron = isElectronCheck()
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Header />
-      <Router />
-      {showFooter && <Footer />}
+      {!isElectron && <Header />}
+      <Router isElectron={isElectron} />
+      {!isElectron && <Footer />}
       <RenderModal />
     </QueryClientProvider>
   )
