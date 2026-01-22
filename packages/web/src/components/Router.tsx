@@ -26,6 +26,7 @@ import {
 import { useMemo } from 'react'
 import RecordingViewer from '../pages/RecordingViewer'
 import UploadQueue from '../pages/UploadQueue'
+import { createTokenGetter } from '../utils/createTokenGetter'
 
 const AnonymousRoute = () => {
   const appUser = useGlobalStore((state) => state.appUser)
@@ -56,7 +57,8 @@ const HomeRoute = ({ recorderService, uploadManager }: HomeRouteProps) => {
 const Router = () => {
   const db = useMemo(() => new RecorderDatabase(), [])
   const recorderService = useMemo(() => new RecorderService(db), [db])
-  const uploader = useMemo(() => createUploader(API_BASE_URL, true), [])
+  const tokenGetter = useMemo(() => createTokenGetter(), [])
+  const uploader = useMemo(() => createUploader(API_BASE_URL, true, tokenGetter), [tokenGetter])
   const uploadManager = useMemo(() => new UploadManager(db, uploader), [db, uploader])
   // Initialize upload manager on app load to resume any pending uploads
   useEffect(() => {
