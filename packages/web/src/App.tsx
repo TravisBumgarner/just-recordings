@@ -12,6 +12,7 @@ import Loading from './sharedComponents/Loading'
 import Message from './sharedComponents/Message'
 import RenderModal from './sharedComponents/Modal'
 import useGlobalStore from './store'
+import { isElectron } from './utils/electron'
 import { AppThemeProvider, Z_INDICES } from '@just-recordings/shared/styles'
 
 const queryClient = new QueryClient()
@@ -52,11 +53,14 @@ function App() {
     )
   }
 
+  // Hide footer in desktop app to save vertical space in the smaller window
+  const showFooter = !isElectron()
+
   return (
     <QueryClientProvider client={queryClient}>
       <Header />
       <Router />
-      <Footer />
+      {showFooter && <Footer />}
       <RenderModal />
     </QueryClientProvider>
   )
