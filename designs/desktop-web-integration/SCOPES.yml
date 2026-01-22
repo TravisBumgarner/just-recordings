@@ -122,7 +122,7 @@ tasks:
       - Navigation between pages works
     depends_on: [5]
     effort: 1
-    status: implementing
+    status: completed
 
   - id: 7
     github_issue: 107
