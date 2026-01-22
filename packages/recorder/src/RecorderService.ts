@@ -86,6 +86,7 @@ export class RecorderService {
           duration: 0,
           createdAt: new Date(),
           fileSize: 0,
+          uploadStatus: 'pending',
         })
         return
       }
@@ -105,6 +106,7 @@ export class RecorderService {
           duration,
           createdAt: new Date(),
           fileSize: blob.size,
+          uploadStatus: 'pending',
         }
 
         // Cleanup

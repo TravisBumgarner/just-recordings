@@ -2,10 +2,12 @@
   "name": "@just-recordings/desktop",
   "version": "0.0.1",
   "description": "Just Recordings Desktop App",
+  "type": "module",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
+    "postbuild": "node scripts/copy-web-dist.js",
     "preview": "electron-vite preview",
     "test": "vitest run"
   },
