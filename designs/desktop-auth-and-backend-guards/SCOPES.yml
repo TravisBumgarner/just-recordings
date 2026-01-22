@@ -92,7 +92,7 @@ tasks:
       - All auth flows still work (login, signup, logout, password reset)
     depends_on: [1, 2]
     effort: 2
-    status: implementing
+    status: completed
 
   - id: 4
     github_issue: 82
