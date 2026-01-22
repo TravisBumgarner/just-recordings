@@ -127,7 +127,7 @@ tasks:
       - Uploads still work (backend doesn't require auth yet, but header is sent)
     depends_on: [4]
     effort: 1
-    status: testing
+    status: implementing
 
   - id: 6
     github_issue: 84
