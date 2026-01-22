@@ -11,28 +11,12 @@
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
-    "@electron-toolkit/utils": "^3.0.0",
-    "@emotion/react": "^11.11.3",
-    "@emotion/styled": "^11.11.0",
-    "@just-recordings/recorder": "*",
-    "@just-recordings/shared": "^0.0.1",
-    "@mui/material": "^5.15.6",
-    "lodash": "^4.17.21",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.21.3",
-    "zustand": "^5.0.10"
+    "@electron-toolkit/utils": "^3.0.0"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.4.2",
-    "@testing-library/react": "^14.2.0",
     "@types/node": "^20.11.0",
-    "@types/react": "^18.2.48",
-    "@types/react-dom": "^18.2.18",
-    "@vitejs/plugin-react": "^4.2.1",
     "electron": "^28.1.0",
     "electron-vite": "^2.0.0",
-    "jsdom": "^24.0.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.11",
     "vitest": "^1.2.2"
