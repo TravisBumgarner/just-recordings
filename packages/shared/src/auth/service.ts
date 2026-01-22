@@ -1,9 +1,12 @@
+import type { User } from '@supabase/supabase-js'
 import type { AuthClient } from './client'
+
+export type { User }
 
 export type AuthResponse = { success: true; data?: unknown } | { error: string; success: false }
 
 export type GetUserResponse =
-  | { user: { id: string; email?: string } | null; success: true }
+  | { user: User | null; success: true }
   | { error: string; success: false }
 
 export type GetTokenResponse = { token: string | undefined; success: true } | { message: string; success: false }
