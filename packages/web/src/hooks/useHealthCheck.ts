@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { checkHealth } from '../api'
+import { checkHealth } from '../api/health'
 
 const useHealthCheck = () => {
   // Optimistically assume healthy until we know otherwise

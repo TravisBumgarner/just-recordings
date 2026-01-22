@@ -1,9 +1,10 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { ROUTES } from '../consts'
-import HomeElectron from '../pages/Home.Electron'
+import HomeDesktop from '../pages/Home.Desktop'
 import HomeWeb from '../pages/Home.Web'
-import LandingPage from '../pages/LandingPage'
+import LandingPageDesktop from '../pages/LandingPage.Desktop'
+import LandingPageHome from '../pages/LandingPage.Web'
 import Settings from '../pages/Settings'
 import useGlobalStore from '../store'
 
@@ -51,13 +52,17 @@ const HomeRoute = ({ recorderService, uploadManager, isElectron }: HomeRouteProp
   const appUser = useGlobalStore((state) => state.appUser)
 
   if (isElectron) {
-    return <HomeElectron recorderService={recorderService} uploadManager={uploadManager} />
+    return appUser ? (
+      <HomeDesktop recorderService={recorderService} uploadManager={uploadManager} />
+    ) : (
+      <LandingPageDesktop />
+    )
   }
 
   return appUser ? (
     <HomeWeb recorderService={recorderService} uploadManager={uploadManager} />
   ) : (
-    <LandingPage />
+    <LandingPageHome />
   )
 }
 

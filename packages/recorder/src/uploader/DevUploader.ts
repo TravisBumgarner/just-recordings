@@ -31,6 +31,12 @@ export class DevUploader implements Uploader {
       method: 'POST',
       ...(authHeaders && { headers: authHeaders }),
     })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+      throw new Error(errorData.error || `Failed to start upload: ${response.status}`)
+    }
+
     const data = await response.json()
     const parsed = startUploadResponseSchema.parse(data)
     return parsed.uploadId
@@ -47,6 +53,12 @@ export class DevUploader implements Uploader {
       body: formData,
       ...(authHeaders && { headers: authHeaders }),
     })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+      throw new Error(errorData.error || `Failed to upload chunk: ${response.status}`)
+    }
+
     const data = await response.json()
     uploadChunkResponseSchema.parse(data)
   }
@@ -63,6 +75,12 @@ export class DevUploader implements Uploader {
       headers,
       body: JSON.stringify(metadata),
     })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+      throw new Error(errorData.error || `Failed to finalize upload: ${response.status}`)
+    }
+
     const data = await response.json()
     return finalizeUploadResponseSchema.parse(data)
   }

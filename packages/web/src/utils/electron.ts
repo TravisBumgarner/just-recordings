@@ -17,3 +17,11 @@ export function isElectronCheck(): boolean {
 export function setRecordingState(isRecording: boolean): void {
   window.api?.setRecordingState(isRecording)
 }
+
+/**
+ * Open a URL in the user's default external browser.
+ * No-op when not running in Electron.
+ */
+export function openExternal(url: string): void {
+  window.api?.openExternal(url)
+}

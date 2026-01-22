@@ -5,8 +5,8 @@ import ffmpegInstaller from '@ffmpeg-installer/ffmpeg'
 import { type NextFunction, type Request, type Response, Router } from 'express'
 import ffmpeg from 'fluent-ffmpeg'
 import multer from 'multer'
+import { saveRecording } from '../db/queries/recordings.js'
 import { type AuthenticatedRequest, requireAuth } from '../middleware/auth.js'
-import { saveRecordingMetadata } from './recordings.js'
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path)
 
@@ -89,7 +89,7 @@ router.post('/:uploadId/chunk', upload.single('chunk'), (req: Request, res: Resp
 router.post('/:uploadId/finalize', async (req: AuthenticatedRequest, res: Response) => {
   const { uploadId } = req.params
   const { totalChunks, filename, mimeType, duration } = req.body
-  const userId = req.user?.id
+  const userId = req.user?.userId
 
   // Validate uploadId to prevent path traversal
   if (!isValidUUID(uploadId)) {
@@ -153,7 +153,7 @@ router.post('/:uploadId/finalize', async (req: AuthenticatedRequest, res: Respon
   }
 
   // Save recording metadata with user association
-  await saveRecordingMetadata(
+  await saveRecording(
     {
       id: fileId,
       name: filename || 'Untitled Recording',

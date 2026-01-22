@@ -1,24 +1,19 @@
 import fs from 'node:fs/promises'
 import { type Response, Router } from 'express'
-import {
-  deleteRecording,
-  getAllRecordings,
-  getRecordingById,
-  saveRecording,
-} from '../db/queries/recordings.js'
+import { deleteRecording, getAllRecordings, getRecordingById } from '../db/queries/recordings.js'
 import { type AuthenticatedRequest, requireAuth } from '../middleware/auth.js'
 
 const router = Router()
 
 // Re-export for use in upload.ts
-export { saveRecording as saveRecordingMetadata }
+// export { saveRecording as saveRecordingMetadata }
 
 // Apply auth middleware to all routes
 router.use(requireAuth)
 
 // GET /api/recordings - List all recordings for authenticated user
 router.get('/', async (req: AuthenticatedRequest, res: Response) => {
-  const userId = req.user?.id
+  const userId = req.user?.userId
   const recordings = await getAllRecordings(userId)
   res.json({ recordings })
 })
@@ -26,7 +21,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
 // GET /api/recordings/:id - Get single recording metadata (owned by user)
 router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params
-  const userId = req.user?.id
+  const userId = req.user?.userId
   const recording = await getRecordingById(id, userId)
 
   if (!recording) {
@@ -40,7 +35,7 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
 // GET /api/recordings/:id/video - Serve video file (owned by user)
 router.get('/:id/video', async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params
-  const userId = req.user?.id
+  const userId = req.user?.userId
   const recording = await getRecordingById(id, userId)
 
   if (!recording) {
@@ -64,7 +59,7 @@ router.get('/:id/video', async (req: AuthenticatedRequest, res: Response) => {
 // GET /api/recordings/:id/thumbnail - Serve thumbnail image (owned by user)
 router.get('/:id/thumbnail', async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params
-  const userId = req.user?.id
+  const userId = req.user?.userId
   const recording = await getRecordingById(id, userId)
 
   if (!recording) {
@@ -92,7 +87,7 @@ router.get('/:id/thumbnail', async (req: AuthenticatedRequest, res: Response) =>
 // DELETE /api/recordings/:id - Delete recording (owned by user)
 router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params
-  const userId = req.user?.id
+  const userId = req.user?.userId
   const recording = await getRecordingById(id, userId)
 
   if (!recording) {

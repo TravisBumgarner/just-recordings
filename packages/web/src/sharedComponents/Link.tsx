@@ -4,6 +4,7 @@ import { type SxProps, useTheme } from '@mui/material/styles'
 import merge from 'lodash/merge'
 import { Link as RouterLink } from 'react-router-dom'
 import { PALETTE } from '../styles/styleConsts'
+import { isElectronCheck, openExternal } from '../utils/electron'
 
 type Props = {
   href: string
@@ -26,6 +27,7 @@ const Link = ({
 }: Props) => {
   const isDark = useTheme().palette.mode === 'dark'
   const isExternal = target === '_blank' || /^https?:\/\//.test(href)
+  const isElectron = isElectronCheck()
 
   // base styles for both link types
   const baseStyle = {
@@ -47,6 +49,24 @@ const Link = ({
       }
 
   if (isExternal) {
+    // In Electron, handle external links via IPC instead of default browser behavior
+    if (isElectron) {
+      const handleClick = (e: React.MouseEvent) => {
+        e.preventDefault()
+        openExternal(href)
+        onClick?.()
+      }
+      return (
+        <MuiLink
+          onClick={handleClick}
+          href={href}
+          sx={merge(baseStyle, { '&:hover': hoverStyle }, sx)}
+        >
+          {children}
+        </MuiLink>
+      )
+    }
+
     return (
       <MuiLink
         onClick={onClick}

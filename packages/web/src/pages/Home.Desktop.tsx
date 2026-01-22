@@ -6,7 +6,10 @@ import type {
 } from '@just-recordings/recorder'
 import { Box, Button, Chip, LinearProgress, List, ListItem, Typography } from '@mui/material'
 import { useCallback, useEffect, useState } from 'react'
+import { ROUTES } from '@/consts'
+import Link from '@/sharedComponents/Link'
 import PageWrapper from '@/styles/shared/PageWrapper'
+import { generateAbsoluteUrl } from '@/utils/generateAbsoluteUrl'
 import { setRecordingState } from '../utils/electron'
 
 export interface HomeProps {
@@ -69,17 +72,33 @@ function Home({ recorderService, uploadManager }: HomeProps) {
   return (
     <PageWrapper width="full">
       <Box sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
           {recorderState === 'idle' ? (
-            <Button variant="contained" color="primary" size="large" onClick={handleStartRecording}>
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={handleStartRecording}
+            >
               Start Recording
             </Button>
           ) : (
-            <Button variant="contained" color="error" size="large" onClick={handleStopRecording}>
+            <Button
+              fullWidth
+              variant="contained"
+              color="error"
+              size="large"
+              onClick={handleStopRecording}
+            >
               Stop Recording
             </Button>
           )}
         </Box>
+
+        <Link href={generateAbsoluteUrl('home')} target="_blank">
+          View Recordings
+        </Link>
 
         {queue.length > 0 && (
           <Box sx={{ mb: 4 }}>

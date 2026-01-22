@@ -15,7 +15,7 @@ router.get('/me', requireAuth, async (req, res) => {
 
   try {
     const user = await getOrCreateUserByAuth({
-      authId: authReq.user.id,
+      authId: authReq.user.authId,
       email: authReq.user.email || '',
     })
 
