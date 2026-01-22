@@ -68,6 +68,7 @@ async function createTestRecording(
     fileSize: number
     createdAt: string
     thumbnailPath?: string
+    userId?: string
   },
 ) {
   await fs.mkdir(UPLOADS_DIR, { recursive: true })
@@ -101,15 +102,66 @@ async function cleanupTestFiles() {
 describe('Recordings endpoints', () => {
   beforeEach(async () => {
     await cleanupTestFiles()
+    // Default to authenticated user
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: 'test-user-id', email: 'test@example.com' } },
+      error: null,
+    } as any)
   })
 
   afterEach(async () => {
     await cleanupTestFiles()
+    mockGetUser.mockReset()
+  })
+
+  describe('authentication', () => {
+    beforeEach(() => {
+      mockGetUser.mockResolvedValue({ data: { user: null }, error: null } as any)
+    })
+
+    it('returns 401 when no auth header on GET /recordings', async () => {
+      const response = await request(app).get('/api/recordings')
+      expect(response.status).toBe(401)
+      expect(response.body.error).toBe('Missing or invalid authorization header')
+    })
+
+    it('returns 401 when no auth header on GET /recordings/:id', async () => {
+      const response = await request(app).get('/api/recordings/some-id')
+      expect(response.status).toBe(401)
+    })
+
+    it('returns 401 when no auth header on GET /recordings/:id/video', async () => {
+      const response = await request(app).get('/api/recordings/some-id/video')
+      expect(response.status).toBe(401)
+    })
+
+    it('returns 401 when no auth header on GET /recordings/:id/thumbnail', async () => {
+      const response = await request(app).get('/api/recordings/some-id/thumbnail')
+      expect(response.status).toBe(401)
+    })
+
+    it('returns 401 when no auth header on DELETE /recordings/:id', async () => {
+      const response = await request(app).delete('/api/recordings/some-id')
+      expect(response.status).toBe(401)
+    })
+
+    it('returns 401 when token is invalid', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: null }, error: { message: 'Invalid token' } } as any)
+
+      const response = await request(app)
+        .get('/api/recordings')
+        .set('Authorization', 'Bearer invalid-token')
+
+      expect(response.status).toBe(401)
+      expect(response.body.error).toBe('Invalid or expired token')
+    })
   })
 
   describe('GET /api/recordings', () => {
     it('returns empty array when no recordings exist', async () => {
-      const response = await request(app).get('/api/recordings')
+      const response = await request(app)
+        .get('/api/recordings')
+        .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
       expect(response.body.recordings).toEqual([])
@@ -122,9 +174,12 @@ describe('Recordings endpoints', () => {
         duration: 60000,
         fileSize: 1024,
         createdAt: '2026-01-18T12:00:00Z',
+        userId: 'test-user-id',
       })
 
-      const response = await request(app).get('/api/recordings')
+      const response = await request(app)
+        .get('/api/recordings')
+        .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
       expect(response.body.recordings).toHaveLength(1)
@@ -136,47 +191,57 @@ describe('Recordings endpoints', () => {
       })
     })
 
-    it('returns multiple recordings', async () => {
-      await createTestRecording('id-1', {
-        name: 'First',
+    it('returns only recordings owned by authenticated user', async () => {
+      await createTestRecording('my-recording', {
+        name: 'My Recording',
         mimeType: 'video/webm',
         duration: 30000,
         fileSize: 512,
         createdAt: '2026-01-18T10:00:00Z',
+        userId: 'test-user-id',
       })
-      await createTestRecording('id-2', {
-        name: 'Second',
+      await createTestRecording('other-recording', {
+        name: 'Other Recording',
         mimeType: 'video/webm',
         duration: 45000,
         fileSize: 768,
         createdAt: '2026-01-18T11:00:00Z',
+        userId: 'other-user-id',
       })
 
-      const response = await request(app).get('/api/recordings')
+      const response = await request(app)
+        .get('/api/recordings')
+        .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
-      expect(response.body.recordings).toHaveLength(2)
+      expect(response.body.recordings).toHaveLength(1)
+      expect(response.body.recordings[0].id).toBe('my-recording')
     })
   })
 
   describe('GET /api/recordings/:id', () => {
     it('returns 404 when recording does not exist', async () => {
-      const response = await request(app).get('/api/recordings/nonexistent')
+      const response = await request(app)
+        .get('/api/recordings/nonexistent')
+        .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(404)
       expect(response.body.error).toBe('Recording not found')
     })
 
-    it('returns recording metadata', async () => {
+    it('returns recording metadata for owned recording', async () => {
       await createTestRecording('test-id', {
         name: 'Test Recording',
         mimeType: 'video/webm',
         duration: 90000,
         fileSize: 2048,
         createdAt: '2026-01-18T12:00:00Z',
+        userId: 'test-user-id',
       })
 
-      const response = await request(app).get('/api/recordings/test-id')
+      const response = await request(app)
+        .get('/api/recordings/test-id')
+        .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
       expect(response.body).toMatchObject({
@@ -187,11 +252,31 @@ describe('Recordings endpoints', () => {
         fileSize: 2048,
       })
     })
+
+    it('returns 404 for recording not owned by user', async () => {
+      await createTestRecording('other-user-recording', {
+        name: 'Other User Recording',
+        mimeType: 'video/webm',
+        duration: 90000,
+        fileSize: 2048,
+        createdAt: '2026-01-18T12:00:00Z',
+        userId: 'other-user-id',
+      })
+
+      const response = await request(app)
+        .get('/api/recordings/other-user-recording')
+        .set('Authorization', 'Bearer valid-token')
+
+      expect(response.status).toBe(404)
+      expect(response.body.error).toBe('Recording not found')
+    })
   })
 
   describe('GET /api/recordings/:id/video', () => {
     it('returns 404 when recording does not exist', async () => {
-      const response = await request(app).get('/api/recordings/nonexistent/video')
+      const response = await request(app)
+        .get('/api/recordings/nonexistent/video')
+        .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(404)
     })
@@ -203,9 +288,12 @@ describe('Recordings endpoints', () => {
         duration: 60000,
         fileSize: 1024,
         createdAt: '2026-01-18T12:00:00Z',
+        userId: 'test-user-id',
       })
 
-      const response = await request(app).get('/api/recordings/video-test/video')
+      const response = await request(app)
+        .get('/api/recordings/video-test/video')
+        .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
       expect(response.headers['content-type']).toContain('video/webm')
@@ -218,17 +306,40 @@ describe('Recordings endpoints', () => {
         duration: 60000,
         fileSize: 1024,
         createdAt: '2026-01-18T12:00:00Z',
+        userId: 'test-user-id',
       })
 
-      const response = await request(app).get('/api/recordings/video-content/video').buffer()
+      const response = await request(app)
+        .get('/api/recordings/video-content/video')
+        .set('Authorization', 'Bearer valid-token')
+        .buffer()
 
       expect(response.body.toString()).toBe('fake video content')
+    })
+
+    it('returns 404 for video of recording not owned by user', async () => {
+      await createTestRecording('other-video', {
+        name: 'Other Video',
+        mimeType: 'video/webm',
+        duration: 60000,
+        fileSize: 1024,
+        createdAt: '2026-01-18T12:00:00Z',
+        userId: 'other-user-id',
+      })
+
+      const response = await request(app)
+        .get('/api/recordings/other-video/video')
+        .set('Authorization', 'Bearer valid-token')
+
+      expect(response.status).toBe(404)
     })
   })
 
   describe('DELETE /api/recordings/:id', () => {
     it('returns 404 when recording does not exist', async () => {
-      const response = await request(app).delete('/api/recordings/nonexistent')
+      const response = await request(app)
+        .delete('/api/recordings/nonexistent')
+        .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(404)
     })
@@ -240,9 +351,12 @@ describe('Recordings endpoints', () => {
         duration: 60000,
         fileSize: 1024,
         createdAt: '2026-01-18T12:00:00Z',
+        userId: 'test-user-id',
       })
 
-      const response = await request(app).delete('/api/recordings/to-delete')
+      const response = await request(app)
+        .delete('/api/recordings/to-delete')
+        .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
       expect(response.body.success).toBe(true)
@@ -255,9 +369,12 @@ describe('Recordings endpoints', () => {
         duration: 60000,
         fileSize: 1024,
         createdAt: '2026-01-18T12:00:00Z',
+        userId: 'test-user-id',
       })
 
-      await request(app).delete('/api/recordings/delete-file')
+      await request(app)
+        .delete('/api/recordings/delete-file')
+        .set('Authorization', 'Bearer valid-token')
 
       const exists = await fs
         .access(recording.path)
@@ -273,13 +390,36 @@ describe('Recordings endpoints', () => {
         duration: 60000,
         fileSize: 1024,
         createdAt: '2026-01-18T12:00:00Z',
+        userId: 'test-user-id',
       })
 
-      await request(app).delete('/api/recordings/remove-meta')
+      await request(app)
+        .delete('/api/recordings/remove-meta')
+        .set('Authorization', 'Bearer valid-token')
 
       // Verify recording is no longer in list
-      const listResponse = await request(app).get('/api/recordings')
+      const listResponse = await request(app)
+        .get('/api/recordings')
+        .set('Authorization', 'Bearer valid-token')
       expect(listResponse.body.recordings).toHaveLength(0)
+    })
+
+    it('returns 404 for recording not owned by user', async () => {
+      await createTestRecording('other-delete', {
+        name: 'Other Delete',
+        mimeType: 'video/webm',
+        duration: 60000,
+        fileSize: 1024,
+        createdAt: '2026-01-18T12:00:00Z',
+        userId: 'other-user-id',
+      })
+
+      const response = await request(app)
+        .delete('/api/recordings/other-delete')
+        .set('Authorization', 'Bearer valid-token')
+
+      expect(response.status).toBe(404)
+      expect(response.body.error).toBe('Recording not found')
     })
   })
 
