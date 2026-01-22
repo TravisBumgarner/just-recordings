@@ -10,20 +10,41 @@ vi.mock('../store', () => ({
 }))
 
 // Mock lazy-loaded components to avoid complexity
-vi.mock('../pages/Home', () => ({
+vi.mock('../pages/Home.Web', () => ({
   default: () => <div data-testid="home-dashboard">Home Dashboard</div>,
 }))
 
-vi.mock('../pages/LandingPage', () => ({
+vi.mock('../pages/Home.Desktop', () => ({
+  default: () => <div data-testid="home-dashboard">Home Dashboard</div>,
+}))
+
+vi.mock('../pages/LandingPage.Web', () => ({
+  default: () => <div data-testid="landing-page">Landing Page</div>,
+}))
+
+vi.mock('../pages/LandingPage.Desktop', () => ({
   default: () => <div data-testid="landing-page">Landing Page</div>,
 }))
 
 // Mock recorder dependencies
 vi.mock('@just-recordings/recorder', () => ({
   RecorderDatabase: vi.fn(),
-  RecorderService: vi.fn(),
-  UploadManager: vi.fn(() => ({ initialize: vi.fn() })),
+  RecorderService: vi.fn(() => ({
+    startScreenRecording: vi.fn(),
+    stopRecording: vi.fn(),
+    onStateChange: vi.fn(() => () => {}),
+    getState: vi.fn(() => 'idle'),
+  })),
+  UploadManager: vi.fn(() => ({
+    initialize: vi.fn(),
+    onQueueChange: vi.fn(() => () => {}),
+  })),
   createUploader: vi.fn(),
+}))
+
+// Mock createTokenGetter utility
+vi.mock('../utils/createTokenGetter', () => ({
+  createTokenGetter: vi.fn(() => vi.fn(() => Promise.resolve('mock-token'))),
 }))
 
 import Router from '../components/Router'
@@ -31,7 +52,7 @@ import Router from '../components/Router'
 const renderRouter = (initialRoute = '/') => {
   return render(
     <MemoryRouter initialEntries={[initialRoute]}>
-      <Router />
+      <Router isElectron={false} />
     </MemoryRouter>,
   )
 }

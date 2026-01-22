@@ -14,6 +14,13 @@ vi.mock('../lib/supabase.js', () => ({
   },
 }))
 
+// Mock the user database queries module
+// Note: The mock returns id: 'test-user-id' to match the userId used in test recordings
+vi.mock('../db/queries/users.js', () => ({
+  getUserByAuthId: vi.fn(async () => ({ id: 'test-user-id', authId: 'auth-id', email: 'test@example.com' })),
+  getOrCreateUserByAuth: vi.fn(async () => ({ id: 'test-user-id', authId: 'auth-id', email: 'test@example.com' })),
+}))
+
 // Mock the database queries module
 vi.mock('../db/queries/recordings.js', () => {
   const mockRecordings: Map<string, any> = new Map()

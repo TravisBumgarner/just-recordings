@@ -9,7 +9,8 @@
     "build": "electron-vite build",
     "postbuild": "node scripts/copy-web-dist.js",
     "preview": "electron-vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
