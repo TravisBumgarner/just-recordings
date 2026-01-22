@@ -169,7 +169,7 @@ tasks:
       - DELETE /recordings/:id returns 404 for recordings not owned by user
     depends_on: [6]
     effort: 2
-    status: scoped
+    status: completed
 
   - id: 8
     github_issue: 86
