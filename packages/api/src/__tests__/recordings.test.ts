@@ -6,21 +6,28 @@ import { app } from '../app.js'
 
 const UPLOADS_DIR = 'uploads'
 
-// Mock the repository module
-vi.mock('../repositories/recordings.js', () => {
+// Mock the database queries module
+vi.mock('../db/queries/recordings.js', () => {
   const mockRecordings: Map<string, any> = new Map()
 
   return {
-    getAllRecordings: vi.fn(async () => {
-      return Array.from(mockRecordings.values()).sort(
+    getAllRecordings: vi.fn(async (userId?: string) => {
+      let recordings = Array.from(mockRecordings.values())
+      if (userId) {
+        recordings = recordings.filter((r) => r.userId === userId)
+      }
+      return recordings.sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       )
     }),
-    getRecordingById: vi.fn(async (id: string) => {
-      return mockRecordings.get(id) || null
+    getRecordingById: vi.fn(async (id: string, userId?: string) => {
+      const recording = mockRecordings.get(id)
+      if (!recording) return null
+      if (userId && recording.userId !== userId) return null
+      return recording
     }),
-    saveRecording: vi.fn(async (recording: any) => {
-      mockRecordings.set(recording.id, recording)
+    saveRecording: vi.fn(async (recording: any, userId?: string) => {
+      mockRecordings.set(recording.id, { ...recording, userId: userId ?? null })
     }),
     deleteRecording: vi.fn(async (id: string) => {
       const existed = mockRecordings.has(id)

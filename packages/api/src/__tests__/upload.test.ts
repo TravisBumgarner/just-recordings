@@ -4,8 +4,8 @@ import request from 'supertest'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { app } from '../app.js'
 
-// Mock the repository module
-vi.mock('../repositories/recordings.js', () => ({
+// Mock the database queries module
+vi.mock('../db/queries/recordings.js', () => ({
   getAllRecordings: vi.fn(async () => []),
   getRecordingById: vi.fn(async () => null),
   saveRecording: vi.fn(async () => {}),
