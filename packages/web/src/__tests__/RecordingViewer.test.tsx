@@ -5,13 +5,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import RecordingViewerPage from '../pages/RecordingViewer'
 
 // Mock the API module
-vi.mock('../api', () => ({
+vi.mock('../api/recordings', () => ({
   getRecording: vi.fn(),
   getVideoUrl: vi.fn((id: string) => `/api/recordings/${id}/video`),
   deleteRecording: vi.fn(),
 }))
 
-import { deleteRecording, getRecording, getVideoUrl } from '../api'
+import { deleteRecording, getRecording, getVideoUrl } from '../api/recordings'
 
 const mockGetRecording = vi.mocked(getRecording)
 const mockGetVideoUrl = vi.mocked(getVideoUrl)

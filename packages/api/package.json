@@ -8,6 +8,7 @@
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:integration": "vitest run --dir src/__tests__/integration",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },

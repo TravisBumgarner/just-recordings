@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { isElectron, setRecordingState } from '../utils/electron'
+import { isElectronCheck, setRecordingState } from '../utils/electron'
 
-describe('isElectron', () => {
+describe('isElectronCheck', () => {
   afterEach(() => {
     // Clean up window.api after each test
     delete (window as { api?: unknown }).api
@@ -13,11 +13,11 @@ describe('isElectron', () => {
       getVersions: vi.fn(),
     }
 
-    expect(isElectron()).toBe(true)
+    expect(isElectronCheck()).toBe(true)
   })
 
   it('returns false when window.api is undefined', () => {
-    expect(isElectron()).toBe(false)
+    expect(isElectronCheck()).toBe(false)
   })
 })
 
