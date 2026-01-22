@@ -1,5 +1,5 @@
 import type { Recording } from '@just-recordings/shared'
-import { and, desc, eq, isNull, or } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { db } from '../index.js'
 import { type Recording as DbRecording, type NewRecording, recordings } from '../schema.js'
 
