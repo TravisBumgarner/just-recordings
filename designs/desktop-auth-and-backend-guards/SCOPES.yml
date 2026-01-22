@@ -111,7 +111,7 @@ tasks:
       - TypeScript types updated
     depends_on: []
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 5
     github_issue: 83
