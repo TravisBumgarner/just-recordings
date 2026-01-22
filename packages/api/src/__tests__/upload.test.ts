@@ -26,6 +26,7 @@ import { saveRecording } from '../db/queries/recordings.js'
 import { supabase } from '../lib/supabase.js'
 
 const mockSaveRecording = vi.mocked(saveRecording)
+// biome-ignore lint/style/noNonNullAssertion: supabase is always mocked in tests
 const mockGetUser = vi.mocked(supabase!.auth.getUser)
 
 describe('Upload endpoints', () => {

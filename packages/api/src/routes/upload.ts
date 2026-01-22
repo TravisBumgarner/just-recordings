@@ -5,6 +5,7 @@ import ffmpegInstaller from '@ffmpeg-installer/ffmpeg'
 import { type NextFunction, type Request, type Response, Router } from 'express'
 import ffmpeg from 'fluent-ffmpeg'
 import multer from 'multer'
+import { type AuthenticatedRequest, requireAuth } from '../middleware/auth.js'
 import { saveRecordingMetadata } from './recordings.js'
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path)
@@ -63,8 +64,9 @@ export function devOnly(_req: Request, res: Response, next: NextFunction): void 
   next()
 }
 
-// Apply dev-only middleware to all routes
+// Apply dev-only middleware to all routes, then require auth
 router.use(devOnly)
+router.use(requireAuth)
 
 // POST /api/dev/upload/start - Create new upload session
 router.post('/start', async (_req: Request, res: Response) => {
@@ -84,9 +86,10 @@ router.post('/:uploadId/chunk', upload.single('chunk'), (req: Request, res: Resp
 })
 
 // POST /api/dev/upload/:uploadId/finalize - Merge chunks into final file
-router.post('/:uploadId/finalize', async (req: Request, res: Response) => {
+router.post('/:uploadId/finalize', async (req: AuthenticatedRequest, res: Response) => {
   const { uploadId } = req.params
   const { totalChunks, filename, mimeType, duration } = req.body
+  const userId = req.user?.id
 
   // Validate uploadId to prevent path traversal
   if (!isValidUUID(uploadId)) {
@@ -149,17 +152,20 @@ router.post('/:uploadId/finalize', async (req: Request, res: Response) => {
     // Thumbnail generation failed, continue without it
   }
 
-  // Save recording metadata
-  await saveRecordingMetadata({
-    id: fileId,
-    name: filename || 'Untitled Recording',
-    mimeType: mimeType || 'video/webm',
-    duration: duration || 0,
-    fileSize: mergedData.length,
-    createdAt: new Date().toISOString(),
-    path: finalPath,
-    thumbnailPath: savedThumbnailPath,
-  })
+  // Save recording metadata with user association
+  await saveRecordingMetadata(
+    {
+      id: fileId,
+      name: filename || 'Untitled Recording',
+      mimeType: mimeType || 'video/webm',
+      duration: duration || 0,
+      fileSize: mergedData.length,
+      createdAt: new Date().toISOString(),
+      path: finalPath,
+      thumbnailPath: savedThumbnailPath,
+    },
+    userId,
+  )
 
   // Cleanup temp directory
   await fs.rm(chunkDir, { recursive: true, force: true })
