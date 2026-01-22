@@ -67,7 +67,7 @@ tasks:
       - Preload script still works (window.api available)
     depends_on: [2]
     effort: 1
-    status: scoped
+    status: implementing
 
   - id: 4
     github_issue: 104
