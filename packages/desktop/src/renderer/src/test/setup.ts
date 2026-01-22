@@ -1,5 +1,14 @@
 import '@testing-library/jest-dom'
 
+// Polyfill for HTMLFormElement.requestSubmit which is not implemented in jsdom
+HTMLFormElement.prototype.requestSubmit = function () {
+  const submitEvent = new Event('submit', {
+    bubbles: true,
+    cancelable: true,
+  })
+  this.dispatchEvent(submitEvent)
+}
+
 // Mock window.api for Electron preload APIs
 Object.defineProperty(window, 'api', {
   value: {

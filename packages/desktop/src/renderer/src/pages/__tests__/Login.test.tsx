@@ -1,5 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -71,12 +70,14 @@ describe('LoginPage', () => {
 
   describe('validation', () => {
     it('shows error for invalid email format', async () => {
-      const user = userEvent.setup()
       renderLogin()
 
-      await user.type(screen.getByLabelText(/email/i), 'invalid-email')
-      await user.type(screen.getByLabelText(/password/i), 'password123')
-      await user.click(screen.getByRole('button', { name: /log in/i }))
+      const emailInput = screen.getByLabelText(/email/i)
+      const passwordInput = screen.getByLabelText(/password/i)
+
+      fireEvent.change(emailInput, { target: { value: 'invalid-email' } })
+      fireEvent.change(passwordInput, { target: { value: 'password123' } })
+      fireEvent.submit(emailInput.closest('form')!)
 
       await waitFor(() => {
         expect(screen.getByText(/valid email/i)).toBeInTheDocument()
@@ -86,14 +87,16 @@ describe('LoginPage', () => {
 
   describe('login flow', () => {
     it('calls login with email and password on submit', async () => {
-      const user = userEvent.setup()
       mockLogin.mockResolvedValue({ success: true })
       mockLoadUserIntoState.mockResolvedValue()
       renderLogin()
 
-      await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/password/i), 'password123')
-      await user.click(screen.getByRole('button', { name: /log in/i }))
+      const emailInput = screen.getByLabelText(/email/i)
+      const passwordInput = screen.getByLabelText(/password/i)
+
+      fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
+      fireEvent.change(passwordInput, { target: { value: 'password123' } })
+      fireEvent.submit(emailInput.closest('form')!)
 
       await waitFor(() => {
         expect(mockLogin).toHaveBeenCalledWith({
@@ -104,14 +107,16 @@ describe('LoginPage', () => {
     })
 
     it('loads user into state on successful login', async () => {
-      const user = userEvent.setup()
       mockLogin.mockResolvedValue({ success: true })
       mockLoadUserIntoState.mockResolvedValue()
       renderLogin()
 
-      await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/password/i), 'password123')
-      await user.click(screen.getByRole('button', { name: /log in/i }))
+      const emailInput = screen.getByLabelText(/email/i)
+      const passwordInput = screen.getByLabelText(/password/i)
+
+      fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
+      fireEvent.change(passwordInput, { target: { value: 'password123' } })
+      fireEvent.submit(emailInput.closest('form')!)
 
       await waitFor(() => {
         expect(mockLoadUserIntoState).toHaveBeenCalled()
@@ -119,13 +124,15 @@ describe('LoginPage', () => {
     })
 
     it('shows error message on login failure', async () => {
-      const user = userEvent.setup()
       mockLogin.mockResolvedValue({ success: false, error: 'Invalid credentials' })
       renderLogin()
 
-      await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/password/i), 'password123')
-      await user.click(screen.getByRole('button', { name: /log in/i }))
+      const emailInput = screen.getByLabelText(/email/i)
+      const passwordInput = screen.getByLabelText(/password/i)
+
+      fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
+      fireEvent.change(passwordInput, { target: { value: 'password123' } })
+      fireEvent.submit(emailInput.closest('form')!)
 
       await waitFor(() => {
         expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument()

@@ -1,5 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -67,13 +66,16 @@ describe('SignupPage', () => {
 
   describe('validation', () => {
     it('shows error for invalid email format', async () => {
-      const user = userEvent.setup()
       renderSignup()
 
-      await user.type(screen.getByLabelText(/email/i), 'invalid-email')
-      await user.type(screen.getByLabelText(/^password$/i), 'password123')
-      await user.type(screen.getByLabelText(/confirm password/i), 'password123')
-      await user.click(screen.getByRole('button', { name: /sign up/i }))
+      const emailInput = screen.getByLabelText(/email/i)
+      const passwordInput = screen.getByLabelText(/^password$/i)
+      const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+
+      fireEvent.change(emailInput, { target: { value: 'invalid-email' } })
+      fireEvent.change(passwordInput, { target: { value: 'password123' } })
+      fireEvent.change(confirmPasswordInput, { target: { value: 'password123' } })
+      fireEvent.submit(emailInput.closest('form')!)
 
       await waitFor(() => {
         expect(screen.getByText(/valid email/i)).toBeInTheDocument()
@@ -81,13 +83,16 @@ describe('SignupPage', () => {
     })
 
     it('shows error when passwords do not match', async () => {
-      const user = userEvent.setup()
       renderSignup()
 
-      await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/^password$/i), 'password123')
-      await user.type(screen.getByLabelText(/confirm password/i), 'different123')
-      await user.click(screen.getByRole('button', { name: /sign up/i }))
+      const emailInput = screen.getByLabelText(/email/i)
+      const passwordInput = screen.getByLabelText(/^password$/i)
+      const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+
+      fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
+      fireEvent.change(passwordInput, { target: { value: 'password1234' } })
+      fireEvent.change(confirmPasswordInput, { target: { value: 'different1234' } })
+      fireEvent.submit(emailInput.closest('form')!)
 
       await waitFor(() => {
         expect(screen.getByText(/passwords.*match/i)).toBeInTheDocument()
@@ -95,13 +100,16 @@ describe('SignupPage', () => {
     })
 
     it('shows error when password is too short', async () => {
-      const user = userEvent.setup()
       renderSignup()
 
-      await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/^password$/i), 'short')
-      await user.type(screen.getByLabelText(/confirm password/i), 'short')
-      await user.click(screen.getByRole('button', { name: /sign up/i }))
+      const emailInput = screen.getByLabelText(/email/i)
+      const passwordInput = screen.getByLabelText(/^password$/i)
+      const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+
+      fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
+      fireEvent.change(passwordInput, { target: { value: 'short' } })
+      fireEvent.change(confirmPasswordInput, { target: { value: 'short' } })
+      fireEvent.submit(emailInput.closest('form')!)
 
       await waitFor(() => {
         expect(screen.getByText(/at least.*characters/i)).toBeInTheDocument()
@@ -111,14 +119,17 @@ describe('SignupPage', () => {
 
   describe('signup flow', () => {
     it('calls signup with email and password on valid submit', async () => {
-      const user = userEvent.setup()
       mockSignup.mockResolvedValue({ success: true })
       renderSignup()
 
-      await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/^password$/i), 'password1234')
-      await user.type(screen.getByLabelText(/confirm password/i), 'password1234')
-      await user.click(screen.getByRole('button', { name: /sign up/i }))
+      const emailInput = screen.getByLabelText(/email/i)
+      const passwordInput = screen.getByLabelText(/^password$/i)
+      const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+
+      fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
+      fireEvent.change(passwordInput, { target: { value: 'password1234' } })
+      fireEvent.change(confirmPasswordInput, { target: { value: 'password1234' } })
+      fireEvent.submit(emailInput.closest('form')!)
 
       await waitFor(() => {
         expect(mockSignup).toHaveBeenCalledWith({
@@ -129,14 +140,17 @@ describe('SignupPage', () => {
     })
 
     it('shows confirmation message on successful signup', async () => {
-      const user = userEvent.setup()
       mockSignup.mockResolvedValue({ success: true })
       renderSignup()
 
-      await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/^password$/i), 'password1234')
-      await user.type(screen.getByLabelText(/confirm password/i), 'password1234')
-      await user.click(screen.getByRole('button', { name: /sign up/i }))
+      const emailInput = screen.getByLabelText(/email/i)
+      const passwordInput = screen.getByLabelText(/^password$/i)
+      const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+
+      fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
+      fireEvent.change(passwordInput, { target: { value: 'password1234' } })
+      fireEvent.change(confirmPasswordInput, { target: { value: 'password1234' } })
+      fireEvent.submit(emailInput.closest('form')!)
 
       await waitFor(() => {
         expect(screen.getByText(/check your email/i)).toBeInTheDocument()
@@ -144,14 +158,17 @@ describe('SignupPage', () => {
     })
 
     it('shows error message on signup failure', async () => {
-      const user = userEvent.setup()
       mockSignup.mockResolvedValue({ success: false, error: 'Email already in use' })
       renderSignup()
 
-      await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/^password$/i), 'password1234')
-      await user.type(screen.getByLabelText(/confirm password/i), 'password1234')
-      await user.click(screen.getByRole('button', { name: /sign up/i }))
+      const emailInput = screen.getByLabelText(/email/i)
+      const passwordInput = screen.getByLabelText(/^password$/i)
+      const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+
+      fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
+      fireEvent.change(passwordInput, { target: { value: 'password1234' } })
+      fireEvent.change(confirmPasswordInput, { target: { value: 'password1234' } })
+      fireEvent.submit(emailInput.closest('form')!)
 
       await waitFor(() => {
         expect(screen.getByText(/email already in use/i)).toBeInTheDocument()

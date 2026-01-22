@@ -233,7 +233,7 @@ tasks:
       - Successful signup shows confirmation message
     depends_on: [9]
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 11
     github_issue: 89
