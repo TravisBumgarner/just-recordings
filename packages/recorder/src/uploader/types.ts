@@ -3,6 +3,8 @@ import type { FinalizeUploadRequest, FinalizeUploadResponse } from '@just-record
 export type UploadMetadata = FinalizeUploadRequest
 export type UploadResult = FinalizeUploadResponse
 
+export type TokenGetter = () => Promise<string | undefined>
+
 export interface Uploader {
   startUpload(): Promise<string>
   uploadChunk(uploadId: string, chunk: Blob, index: number): Promise<void>

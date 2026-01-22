@@ -3,6 +3,7 @@ import { createUploader } from '../uploader'
 import { chunkBlob } from '../uploader/chunkBlob'
 import { DevUploader } from '../uploader/DevUploader'
 import { ProdUploader } from '../uploader/ProdUploader'
+import type { TokenGetter } from '../uploader/types'
 
 describe('DevUploader', () => {
   let uploader: DevUploader
@@ -113,6 +114,168 @@ describe('DevUploader', () => {
   })
 })
 
+describe('DevUploader with auth token', () => {
+  const baseUrl = 'http://localhost:3001/api'
+  let mockGetToken: TokenGetter
+
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn())
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  describe('startUpload', () => {
+    it('includes Authorization header when token is provided', async () => {
+      mockGetToken = vi.fn().mockResolvedValue('test-auth-token')
+      const uploader = new DevUploader(baseUrl, mockGetToken)
+
+      vi.mocked(fetch).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ uploadId: 'test-id' }),
+      } as Response)
+
+      await uploader.startUpload()
+
+      expect(fetch).toHaveBeenCalledWith(`${baseUrl}/dev/upload/start`, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer test-auth-token' },
+      })
+    })
+
+    it('does not include Authorization header when token is undefined', async () => {
+      mockGetToken = vi.fn().mockResolvedValue(undefined)
+      const uploader = new DevUploader(baseUrl, mockGetToken)
+
+      vi.mocked(fetch).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ uploadId: 'test-id' }),
+      } as Response)
+
+      await uploader.startUpload()
+
+      expect(fetch).toHaveBeenCalledWith(`${baseUrl}/dev/upload/start`, {
+        method: 'POST',
+      })
+    })
+
+    it('does not include Authorization header when no token getter provided', async () => {
+      const uploader = new DevUploader(baseUrl)
+
+      vi.mocked(fetch).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ uploadId: 'test-id' }),
+      } as Response)
+
+      await uploader.startUpload()
+
+      expect(fetch).toHaveBeenCalledWith(`${baseUrl}/dev/upload/start`, {
+        method: 'POST',
+      })
+    })
+  })
+
+  describe('uploadChunk', () => {
+    it('includes Authorization header when token is provided', async () => {
+      mockGetToken = vi.fn().mockResolvedValue('test-auth-token')
+      const uploader = new DevUploader(baseUrl, mockGetToken)
+
+      vi.mocked(fetch).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ received: true, index: 0 }),
+      } as Response)
+
+      const chunk = new Blob(['test data'])
+      await uploader.uploadChunk('upload-123', chunk, 0)
+
+      expect(fetch).toHaveBeenCalledWith(
+        `${baseUrl}/dev/upload/upload-123/chunk`,
+        expect.objectContaining({
+          method: 'POST',
+          headers: { Authorization: 'Bearer test-auth-token' },
+          body: expect.any(FormData),
+        }),
+      )
+    })
+
+    it('does not include Authorization header when token is undefined', async () => {
+      mockGetToken = vi.fn().mockResolvedValue(undefined)
+      const uploader = new DevUploader(baseUrl, mockGetToken)
+
+      vi.mocked(fetch).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ received: true, index: 0 }),
+      } as Response)
+
+      const chunk = new Blob(['test data'])
+      await uploader.uploadChunk('upload-123', chunk, 0)
+
+      expect(fetch).toHaveBeenCalledWith(
+        `${baseUrl}/dev/upload/upload-123/chunk`,
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.any(FormData),
+        }),
+      )
+      const callArgs = vi.mocked(fetch).mock.calls[0][1] as RequestInit
+      expect(callArgs.headers).toBeUndefined()
+    })
+  })
+
+  describe('finalizeUpload', () => {
+    it('includes Authorization header when token is provided', async () => {
+      mockGetToken = vi.fn().mockResolvedValue('test-auth-token')
+      const uploader = new DevUploader(baseUrl, mockGetToken)
+
+      vi.mocked(fetch).mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({ success: true, fileId: 'file-456', path: './uploads/file.webm', size: 100 }),
+      } as Response)
+
+      await uploader.finalizeUpload('upload-123', {
+        filename: 'test.webm',
+        mimeType: 'video/webm',
+        totalChunks: 1,
+      })
+
+      expect(fetch).toHaveBeenCalledWith(
+        `${baseUrl}/dev/upload/upload-123/finalize`,
+        expect.objectContaining({
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-auth-token' },
+        }),
+      )
+    })
+
+    it('does not include Authorization header when token is undefined', async () => {
+      mockGetToken = vi.fn().mockResolvedValue(undefined)
+      const uploader = new DevUploader(baseUrl, mockGetToken)
+
+      vi.mocked(fetch).mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({ success: true, fileId: 'file-456', path: './uploads/file.webm', size: 100 }),
+      } as Response)
+
+      await uploader.finalizeUpload('upload-123', {
+        filename: 'test.webm',
+        mimeType: 'video/webm',
+        totalChunks: 1,
+      })
+
+      expect(fetch).toHaveBeenCalledWith(
+        `${baseUrl}/dev/upload/upload-123/finalize`,
+        expect.objectContaining({
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      )
+    })
+  })
+})
+
 describe('ProdUploader', () => {
   let uploader: ProdUploader
 
@@ -155,6 +318,17 @@ describe('createUploader', () => {
   it('returns ProdUploader when isDev is false', () => {
     const uploader = createUploader('http://localhost:3001/api', false)
     expect(uploader).toBeInstanceOf(ProdUploader)
+  })
+
+  it('accepts optional getToken parameter for DevUploader', () => {
+    const mockGetToken: TokenGetter = async () => 'test-token'
+    const uploader = createUploader('http://localhost:3001/api', true, mockGetToken)
+    expect(uploader).toBeInstanceOf(DevUploader)
+  })
+
+  it('works without getToken parameter (backwards compatibility)', () => {
+    const uploader = createUploader('http://localhost:3001/api', true)
+    expect(uploader).toBeInstanceOf(DevUploader)
   })
 })
 
