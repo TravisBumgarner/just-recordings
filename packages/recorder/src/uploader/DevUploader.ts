@@ -3,13 +3,15 @@ import {
   startUploadResponseSchema,
   uploadChunkResponseSchema,
 } from '@just-recordings/shared'
-import type { Uploader, UploadMetadata, UploadResult } from './types'
+import type { TokenGetter, Uploader, UploadMetadata, UploadResult } from './types'
 
 export class DevUploader implements Uploader {
   private baseUrl: string
+  private getToken?: TokenGetter
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, getToken?: TokenGetter) {
     this.baseUrl = baseUrl
+    this.getToken = getToken
   }
 
   async startUpload(): Promise<string> {
