@@ -1,4 +1,3 @@
-import { AppThemeProvider, Z_INDICES } from '@just-recordings/shared/styles'
 import { Box } from '@mui/material'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
@@ -13,6 +12,8 @@ import Loading from './sharedComponents/Loading'
 import Message from './sharedComponents/Message'
 import RenderModal from './sharedComponents/Modal'
 import useGlobalStore from './store'
+import { Z_INDICES } from './styles/styleConsts'
+import AppThemeProvider from './styles/Theme'
 import { isElectronCheck } from './utils/electron'
 
 const queryClient = new QueryClient()

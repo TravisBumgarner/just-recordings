@@ -9,7 +9,9 @@ export type GetUserResponse =
   | { user: User | null; success: true }
   | { error: string; success: false }
 
-export type GetTokenResponse = { token: string | undefined; success: true } | { message: string; success: false }
+export type GetTokenResponse =
+  | { token: string | undefined; success: true }
+  | { message: string; success: false }
 
 export async function getUser(client: AuthClient): Promise<GetUserResponse> {
   const sessionExists = await client.auth.getSession()
@@ -28,7 +30,7 @@ export async function getUser(client: AuthClient): Promise<GetUserResponse> {
 
 export async function login(
   client: AuthClient,
-  credentials: { email: string; password: string }
+  credentials: { email: string; password: string },
 ): Promise<AuthResponse> {
   const { error, data } = await client.auth.signInWithPassword({
     email: credentials.email,
@@ -43,7 +45,7 @@ export async function login(
 
 export async function signup(
   client: AuthClient,
-  credentials: { email: string; password: string }
+  credentials: { email: string; password: string },
 ): Promise<AuthResponse> {
   const { error } = await client.auth.signUp({
     email: credentials.email,
@@ -71,7 +73,7 @@ export async function getToken(client: AuthClient): Promise<GetTokenResponse> {
 export async function resetPassword(
   client: AuthClient,
   email: string,
-  redirectUrl: string
+  redirectUrl: string,
 ): Promise<AuthResponse> {
   const { error } = await client.auth.resetPasswordForEmail(email, {
     redirectTo: redirectUrl,

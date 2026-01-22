@@ -6,7 +6,7 @@ import Link from '../sharedComponents/Link'
 import useGlobalStore from '../store'
 import PageTitle from '../styles/shared/PageTitle'
 import PageWrapper from '../styles/shared/PageWrapper'
-import { SPACING } from '@just-recordings/shared/styles'
+import { SPACING } from '../styles/styleConsts'
 
 const Profile = () => {
   const appUser = useGlobalStore((state) => state.appUser)

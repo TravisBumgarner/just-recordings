@@ -2,7 +2,7 @@ import Box from '@mui/material/Box'
 import type { SxProps } from '@mui/material/styles'
 import type React from 'react'
 import { useMemo } from 'react'
-import { SPACING } from '@just-recordings/shared/styles'
+import { SPACING } from '../styleConsts'
 
 /**
  *

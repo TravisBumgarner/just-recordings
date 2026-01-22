@@ -3,7 +3,7 @@ import MuiLink from '@mui/material/Link'
 import { type SxProps, useTheme } from '@mui/material/styles'
 import merge from 'lodash/merge'
 import { Link as RouterLink } from 'react-router-dom'
-import { PALETTE } from '@just-recordings/shared/styles'
+import { PALETTE } from '../styles/styleConsts'
 
 type Props = {
   href: string

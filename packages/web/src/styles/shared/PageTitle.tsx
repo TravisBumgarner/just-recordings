@@ -1,7 +1,7 @@
 import type { SxProps } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 
-import { SPACING } from '@just-recordings/shared/styles'
+import { SPACING } from '../styleConsts'
 
 const PageTitle = ({
   text,
