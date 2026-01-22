@@ -1,27 +1,33 @@
 import fs from 'node:fs/promises'
-import { type Request, type Response, Router } from 'express'
+import { type Response, Router } from 'express'
 import {
   deleteRecording,
   getAllRecordings,
   getRecordingById,
   saveRecording,
 } from '../db/queries/recordings.js'
+import { type AuthenticatedRequest, requireAuth } from '../middleware/auth.js'
 
 const router = Router()
 
 // Re-export for use in upload.ts
 export { saveRecording as saveRecordingMetadata }
 
-// GET /api/recordings - List all recordings
-router.get('/', async (_req: Request, res: Response) => {
-  const recordings = await getAllRecordings()
+// Apply auth middleware to all routes
+router.use(requireAuth)
+
+// GET /api/recordings - List all recordings for authenticated user
+router.get('/', async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user?.id
+  const recordings = await getAllRecordings(userId)
   res.json({ recordings })
 })
 
-// GET /api/recordings/:id - Get single recording metadata
-router.get('/:id', async (req: Request, res: Response) => {
+// GET /api/recordings/:id - Get single recording metadata (owned by user)
+router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params
-  const recording = await getRecordingById(id)
+  const userId = req.user?.id
+  const recording = await getRecordingById(id, userId)
 
   if (!recording) {
     res.status(404).json({ error: 'Recording not found' })
@@ -31,10 +37,11 @@ router.get('/:id', async (req: Request, res: Response) => {
   res.json(recording)
 })
 
-// GET /api/recordings/:id/video - Serve video file
-router.get('/:id/video', async (req: Request, res: Response) => {
+// GET /api/recordings/:id/video - Serve video file (owned by user)
+router.get('/:id/video', async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params
-  const recording = await getRecordingById(id)
+  const userId = req.user?.id
+  const recording = await getRecordingById(id, userId)
 
   if (!recording) {
     res.status(404).json({ error: 'Recording not found' })
@@ -54,10 +61,11 @@ router.get('/:id/video', async (req: Request, res: Response) => {
   res.send(fileContent)
 })
 
-// GET /api/recordings/:id/thumbnail - Serve thumbnail image
-router.get('/:id/thumbnail', async (req: Request, res: Response) => {
+// GET /api/recordings/:id/thumbnail - Serve thumbnail image (owned by user)
+router.get('/:id/thumbnail', async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params
-  const recording = await getRecordingById(id)
+  const userId = req.user?.id
+  const recording = await getRecordingById(id, userId)
 
   if (!recording) {
     res.status(404).json({ error: 'Recording not found' })
@@ -81,10 +89,11 @@ router.get('/:id/thumbnail', async (req: Request, res: Response) => {
   res.send(fileContent)
 })
 
-// DELETE /api/recordings/:id - Delete recording
-router.delete('/:id', async (req: Request, res: Response) => {
+// DELETE /api/recordings/:id - Delete recording (owned by user)
+router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params
-  const recording = await getRecordingById(id)
+  const userId = req.user?.id
+  const recording = await getRecordingById(id, userId)
 
   if (!recording) {
     res.status(404).json({ error: 'Recording not found' })

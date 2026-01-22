@@ -463,7 +463,9 @@ describe('Recordings endpoints', () => {
         })
 
       // Verify recording appears in list
-      const listResponse = await request(app).get('/api/recordings')
+      const listResponse = await request(app)
+        .get('/api/recordings')
+        .set('Authorization', 'Bearer valid-token')
 
       expect(listResponse.body.recordings).toHaveLength(1)
       expect(listResponse.body.recordings[0]).toMatchObject({
