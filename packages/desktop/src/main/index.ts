@@ -106,9 +106,11 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
-    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
+  if (is.dev) {
+    // Dev mode: Load web app's Vite dev server
+    mainWindow.loadURL('http://localhost:5173')
   } else {
+    // Prod mode: Load bundled web app (copied from web package during build)
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
