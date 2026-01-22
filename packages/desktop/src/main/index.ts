@@ -80,7 +80,7 @@ function createWindow(): void {
     skipTaskbar: true, // Hide from taskbar/Dock
     alwaysOnTop: false,
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, '../preload/index.cjs'),
       sandbox: false,
     },
   })

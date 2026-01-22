@@ -20,6 +20,10 @@ export default defineConfig({
         input: {
           index: 'src/preload/index.ts',
         },
+        output: {
+          format: 'cjs',
+          entryFileNames: '[name].cjs',
+        },
       },
     },
   },
