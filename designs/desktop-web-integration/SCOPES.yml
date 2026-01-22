@@ -1,0 +1,158 @@
+project: Desktop-Web Integration
+repo: travisbumgarner/just-recordings
+design_file: designs/desktop-web-integration/DESIGN.md
+scoping_date: 2026-01-22
+
+milestones:
+  - number: 18
+    title: "5. Desktop-Web Integration"
+    description: Pivot desktop app to load web app directly in BrowserWindow, eliminating duplicate UI code
+    branch:
+      working: 101-desktop-web-integration
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 101
+    milestone: 18
+    title: Add Electron type declarations and detection to web app
+    description: |
+      Add TypeScript declarations for window.api (Electron's preload script API)
+      and create a utility to detect if running in Electron.
+
+      Create src/types/electron.d.ts with Window interface extension.
+      Create src/utils/electron.ts with isElectron check and helper functions.
+    acceptance_criteria:
+      - TypeScript declarations for window.api added
+      - isElectron utility function works correctly
+      - No TypeScript errors when accessing window.api
+    depends_on: []
+    effort: 1
+    status: completed
+
+  - id: 2
+    github_issue: 102
+    milestone: 18
+    title: Wire up setRecordingState calls in web app
+    description: |
+      Update the web app's recording logic to call window.api.setRecordingState()
+      when recording starts and stops. This notifies Electron's main process
+      so the tray icon can update.
+
+      Find where RecorderService starts/stops recording and add the IPC calls.
+      Use optional chaining since window.api only exists in Electron.
+    acceptance_criteria:
+      - setRecordingState(true) called when recording starts
+      - setRecordingState(false) called when recording stops
+      - Works in browser (no errors when window.api is undefined)
+    depends_on: [1]
+    effort: 1
+    status: scoped
+
+  - id: 3
+    github_issue: 103
+    milestone: 18
+    title: Update desktop main process to load web app
+    description: |
+      Update desktop's main/index.ts to load the web app instead of its
+      own renderer.
+
+      Dev mode: Load http://localhost:5173 (web's Vite dev server)
+      Prod mode: Load bundled web app files
+
+      Remove references to ELECTRON_RENDERER_URL.
+    acceptance_criteria:
+      - Dev mode loads localhost:5173
+      - Prod mode loads bundled web app index.html
+      - Preload script still works (window.api available)
+    depends_on: [2]
+    effort: 1
+    status: scoped
+
+  - id: 4
+    github_issue: 104
+    milestone: 18
+    title: Remove desktop renderer code and update build config
+    description: |
+      Delete the desktop's renderer source code (pages, services, stores, etc.)
+      since it now loads the web app instead.
+
+      Update electron-vite config to handle the new setup.
+      Update package.json to remove unnecessary renderer dependencies.
+    acceptance_criteria:
+      - src/renderer/ directory removed (except minimal config if needed)
+      - electron-vite config updated
+      - Desktop package.json cleaned up
+      - Build still works
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 5
+    github_issue: 105
+    milestone: 18
+    title: Configure desktop build to bundle web app
+    description: |
+      Set up the build process so desktop's production build includes
+      the web app's built files.
+
+      Options:
+      - Copy web's dist/ into desktop's output during build
+      - Configure electron-builder to include web's dist as extraFiles
+      - Build script that runs web build then desktop build
+    acceptance_criteria:
+      - npm run build:desktop produces working Electron app
+      - Bundled app loads web UI correctly
+      - All web app assets included (JS, CSS, images)
+    depends_on: [4]
+    effort: 2
+    status: scoped
+
+  - id: 6
+    github_issue: 106
+    milestone: 18
+    title: Test and verify desktop app with web UI
+    description: |
+      End-to-end testing of the desktop app loading the web UI.
+      Verify all features work in the Electron context.
+    acceptance_criteria:
+      - Auth flow (login, signup, logout) works
+      - Recording works and tray icon updates
+      - Upload queue functions correctly
+      - Navigation between pages works
+    depends_on: [5]
+    effort: 1
+    status: scoped
+
+  - id: 7
+    github_issue: 107
+    milestone: 18
+    title: Optional UI adjustments for desktop form factor
+    description: |
+      Optionally adjust the web app's UI when running in Electron's
+      smaller window (400x500). Could include:
+      - Hiding Footer in Electron
+      - Compact Header
+      - Adjusting window size
+
+      This is optional polish - the app should work without these changes.
+    acceptance_criteria:
+      - UI is usable in desktop window size
+      - Optional: Footer hidden in Electron
+      - Optional: Window size adjusted if needed
+    depends_on: [6]
+    effort: 1
+    status: scoped
+
+notes: |
+  This pivot supersedes tasks 11 and 12 from desktop-auth-and-backend-guards/SCOPES.yml.
+  GitHub issues 89 and 90 have been closed.
+
+  The approach is simple:
+  - Dev: Desktop loads localhost:5173 (web dev server)
+  - Prod: Desktop bundles web's built output
+  - IPC: Preload script already exposes window.api.setRecordingState()
+
+  Development requires running both web dev server and desktop app:
+  - npm run dev:web
+  - npm run dev:desktop
