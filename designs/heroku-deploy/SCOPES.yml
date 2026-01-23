@@ -95,7 +95,7 @@ tasks:
       - Includes environment tags (env:development or env:production)
     depends_on: [1]
     effort: 2
-    status: scoped
+    status: completed
 
   - id: 5
     github_issue: 157
