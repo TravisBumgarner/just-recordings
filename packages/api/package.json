@@ -16,6 +16,7 @@
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@just-recordings/shared": "^0.0.1",
     "@supabase/supabase-js": "^2.90.1",
+    "cloudinary": "^2.9.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",

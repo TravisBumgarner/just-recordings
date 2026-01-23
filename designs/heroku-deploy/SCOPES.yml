@@ -1,0 +1,232 @@
+project: Heroku Production Deployment
+repo: travisbumgarner/just-recordings
+design_file: null  # User requirements provided directly
+scoping_date: 2026-01-23
+
+milestones:
+  - number: 1
+    title: "1. Cloudinary Integration & Schema"
+    description: Add Cloudinary SDK, create upload/delete services with environment tagging, and update database schema
+    branch:
+      working: 145-cloudinary-integration
+      base: main
+
+  - number: 2
+    title: "2. Refactor Upload & Recording Routes"
+    description: Migrate upload flow to use Cloudinary, remove dev-only restrictions, update recording routes
+    branch:
+      working: 148-cloudinary-upload-routes
+      base: 145-cloudinary-integration
+
+  - number: 3
+    title: "3. Frontend Serving & Heroku Deployment"
+    description: Configure API to serve frontend bundle, create Heroku configuration, document deployment
+    branch:
+      working: 151-heroku-deployment
+      base: 148-cloudinary-upload-routes
+
+tasks:
+  # Milestone 1: Cloudinary Integration & Schema
+  - id: 1
+    github_issue: 145
+    milestone: 1
+    title: Add Cloudinary SDK and configuration
+    description: |
+      Add the Cloudinary Node.js SDK to the API package and create a configuration
+      module that validates required environment variables using Zod.
+
+      - Add `cloudinary` npm package to api dependencies
+      - Create `packages/api/src/config/cloudinary.ts` for client initialization
+      - Update config.ts with CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+      - Update `.env.example` files
+    acceptance_criteria:
+      - Cloudinary SDK installed and configured
+      - Environment variables validated with Zod (fail fast on missing config)
+      - Cloudinary client exported and ready for use
+      - .env.example updated with Cloudinary variables
+    depends_on: []
+    effort: 1
+    status: testing
+
+  - id: 2
+    github_issue: 146
+    milestone: 1
+    title: Create Cloudinary upload and delete service
+    description: |
+      Create a service module for uploading files to Cloudinary and deleting them.
+      Include environment tagging so development uploads can be mass-deleted later.
+
+      Create `packages/api/src/services/cloudinary.ts` with:
+      - uploadVideo(filePath, options) - returns { url, publicId }
+      - uploadImage(filePath, options) - returns { url, publicId }
+      - deleteByPublicId(publicId) - delete single file
+      - deleteByTag(tag) - mass delete files (for dev cleanup)
+
+      All uploads tagged with:
+      - env:development or env:production based on NODE_ENV
+      - app:just-recordings for app identification
+    acceptance_criteria:
+      - uploadVideo uploads video files with proper resource_type
+      - uploadImage uploads images
+      - Both functions apply environment and app tags
+      - deleteByPublicId removes single file
+      - deleteByTag can mass-delete files
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  - id: 3
+    github_issue: 147
+    milestone: 1
+    title: Update database schema for Cloudinary storage
+    description: |
+      Update the recordings table schema to store Cloudinary URLs and public IDs.
+
+      Schema changes:
+      - path → video_url (Cloudinary URL)
+      - thumbnail_path → thumbnail_url (Cloudinary URL, nullable)
+      - Add video_public_id (varchar, for Cloudinary deletion)
+      - Add thumbnail_public_id (varchar, nullable)
+
+      Run drizzle-kit generate for migration.
+    acceptance_criteria:
+      - Schema updated with new column names and types
+      - Migration file generated via drizzle-kit
+      - Recording TypeScript types updated in shared package
+      - Query functions updated to use new column names
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  # Milestone 2: Refactor Upload & Recording Routes
+  - id: 4
+    github_issue: 148
+    milestone: 2
+    title: Refactor upload/finalize to use Cloudinary
+    description: |
+      Update the upload finalize route to upload to Cloudinary instead of local storage.
+
+      Flow: chunks → merge locally → upload video to Cloudinary → generate thumbnail
+      → upload thumbnail to Cloudinary → save URLs to DB → cleanup local files
+    acceptance_criteria:
+      - Video uploaded to Cloudinary after merge
+      - Thumbnail uploaded to Cloudinary after generation
+      - Database stores Cloudinary URLs and public IDs
+      - Local temp files cleaned up after successful upload
+      - Error handling for Cloudinary upload failures
+    depends_on: [2, 3]
+    effort: 3
+    status: scoped
+
+  - id: 5
+    github_issue: 149
+    milestone: 2
+    title: Remove devOnly middleware from upload routes
+    description: |
+      Remove the devOnly middleware that restricts uploads to development.
+      Change route path from /api/dev/upload to /api/upload.
+
+      - Remove devOnly middleware function and usage
+      - Update route mounting in app.ts
+      - Update frontend API client and tests
+    acceptance_criteria:
+      - devOnly middleware removed
+      - Route path changed to /api/upload/*
+      - Upload routes work in all NODE_ENV values
+      - Authentication still required
+      - Tests and frontend updated for new paths
+    depends_on: [4]
+    effort: 1
+    status: scoped
+
+  - id: 6
+    github_issue: 150
+    milestone: 2
+    title: Update recording routes for Cloudinary URLs
+    description: |
+      Update recording routes to work with Cloudinary URLs.
+
+      - video.ts: redirect (302) to Cloudinary URL instead of streaming
+      - thumbnail.ts: redirect (302) to Cloudinary URL
+      - get.ts: ensure response includes video_url and thumbnail_url
+      - delete.ts: call deleteByPublicId for video and thumbnail
+    acceptance_criteria:
+      - GET /recordings/:id/video redirects to Cloudinary URL
+      - GET /recordings/:id/thumbnail redirects to Cloudinary URL
+      - GET /recordings/:id includes video_url and thumbnail_url
+      - DELETE removes files from Cloudinary
+      - No local filesystem operations in recording routes
+    depends_on: [2, 3]
+    effort: 2
+    status: scoped
+
+  # Milestone 3: Frontend Serving & Heroku Deployment
+  - id: 7
+    github_issue: 151
+    milestone: 3
+    title: Configure API to serve frontend bundle
+    description: |
+      Configure Express to serve the built frontend as static files in production.
+
+      - Add express.static for web build directory
+      - Add SPA fallback (non-API routes serve index.html)
+      - Ensure API routes mounted before fallback
+      - Update build scripts to build both packages
+    acceptance_criteria:
+      - In production, API serves frontend static files
+      - SPA routing works (non-API paths serve index.html)
+      - API routes still work correctly
+      - Development mode unchanged
+      - Build script builds both packages in correct order
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 8
+    github_issue: 152
+    milestone: 3
+    title: Create Heroku configuration files
+    description: |
+      Create configuration files for Heroku deployment.
+
+      Files to create:
+      - Procfile (web dyno command)
+      - app.json (addons, buildpacks, env)
+      - .nvmrc (Node version)
+
+      Update package.json:
+      - engines.node
+      - heroku-postbuild script for migrations
+    acceptance_criteria:
+      - Procfile defines web dyno command
+      - app.json defines PostgreSQL and Cloudinary addons
+      - Node version specified
+      - Build scripts work for Heroku deployment
+      - Post-build runs database migrations
+    depends_on: [7]
+    effort: 2
+    status: scoped
+
+  - id: 9
+    github_issue: 153
+    milestone: 3
+    title: Document Heroku deployment process
+    description: |
+      Create documentation for the Heroku deployment process.
+
+      Create docs/DEPLOYMENT.md covering:
+      - Initial Heroku setup (create app, add addons)
+      - Environment variables (which are required, which are auto-set)
+      - Database migrations
+      - Deployment workflow
+      - Cloudinary configuration notes
+      - Troubleshooting
+    acceptance_criteria:
+      - DEPLOYMENT.md covers initial Heroku setup steps
+      - All environment variables documented
+      - Database migration process documented
+      - Deployment workflow documented
+      - Troubleshooting section included
+    depends_on: [8]
+    effort: 1
+    status: scoped
