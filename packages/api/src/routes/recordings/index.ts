@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { requireAuth } from '../../middleware/auth.js'
+import { handler as createHandler } from './create.js'
 import { handler as deleteHandler } from './delete.js'
 import { handler as getHandler } from './get.js'
 import { handler as listHandler } from './list.js'
@@ -10,6 +11,9 @@ const router = Router()
 
 // Apply auth middleware to all routes
 router.use(requireAuth)
+
+// POST /api/recordings - Create new recording (register Cloudinary upload)
+router.post('/', createHandler)
 
 // GET /api/recordings - List all recordings for authenticated user
 router.get('/', listHandler)
