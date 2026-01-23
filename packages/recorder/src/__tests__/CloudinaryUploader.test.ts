@@ -161,14 +161,15 @@ describe('CloudinaryUploader', () => {
       } as Response)
 
       const chunk = new Blob(['a'.repeat(1000)], { type: 'video/webm' })
-      const result = await uploader.uploadChunkToCloudinary(chunk, 0, 1)
+      await uploader.uploadChunkToCloudinary(chunk, 0, 1)
 
       // Verify fetch was called with correct Cloudinary URL
       const fetchCalls = vi.mocked(fetch).mock.calls
       const cloudinaryCall = fetchCalls.find((call) => String(call[0]).includes('cloudinary.com'))
 
       expect(cloudinaryCall).toBeDefined()
-      const [url, options] = cloudinaryCall!
+      if (!cloudinaryCall) throw new Error('Cloudinary call not found')
+      const [url, options] = cloudinaryCall
       expect(url).toBe('https://api.cloudinary.com/v1_1/test-cloud/video/upload')
       expect(options?.method).toBe('POST')
     })
@@ -204,7 +205,8 @@ describe('CloudinaryUploader', () => {
 
       const fetchCalls = vi.mocked(fetch).mock.calls
       const cloudinaryCall = fetchCalls.find((call) => String(call[0]).includes('cloudinary.com'))
-      const options = cloudinaryCall![1] as RequestInit
+      if (!cloudinaryCall) throw new Error('Cloudinary call not found')
+      const options = cloudinaryCall[1] as RequestInit
       const headers = options.headers as Record<string, string>
 
       expect(headers['X-Unique-Upload-Id']).toBe(uploadId)
@@ -241,7 +243,8 @@ describe('CloudinaryUploader', () => {
 
       const fetchCalls = vi.mocked(fetch).mock.calls
       const cloudinaryCall = fetchCalls.find((call) => String(call[0]).includes('cloudinary.com'))
-      const options = cloudinaryCall![1] as RequestInit
+      if (!cloudinaryCall) throw new Error('Cloudinary call not found')
+      const options = cloudinaryCall[1] as RequestInit
       const headers = options.headers as Record<string, string>
 
       // Content-Range format: bytes start-end/total
