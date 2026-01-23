@@ -5,7 +5,7 @@ import { type NextFunction, type Request, type Response, Router } from 'express'
 import multer from 'multer'
 import { requireAuth } from '../../middleware/auth.js'
 import { isValidChunkIndex, isValidUUID } from '../shared/validation.js'
-import { handler as chunkHandler } from './chunk.js'
+import { handler as chunkHandler, validateBeforeUpload as chunkValidateBeforeUpload } from './chunk.js'
 import { handler as finalizeHandler } from './finalize.js'
 import { handler as startHandler } from './start.js'
 
@@ -68,7 +68,8 @@ router.use(requireAuth)
 router.post('/start', startHandler)
 
 // POST /api/dev/upload/:uploadId/chunk - Upload a chunk
-router.post('/:uploadId/chunk', upload.single('chunk'), chunkHandler)
+// validateBeforeUpload runs BEFORE multer to prevent unauthorized file saves
+router.post('/:uploadId/chunk', chunkValidateBeforeUpload, upload.single('chunk'), chunkHandler)
 
 // POST /api/dev/upload/:uploadId/finalize - Merge chunks into final file
 router.post('/:uploadId/finalize', finalizeHandler)

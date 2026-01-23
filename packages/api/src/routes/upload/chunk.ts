@@ -1,4 +1,4 @@
-import type { Response } from 'express'
+import type { NextFunction, Response } from 'express'
 import type { AuthenticatedRequest } from '../../middleware/auth.js'
 import { requireUserId } from '../shared/auth.js'
 import { sendBadRequest, sendForbidden } from '../shared/responses.js'
@@ -11,41 +11,60 @@ export interface ChunkValidationContext {
   index: number
 }
 
-export function validate(req: AuthenticatedRequest, res: Response): ChunkValidationContext | null {
+/**
+ * Pre-upload validation middleware - runs BEFORE multer to prevent
+ * unauthorized file uploads from being saved to disk.
+ * Validates: auth, uploadId format, session exists, user owns session.
+ */
+export function validateBeforeUpload(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): void {
   // Check authentication
   const auth = requireUserId(req, res)
-  if (!auth) return null
+  if (!auth) return
 
   const { uploadId } = req.params
-  const indexStr = req.body.index || '0'
 
   // Validate uploadId format
   if (!isValidUUID(uploadId)) {
     sendBadRequest(res, 'INVALID_UUID')
-    return null
-  }
-
-  // Validate chunk index
-  if (!isValidChunkIndex(indexStr)) {
-    sendBadRequest(res, 'INVALID_CHUNK_INDEX')
-    return null
+    return
   }
 
   // Check if upload session exists and user owns it
   const session = getUploadSession(uploadId)
   if (!session) {
-    // Session doesn't exist - treat as bad request (upload not started)
     sendBadRequest(res, 'INVALID_UUID')
-    return null
+    return
   }
 
   if (session.userId !== auth.userId) {
     sendForbidden(res)
+    return
+  }
+
+  // Validation passed, proceed to multer
+  next()
+}
+
+export function validate(req: AuthenticatedRequest, res: Response): ChunkValidationContext | null {
+  // Auth and ownership already validated by validateBeforeUpload middleware
+  const { uploadId } = req.params
+  const indexStr = req.body.index || '0'
+
+  // Validate chunk index (only available after multer parses the form)
+  if (!isValidChunkIndex(indexStr)) {
+    sendBadRequest(res, 'INVALID_CHUNK_INDEX')
     return null
   }
 
+  const userId = req.user?.userId
+  if (!userId) return null // Should never happen after validateBeforeUpload
+
   return {
-    userId: auth.userId,
+    userId,
     uploadId,
     index: parseInt(indexStr, 10),
   }
@@ -62,7 +81,6 @@ export function processRequest(
   res.json({ received: true, index })
 }
 
-// Note: This handler is called AFTER multer middleware processes the file
 export function handler(req: AuthenticatedRequest, res: Response): void {
   const context = validate(req, res)
   if (!context) return
