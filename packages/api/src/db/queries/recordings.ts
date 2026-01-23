@@ -11,8 +11,10 @@ function toRecording(row: DbRecording): Recording {
     duration: row.duration,
     fileSize: row.fileSize,
     createdAt: row.createdAt.toISOString(),
-    path: row.path,
-    thumbnailPath: row.thumbnailPath ?? undefined,
+    videoUrl: row.videoUrl,
+    videoPublicId: row.videoPublicId,
+    thumbnailUrl: row.thumbnailUrl ?? undefined,
+    thumbnailPublicId: row.thumbnailPublicId ?? undefined,
   }
 }
 
@@ -53,8 +55,10 @@ export async function saveRecording(recording: Recording, userId?: string): Prom
     duration: recording.duration,
     fileSize: recording.fileSize,
     createdAt: new Date(recording.createdAt),
-    path: recording.path,
-    thumbnailPath: recording.thumbnailPath ?? null,
+    videoUrl: recording.videoUrl,
+    videoPublicId: recording.videoPublicId,
+    thumbnailUrl: recording.thumbnailUrl ?? null,
+    thumbnailPublicId: recording.thumbnailPublicId ?? null,
     userId: userId ?? null,
   }
   await db.insert(recordings).values(row)

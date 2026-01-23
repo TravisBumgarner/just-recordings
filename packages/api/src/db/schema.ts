@@ -18,8 +18,10 @@ export const recordings = pgTable('recordings', {
   duration: integer('duration').notNull(),
   fileSize: bigint('file_size', { mode: 'number' }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
-  path: varchar('path', { length: 500 }).notNull(),
-  thumbnailPath: varchar('thumbnail_path', { length: 500 }),
+  videoUrl: varchar('video_url', { length: 500 }).notNull(),
+  videoPublicId: varchar('video_public_id', { length: 255 }).notNull(),
+  thumbnailUrl: varchar('thumbnail_url', { length: 500 }),
+  thumbnailPublicId: varchar('thumbnail_public_id', { length: 255 }),
   userId: uuid('user_id').references(() => users.id),
 })
 

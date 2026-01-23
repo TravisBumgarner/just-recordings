@@ -51,10 +51,10 @@ function RecordingCard({ recording }: { recording: ApiRecording }) {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    if (recording.thumbnailPath) {
+    if (recording.thumbnailUrl) {
       getThumbnailUrl(recording.id).then(setThumbnailUrl)
     }
-  }, [recording.id, recording.thumbnailPath])
+  }, [recording.id, recording.thumbnailUrl])
 
   return (
     <Grid item xs={12} sm={6} md={4}>
@@ -78,7 +78,7 @@ function RecordingCard({ recording }: { recording: ApiRecording }) {
               target.style.display = 'none'
             }}
           />
-          {!recording.thumbnailPath && (
+          {!recording.thumbnailUrl && (
             <Box
               sx={{
                 height: 180,

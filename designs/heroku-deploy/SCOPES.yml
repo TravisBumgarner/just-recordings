@@ -6,24 +6,24 @@ scoping_date: 2026-01-23
 milestones:
   - number: 1
     title: "1. Cloudinary Integration & Schema"
-    description: Add Cloudinary SDK, create upload/delete services with environment tagging, and update database schema
+    description: Add Cloudinary SDK and update database schema for Cloudinary storage
     branch:
       working: 145-cloudinary-integration
       base: main
 
   - number: 2
-    title: "2. Refactor Upload & Recording Routes"
-    description: Migrate upload flow to use Cloudinary, remove dev-only restrictions, update recording routes
+    title: "2. Direct Cloudinary Upload Flow"
+    description: Implement direct browser-to-Cloudinary uploads with signed URLs and client-side chunking
     branch:
-      working: 148-cloudinary-upload-routes
-      base: 145-cloudinary-integration
+      working: 156-direct-cloudinary-upload
+      base: main
 
   - number: 3
     title: "3. Frontend Serving & Heroku Deployment"
     description: Configure API to serve frontend bundle, create Heroku configuration, document deployment
     branch:
       working: 151-heroku-deployment
-      base: 148-cloudinary-upload-routes
+      base: main
 
 tasks:
   # Milestone 1: Cloudinary Integration & Schema
@@ -36,8 +36,8 @@ tasks:
       module that validates required environment variables using Zod.
 
       - Add `cloudinary` npm package to api dependencies
-      - Create `packages/api/src/config/cloudinary.ts` for client initialization
       - Update config.ts with CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+      - Add getCloudinary() helper function
       - Update `.env.example` files
     acceptance_criteria:
       - Cloudinary SDK installed and configured
@@ -47,33 +47,6 @@ tasks:
     depends_on: []
     effort: 1
     status: completed
-
-  - id: 2
-    github_issue: 146
-    milestone: 1
-    title: Create Cloudinary upload and delete service
-    description: |
-      Create a service module for uploading files to Cloudinary and deleting them.
-      Include environment tagging so development uploads can be mass-deleted later.
-
-      Create `packages/api/src/services/cloudinary.ts` with:
-      - uploadVideo(filePath, options) - returns { url, publicId }
-      - uploadImage(filePath, options) - returns { url, publicId }
-      - deleteByPublicId(publicId) - delete single file
-      - deleteByTag(tag) - mass delete files (for dev cleanup)
-
-      All uploads tagged with:
-      - env:development or env:production based on NODE_ENV
-      - app:just-recordings for app identification
-    acceptance_criteria:
-      - uploadVideo uploads video files with proper resource_type
-      - uploadImage uploads images
-      - Both functions apply environment and app tags
-      - deleteByPublicId removes single file
-      - deleteByTag can mass-delete files
-    depends_on: [1]
-    effort: 2
-    status: scoped
 
   - id: 3
     github_issue: 147
@@ -96,72 +69,134 @@ tasks:
       - Query functions updated to use new column names
     depends_on: []
     effort: 2
-    status: scoped
+    status: implementing
 
-  # Milestone 2: Refactor Upload & Recording Routes
+  # Milestone 2: Direct Cloudinary Upload Flow
   - id: 4
-    github_issue: 148
+    github_issue: 156
     milestone: 2
-    title: Refactor upload/finalize to use Cloudinary
+    title: Create Cloudinary signature endpoint
     description: |
-      Update the upload finalize route to upload to Cloudinary instead of local storage.
+      Create an API endpoint that generates Cloudinary upload signatures for
+      direct browser uploads.
 
-      Flow: chunks → merge locally → upload video to Cloudinary → generate thumbnail
-      → upload thumbnail to Cloudinary → save URLs to DB → cleanup local files
+      **Endpoint:** POST /api/upload/signature
+
+      The endpoint should:
+      - Generate a timestamp and signature using Cloudinary API secret
+      - Include standard parameters (tags, folder, resource_type)
+      - Return all parameters needed for client-side upload
+
+      Response includes: signature, timestamp, cloudName, apiKey, folder, tags, resourceType
     acceptance_criteria:
-      - Video uploaded to Cloudinary after merge
-      - Thumbnail uploaded to Cloudinary after generation
-      - Database stores Cloudinary URLs and public IDs
-      - Local temp files cleaned up after successful upload
-      - Error handling for Cloudinary upload failures
-    depends_on: [2, 3]
-    effort: 3
+      - POST /api/upload/signature endpoint created
+      - Requires authentication
+      - Generates valid Cloudinary signature using API secret
+      - Includes environment tags (env:development or env:production)
+    depends_on: [1]
+    effort: 2
     status: scoped
 
   - id: 5
-    github_issue: 149
+    github_issue: 157
     milestone: 2
-    title: Remove devOnly middleware from upload routes
+    title: Create recording registration endpoint
     description: |
-      Remove the devOnly middleware that restricts uploads to development.
-      Change route path from /api/dev/upload to /api/upload.
+      Create an API endpoint to register a completed Cloudinary upload in the database.
 
-      - Remove devOnly middleware function and usage
-      - Update route mounting in app.ts
-      - Update frontend API client and tests
+      **Endpoint:** POST /api/recordings
+
+      After the client uploads directly to Cloudinary, it notifies the API to save
+      the recording metadata. This endpoint receives the Cloudinary response and
+      creates the database record.
+
+      Request: cloudinaryPublicId, cloudinaryUrl, filename, duration
+      Response: id, videoUrl, thumbnailUrl (using Cloudinary transformation), createdAt
     acceptance_criteria:
-      - devOnly middleware removed
-      - Route path changed to /api/upload/*
-      - Upload routes work in all NODE_ENV values
-      - Authentication still required
-      - Tests and frontend updated for new paths
-    depends_on: [4]
-    effort: 1
+      - POST /api/recordings endpoint created
+      - Requires authentication
+      - Validates Cloudinary public ID format
+      - Stores recording in database with user association
+      - Generates thumbnail URL using Cloudinary transformations
+    depends_on: [3]
+    effort: 2
     status: scoped
 
   - id: 6
-    github_issue: 150
+    github_issue: 158
+    milestone: 2
+    title: Implement CloudinaryUploader in recorder package
+    description: |
+      Create a new uploader implementation that uploads directly to Cloudinary.
+
+      Replace DevUploader with CloudinaryUploader that:
+      1. Requests a signed upload from the API
+      2. Chunks the video file (6MB chunks for Cloudinary)
+      3. Uploads chunks directly to Cloudinary with proper headers
+      4. Registers the completed upload with the API
+
+      Cloudinary chunked upload requirements:
+      - X-Unique-Upload-Id header (same for all chunks)
+      - Content-Range header: bytes start-end/total
+      - Each chunk must be >5MB (except last)
+    acceptance_criteria:
+      - CloudinaryUploader implements Uploader interface
+      - Requests signature from API before upload
+      - Chunks files into 6MB segments
+      - Uploads directly to Cloudinary with required headers
+      - Registers completed upload with API
+    depends_on: [4, 5]
+    effort: 3
+    status: scoped
+
+  - id: 7
+    github_issue: 159
     milestone: 2
     title: Update recording routes for Cloudinary URLs
     description: |
       Update recording routes to work with Cloudinary URLs.
 
-      - video.ts: redirect (302) to Cloudinary URL instead of streaming
-      - thumbnail.ts: redirect (302) to Cloudinary URL
-      - get.ts: ensure response includes video_url and thumbnail_url
-      - delete.ts: call deleteByPublicId for video and thumbnail
+      - video.ts: Redirect (302) to Cloudinary URL instead of streaming
+      - thumbnail.ts: Redirect (302) to Cloudinary thumbnail URL (with transformation)
+      - get.ts: Return video_url and thumbnail_url in response
+      - delete.ts: Call Cloudinary API to delete by public_id
+
+      Thumbnail URL via Cloudinary transformations:
+      https://res.cloudinary.com/{cloud}/video/upload/c_thumb,w_320,h_180/{public_id}.jpg
     acceptance_criteria:
       - GET /recordings/:id/video redirects to Cloudinary URL
-      - GET /recordings/:id/thumbnail redirects to Cloudinary URL
+      - GET /recordings/:id/thumbnail redirects to Cloudinary transformation URL
       - GET /recordings/:id includes video_url and thumbnail_url
-      - DELETE removes files from Cloudinary
-      - No local filesystem operations in recording routes
-    depends_on: [2, 3]
+      - DELETE removes file from Cloudinary via API
+    depends_on: [3]
     effort: 2
     status: scoped
 
+  - id: 8
+    github_issue: 160
+    milestone: 2
+    title: Remove legacy upload routes and devOnly middleware
+    description: |
+      Remove the old chunked upload routes that uploaded to the server.
+
+      Files to remove:
+      - packages/api/src/routes/upload/ (entire directory)
+      - DevUploader from recorder package
+      - devOnly middleware function
+
+      Files to update:
+      - packages/api/src/app.ts - remove upload route mounting
+    acceptance_criteria:
+      - Old /api/dev/upload/* routes removed
+      - devOnly middleware removed
+      - Upload route directory deleted
+      - App.ts cleaned up
+    depends_on: [6]
+    effort: 1
+    status: scoped
+
   # Milestone 3: Frontend Serving & Heroku Deployment
-  - id: 7
+  - id: 9
     github_issue: 151
     milestone: 3
     title: Configure API to serve frontend bundle
@@ -177,12 +212,11 @@ tasks:
       - SPA routing works (non-API paths serve index.html)
       - API routes still work correctly
       - Development mode unchanged
-      - Build script builds both packages in correct order
     depends_on: []
     effort: 2
     status: scoped
 
-  - id: 8
+  - id: 10
     github_issue: 152
     milestone: 3
     title: Create Heroku configuration files
@@ -199,15 +233,14 @@ tasks:
       - heroku-postbuild script for migrations
     acceptance_criteria:
       - Procfile defines web dyno command
-      - app.json defines PostgreSQL and Cloudinary addons
+      - app.json defines PostgreSQL addon
       - Node version specified
       - Build scripts work for Heroku deployment
-      - Post-build runs database migrations
-    depends_on: [7]
+    depends_on: [9]
     effort: 2
     status: scoped
 
-  - id: 9
+  - id: 11
     github_issue: 153
     milestone: 3
     title: Document Heroku deployment process
@@ -226,7 +259,6 @@ tasks:
       - All environment variables documented
       - Database migration process documented
       - Deployment workflow documented
-      - Troubleshooting section included
-    depends_on: [8]
+    depends_on: [10]
     effort: 1
     status: scoped

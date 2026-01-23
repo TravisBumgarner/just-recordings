@@ -1,6 +1,5 @@
 import type { Recording } from '@just-recordings/shared'
 import type { Response } from 'express'
-import fs from 'node:fs/promises'
 import { deleteRecording, getRecordingById } from '../../db/queries/recordings.js'
 import type { AuthenticatedRequest } from '../../middleware/auth.js'
 import { requireUserId } from '../shared/auth.js'
@@ -55,23 +54,10 @@ export async function processRequest(
   res: Response,
   context: DeleteValidationContext
 ): Promise<void> {
-  const { recording, recordingId } = context
+  const { recordingId } = context
 
-  // Delete video file
-  try {
-    await fs.unlink(recording.path)
-  } catch {
-    // File might already be deleted, continue
-  }
-
-  // Delete thumbnail file if it exists
-  if (recording.thumbnailPath) {
-    try {
-      await fs.unlink(recording.thumbnailPath)
-    } catch {
-      // Thumbnail might already be deleted, continue
-    }
-  }
+  // Note: Cloudinary file deletion will be added in Task 7
+  // For now, just remove from database
 
   // Remove from database
   await deleteRecording(recordingId)

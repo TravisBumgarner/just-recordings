@@ -122,6 +122,8 @@ export async function processRequest(
   }
 
   // Save recording metadata with user association
+  // Note: This uses local paths temporarily. Will be replaced with Cloudinary URLs
+  // when the upload routes are removed (Task 8)
   await saveRecording(
     {
       id: fileId,
@@ -130,8 +132,10 @@ export async function processRequest(
       duration,
       fileSize: mergedData.length,
       createdAt: new Date().toISOString(),
-      path: finalPath,
-      thumbnailPath: savedThumbnailPath,
+      videoUrl: finalPath,
+      videoPublicId: fileId,
+      thumbnailUrl: savedThumbnailPath,
+      thumbnailPublicId: savedThumbnailPath ? `${fileId}-thumb` : undefined,
     },
     userId
   )

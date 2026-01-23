@@ -1,6 +1,5 @@
 import type { Recording } from '@just-recordings/shared'
 import type { Response } from 'express'
-import fs from 'node:fs/promises'
 import { getRecordingById } from '../../db/queries/recordings.js'
 import type { AuthenticatedRequest } from '../../middleware/auth.js'
 import { requireUserId } from '../shared/auth.js'
@@ -43,16 +42,8 @@ export async function validate(
     return null
   }
 
-  // Check if thumbnailPath exists on the recording
-  if (!ownedRecording.thumbnailPath) {
-    sendNotFound(res, 'THUMBNAIL_NOT_FOUND')
-    return null
-  }
-
-  // Check if thumbnail file exists on disk
-  try {
-    await fs.access(ownedRecording.thumbnailPath)
-  } catch {
+  // Check if thumbnailUrl exists on the recording
+  if (!ownedRecording.thumbnailUrl) {
     sendNotFound(res, 'THUMBNAIL_NOT_FOUND')
     return null
   }
@@ -69,11 +60,9 @@ export async function processRequest(
   res: Response,
   context: ThumbnailValidationContext
 ): Promise<void> {
-  // thumbnailPath is guaranteed to exist by validate()
-  const thumbnailPath = context.recording.thumbnailPath as string
-  res.setHeader('Content-Type', 'image/jpeg')
-  const fileContent = await fs.readFile(thumbnailPath)
-  res.send(fileContent)
+  // Redirect to Cloudinary thumbnail URL
+  const thumbnailUrl = context.recording.thumbnailUrl as string
+  res.redirect(302, thumbnailUrl)
 }
 
 export async function handler(req: AuthenticatedRequest, res: Response): Promise<void> {
