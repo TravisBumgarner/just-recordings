@@ -367,16 +367,26 @@ describe('Recordings endpoints', () => {
   })
 
   describe('DELETE /api/recordings/:id', () => {
-    it('returns 404 when recording does not exist', async () => {
+    it('returns 400 INVALID_UUID when id is not a valid UUID', async () => {
       const response = await request(app)
-        .delete('/api/recordings/nonexistent')
+        .delete('/api/recordings/not-a-uuid')
+        .set('Authorization', 'Bearer valid-token')
+
+      expect(response.status).toBe(400)
+      expect(response.body).toEqual({ success: false, errorCode: 'INVALID_UUID' })
+    })
+
+    it('returns 404 RECORDING_NOT_FOUND when recording does not exist', async () => {
+      const response = await request(app)
+        .delete('/api/recordings/550e8400-e29b-41d4-a716-446655440020')
         .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(404)
+      expect(response.body).toEqual({ success: false, errorCode: 'RECORDING_NOT_FOUND' })
     })
 
     it('deletes recording and returns success', async () => {
-      await createTestRecording('to-delete', {
+      await createTestRecording('550e8400-e29b-41d4-a716-446655440021', {
         name: 'To Delete',
         mimeType: 'video/webm',
         duration: 60000,
@@ -386,15 +396,15 @@ describe('Recordings endpoints', () => {
       })
 
       const response = await request(app)
-        .delete('/api/recordings/to-delete')
+        .delete('/api/recordings/550e8400-e29b-41d4-a716-446655440021')
         .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
-      expect(response.body.success).toBe(true)
+      expect(response.body).toEqual({ success: true, data: { deleted: true } })
     })
 
     it('removes video file from disk', async () => {
-      const recording = await createTestRecording('delete-file', {
+      const recording = await createTestRecording('550e8400-e29b-41d4-a716-446655440022', {
         name: 'Delete File',
         mimeType: 'video/webm',
         duration: 60000,
@@ -404,7 +414,7 @@ describe('Recordings endpoints', () => {
       })
 
       await request(app)
-        .delete('/api/recordings/delete-file')
+        .delete('/api/recordings/550e8400-e29b-41d4-a716-446655440022')
         .set('Authorization', 'Bearer valid-token')
 
       const exists = await fs
@@ -415,7 +425,7 @@ describe('Recordings endpoints', () => {
     })
 
     it('removes recording from database', async () => {
-      await createTestRecording('remove-meta', {
+      await createTestRecording('550e8400-e29b-41d4-a716-446655440023', {
         name: 'Remove Meta',
         mimeType: 'video/webm',
         duration: 60000,
@@ -425,7 +435,7 @@ describe('Recordings endpoints', () => {
       })
 
       await request(app)
-        .delete('/api/recordings/remove-meta')
+        .delete('/api/recordings/550e8400-e29b-41d4-a716-446655440023')
         .set('Authorization', 'Bearer valid-token')
 
       // Verify recording is no longer in list
@@ -435,8 +445,8 @@ describe('Recordings endpoints', () => {
       expect(listResponse.body.data.recordings).toHaveLength(0)
     })
 
-    it('returns 404 for recording not owned by user', async () => {
-      await createTestRecording('other-delete', {
+    it('returns 403 FORBIDDEN for recording not owned by user', async () => {
+      await createTestRecording('550e8400-e29b-41d4-a716-446655440024', {
         name: 'Other Delete',
         mimeType: 'video/webm',
         duration: 60000,
@@ -446,11 +456,11 @@ describe('Recordings endpoints', () => {
       })
 
       const response = await request(app)
-        .delete('/api/recordings/other-delete')
+        .delete('/api/recordings/550e8400-e29b-41d4-a716-446655440024')
         .set('Authorization', 'Bearer valid-token')
 
-      expect(response.status).toBe(404)
-      expect(response.body.error).toBe('Recording not found')
+      expect(response.status).toBe(403)
+      expect(response.body).toEqual({ success: false, errorCode: 'FORBIDDEN' })
     })
   })
 
@@ -473,7 +483,7 @@ describe('Recordings endpoints', () => {
       const startResponse = await request(app)
         .post('/api/dev/upload/start')
         .set('Authorization', 'Bearer valid-token')
-      const { uploadId } = startResponse.body
+      const { uploadId } = startResponse.body.data
 
       // Upload chunk
       await request(app)
@@ -500,7 +510,7 @@ describe('Recordings endpoints', () => {
 
       expect(listResponse.body.data.recordings).toHaveLength(1)
       expect(listResponse.body.data.recordings[0]).toMatchObject({
-        id: finalizeResponse.body.fileId,
+        id: finalizeResponse.body.data.fileId,
         name: 'My Recording',
         mimeType: 'video/webm',
       })

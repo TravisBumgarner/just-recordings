@@ -1,12 +1,13 @@
 import type { Recording } from '@just-recordings/shared'
 import type { Response } from 'express'
-import { getRecordingById } from '../../db/queries/recordings.js'
+import fs from 'node:fs/promises'
+import { deleteRecording, getRecordingById } from '../../db/queries/recordings.js'
 import type { AuthenticatedRequest } from '../../middleware/auth.js'
 import { requireUserId } from '../shared/auth.js'
 import { sendBadRequest, sendForbidden, sendNotFound, sendSuccess } from '../shared/responses.js'
 import { isValidUUID } from '../shared/validation.js'
 
-export interface GetValidationContext {
+export interface DeleteValidationContext {
   userId: string
   recordingId: string
   recording: Recording
@@ -15,7 +16,7 @@ export interface GetValidationContext {
 export async function validate(
   req: AuthenticatedRequest,
   res: Response
-): Promise<GetValidationContext | null> {
+): Promise<DeleteValidationContext | null> {
   // Check authentication
   const auth = requireUserId(req, res)
   if (!auth) return null
@@ -49,16 +50,37 @@ export async function validate(
   }
 }
 
-export function processRequest(
+export async function processRequest(
   _req: AuthenticatedRequest,
   res: Response,
-  context: GetValidationContext
-): void {
-  sendSuccess(res, context.recording)
+  context: DeleteValidationContext
+): Promise<void> {
+  const { recording, recordingId } = context
+
+  // Delete video file
+  try {
+    await fs.unlink(recording.path)
+  } catch {
+    // File might already be deleted, continue
+  }
+
+  // Delete thumbnail file if it exists
+  if (recording.thumbnailPath) {
+    try {
+      await fs.unlink(recording.thumbnailPath)
+    } catch {
+      // Thumbnail might already be deleted, continue
+    }
+  }
+
+  // Remove from database
+  await deleteRecording(recordingId)
+
+  sendSuccess(res, { deleted: true })
 }
 
 export async function handler(req: AuthenticatedRequest, res: Response): Promise<void> {
   const context = await validate(req, res)
   if (!context) return
-  processRequest(req, res, context)
+  await processRequest(req, res, context)
 }

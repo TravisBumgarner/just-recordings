@@ -1,29 +1,38 @@
+import fs from 'node:fs/promises'
 import type { Response } from 'express'
-import { getAllRecordings } from '../../db/queries/recordings.js'
 import type { AuthenticatedRequest } from '../../middleware/auth.js'
 import { requireUserId } from '../shared/auth.js'
 import { sendSuccess } from '../shared/responses.js'
+import { createUploadSession } from './index.js'
 
-export interface ListValidationContext {
+export interface StartValidationContext {
   userId: string
 }
 
-export function validate(
-  req: AuthenticatedRequest,
-  res: Response
-): ListValidationContext | null {
+export function validate(req: AuthenticatedRequest, res: Response): StartValidationContext | null {
+  // Check authentication
   const auth = requireUserId(req, res)
   if (!auth) return null
-  return { userId: auth.userId }
+
+  return {
+    userId: auth.userId,
+  }
 }
 
 export async function processRequest(
   _req: AuthenticatedRequest,
   res: Response,
-  context: ListValidationContext
+  context: StartValidationContext
 ): Promise<void> {
-  const recordings = await getAllRecordings(context.userId)
-  sendSuccess(res, { recordings })
+  const { userId } = context
+
+  // Create upload session
+  const session = createUploadSession(userId)
+
+  // Create temp directory for chunks
+  await fs.mkdir(session.chunkDir, { recursive: true })
+
+  sendSuccess(res, { uploadId: session.uploadId })
 }
 
 export async function handler(req: AuthenticatedRequest, res: Response): Promise<void> {
