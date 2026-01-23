@@ -83,13 +83,13 @@ Via Dashboard:
 
 ## Database Migrations
 
-After deploying, run database migrations to set up the schema:
+After deploying, run database migrations locally against the Heroku database:
 
 ```bash
-heroku run npm run db:push -w @just-recordings/api
+DATABASE_URL="$(heroku config:get DATABASE_URL)?sslmode=no-verify" npm run db:push -w @just-recordings/api
 ```
 
-This uses Drizzle Kit to push the schema to your Heroku Postgres database.
+This uses Drizzle Kit to push the schema to your Heroku Postgres database. The migration runs locally because `drizzle-kit` is a dev dependency not installed on Heroku. The `sslmode=no-verify` is required because Heroku Postgres uses self-signed SSL certificates.
 
 ## Deployment
 
