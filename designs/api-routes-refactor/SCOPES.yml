@@ -131,7 +131,7 @@ tasks:
       - Unit tests for both validation functions
     depends_on: [16]
     effort: 1
-    status: scoped
+    status: completed
 
   - id: 2
     github_issue: 118
@@ -160,7 +160,7 @@ tasks:
       - Unit tests for the helper
     depends_on: [16]
     effort: 1
-    status: scoped
+    status: completed
 
   # Milestone 2: Recordings Routes Refactor
   - id: 3
