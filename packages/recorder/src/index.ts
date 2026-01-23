@@ -11,4 +11,4 @@ export { UploadManager } from './UploadManager'
 
 // Uploader
 export type { Uploader, UploadMetadata, UploadResult } from './uploader'
-export { chunkBlob, createUploader, DevUploader, ProdUploader } from './uploader'
+export { chunkBlob, createUploader, ProdUploader } from './uploader'

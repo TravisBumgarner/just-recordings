@@ -193,7 +193,7 @@ tasks:
       - App.ts cleaned up
     depends_on: [6]
     effort: 1
-    status: scoped
+    status: implementing
 
   # Milestone 3: Frontend Serving & Heroku Deployment
   - id: 9
