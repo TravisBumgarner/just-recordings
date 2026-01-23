@@ -226,7 +226,7 @@ tasks:
       - Success returns { success: true, data: recording }
     depends_on: [3]
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 6
     github_issue: 122

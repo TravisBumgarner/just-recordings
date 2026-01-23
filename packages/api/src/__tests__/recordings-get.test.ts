@@ -48,22 +48,22 @@ describe('recordings/get', () => {
   })
 
   describe('validate', () => {
-    it('returns null and sends 401 UNAUTHORIZED when user is not authenticated', () => {
+    it('returns null and sends 401 UNAUTHORIZED when user is not authenticated', async () => {
       const req = createMockRequest(undefined, { id: 'rec-123' })
       const res = createMockResponse()
 
-      const result = validate(req, res)
+      const result = await validate(req, res)
 
       expect(result).toBeNull()
       expect(res.status).toHaveBeenCalledWith(401)
       expect(res.json).toHaveBeenCalledWith({ success: false, errorCode: 'UNAUTHORIZED' })
     })
 
-    it('returns null and sends 400 INVALID_UUID when id is not a valid UUID', () => {
+    it('returns null and sends 400 INVALID_UUID when id is not a valid UUID', async () => {
       const req = createMockRequest({ userId: 'user-123', authId: 'auth-123' }, { id: 'not-a-uuid' })
       const res = createMockResponse()
 
-      const result = validate(req, res)
+      const result = await validate(req, res)
 
       expect(result).toBeNull()
       expect(res.status).toHaveBeenCalledWith(400)

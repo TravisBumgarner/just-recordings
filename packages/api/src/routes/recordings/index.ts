@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import { type Response, Router } from 'express'
 import { deleteRecording, getRecordingById } from '../../db/queries/recordings.js'
 import { type AuthenticatedRequest, requireAuth } from '../../middleware/auth.js'
+import { validate as getValidate, processRequest as getProcessRequest } from './get.js'
 import { validate as listValidate, processRequest as listProcessRequest } from './list.js'
 
 const router = Router()
@@ -18,16 +19,9 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
 
 // GET /api/recordings/:id - Get single recording metadata (owned by user)
 router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.params
-  const userId = req.user?.userId
-  const recording = await getRecordingById(id, userId)
-
-  if (!recording) {
-    res.status(404).json({ error: 'Recording not found' })
-    return
-  }
-
-  res.json(recording)
+  const context = await getValidate(req, res)
+  if (!context) return
+  getProcessRequest(req, res, context)
 })
 
 // GET /api/recordings/:id/video - Serve video file (owned by user)
