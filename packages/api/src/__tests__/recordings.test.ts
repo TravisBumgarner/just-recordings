@@ -293,16 +293,26 @@ describe('Recordings endpoints', () => {
   })
 
   describe('GET /api/recordings/:id/video', () => {
-    it('returns 404 when recording does not exist', async () => {
+    it('returns 400 INVALID_UUID when id is not a valid UUID', async () => {
       const response = await request(app)
-        .get('/api/recordings/nonexistent/video')
+        .get('/api/recordings/not-a-uuid/video')
+        .set('Authorization', 'Bearer valid-token')
+
+      expect(response.status).toBe(400)
+      expect(response.body).toEqual({ success: false, errorCode: 'INVALID_UUID' })
+    })
+
+    it('returns 404 RECORDING_NOT_FOUND when recording does not exist', async () => {
+      const response = await request(app)
+        .get('/api/recordings/550e8400-e29b-41d4-a716-446655440010/video')
         .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(404)
+      expect(response.body).toEqual({ success: false, errorCode: 'RECORDING_NOT_FOUND' })
     })
 
     it('serves video file with correct content type', async () => {
-      await createTestRecording('video-test', {
+      await createTestRecording('550e8400-e29b-41d4-a716-446655440011', {
         name: 'Video Test',
         mimeType: 'video/webm',
         duration: 60000,
@@ -312,7 +322,7 @@ describe('Recordings endpoints', () => {
       })
 
       const response = await request(app)
-        .get('/api/recordings/video-test/video')
+        .get('/api/recordings/550e8400-e29b-41d4-a716-446655440011/video')
         .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
@@ -320,7 +330,7 @@ describe('Recordings endpoints', () => {
     })
 
     it('returns video file content', async () => {
-      await createTestRecording('video-content', {
+      await createTestRecording('550e8400-e29b-41d4-a716-446655440012', {
         name: 'Video Content',
         mimeType: 'video/webm',
         duration: 60000,
@@ -330,15 +340,15 @@ describe('Recordings endpoints', () => {
       })
 
       const response = await request(app)
-        .get('/api/recordings/video-content/video')
+        .get('/api/recordings/550e8400-e29b-41d4-a716-446655440012/video')
         .set('Authorization', 'Bearer valid-token')
         .buffer()
 
       expect(response.body.toString()).toBe('fake video content')
     })
 
-    it('returns 404 for video of recording not owned by user', async () => {
-      await createTestRecording('other-video', {
+    it('returns 403 FORBIDDEN for video of recording not owned by user', async () => {
+      await createTestRecording('550e8400-e29b-41d4-a716-446655440013', {
         name: 'Other Video',
         mimeType: 'video/webm',
         duration: 60000,
@@ -348,10 +358,11 @@ describe('Recordings endpoints', () => {
       })
 
       const response = await request(app)
-        .get('/api/recordings/other-video/video')
+        .get('/api/recordings/550e8400-e29b-41d4-a716-446655440013/video')
         .set('Authorization', 'Bearer valid-token')
 
-      expect(response.status).toBe(404)
+      expect(response.status).toBe(403)
+      expect(response.body).toEqual({ success: false, errorCode: 'FORBIDDEN' })
     })
   })
 

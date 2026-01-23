@@ -4,6 +4,7 @@ import { deleteRecording, getRecordingById } from '../../db/queries/recordings.j
 import { type AuthenticatedRequest, requireAuth } from '../../middleware/auth.js'
 import { validate as getValidate, processRequest as getProcessRequest } from './get.js'
 import { validate as listValidate, processRequest as listProcessRequest } from './list.js'
+import { validate as videoValidate, processRequest as videoProcessRequest } from './video.js'
 
 const router = Router()
 
@@ -26,26 +27,9 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
 
 // GET /api/recordings/:id/video - Serve video file (owned by user)
 router.get('/:id/video', async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.params
-  const userId = req.user?.userId
-  const recording = await getRecordingById(id, userId)
-
-  if (!recording) {
-    res.status(404).json({ error: 'Recording not found' })
-    return
-  }
-
-  // Check if file exists
-  try {
-    await fs.access(recording.path)
-  } catch {
-    res.status(404).json({ error: 'Video file not found' })
-    return
-  }
-
-  res.setHeader('Content-Type', recording.mimeType)
-  const fileContent = await fs.readFile(recording.path)
-  res.send(fileContent)
+  const context = await videoValidate(req, res)
+  if (!context) return
+  await videoProcessRequest(req, res, context)
 })
 
 // GET /api/recordings/:id/thumbnail - Serve thumbnail image (owned by user)
