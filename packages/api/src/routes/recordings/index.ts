@@ -4,6 +4,7 @@ import { deleteRecording, getRecordingById } from '../../db/queries/recordings.j
 import { type AuthenticatedRequest, requireAuth } from '../../middleware/auth.js'
 import { validate as getValidate, processRequest as getProcessRequest } from './get.js'
 import { validate as listValidate, processRequest as listProcessRequest } from './list.js'
+import { validate as thumbnailValidate, processRequest as thumbnailProcessRequest } from './thumbnail.js'
 import { validate as videoValidate, processRequest as videoProcessRequest } from './video.js'
 
 const router = Router()
@@ -34,30 +35,9 @@ router.get('/:id/video', async (req: AuthenticatedRequest, res: Response) => {
 
 // GET /api/recordings/:id/thumbnail - Serve thumbnail image (owned by user)
 router.get('/:id/thumbnail', async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.params
-  const userId = req.user?.userId
-  const recording = await getRecordingById(id, userId)
-
-  if (!recording) {
-    res.status(404).json({ error: 'Recording not found' })
-    return
-  }
-
-  if (!recording.thumbnailPath) {
-    res.status(404).json({ error: 'Thumbnail not found' })
-    return
-  }
-
-  try {
-    await fs.access(recording.thumbnailPath)
-  } catch {
-    res.status(404).json({ error: 'Thumbnail file not found' })
-    return
-  }
-
-  res.setHeader('Content-Type', 'image/jpeg')
-  const fileContent = await fs.readFile(recording.thumbnailPath)
-  res.send(fileContent)
+  const context = await thumbnailValidate(req, res)
+  if (!context) return
+  await thumbnailProcessRequest(req, res, context)
 })
 
 // DELETE /api/recordings/:id - Delete recording (owned by user)
