@@ -58,20 +58,38 @@ heroku git:remote -a just-recordings
 
 ### Required - Must Be Set Manually
 
+#### API (Server-side)
+
 | Variable | Description | Where to Get It |
 |----------|-------------|-----------------|
 | `NODE_ENV` | Set to `production` | Set manually |
 | `SUPABASE_URL` | Your Supabase project URL | Supabase Dashboard > Settings > API |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-side) | Supabase Dashboard > Settings > API |
 
+#### Frontend (Build-time)
+
+These are embedded in the frontend bundle during build, so you must set them before deploying.
+
+| Variable | Description | Where to Get It |
+|----------|-------------|-----------------|
+| `VITE_PUBLIC_SUPABASE_URL` | Your Supabase project URL | Supabase Dashboard > Settings > API |
+| `VITE_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous/public key | Supabase Dashboard > Settings > API |
+| `VITE_PUBLIC_ENVIRONMENT` | Set to `production` | Set manually |
+
 ### Setting Environment Variables
 
 Via CLI:
 
 ```bash
+# API variables
 heroku config:set NODE_ENV=production
 heroku config:set SUPABASE_URL=https://your-project.supabase.co
 heroku config:set SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Frontend build-time variables
+heroku config:set VITE_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+heroku config:set VITE_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+heroku config:set VITE_PUBLIC_ENVIRONMENT=production
 ```
 
 Via Dashboard:
