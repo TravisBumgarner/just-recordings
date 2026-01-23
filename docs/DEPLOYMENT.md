@@ -7,14 +7,13 @@ This guide covers deploying Just Recordings to Heroku.
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) installed
 - A Heroku account
 - A Supabase project (for authentication)
-- A Cloudinary account (for video storage)
 
 ## Initial Setup
 
 ### 1. Create the Heroku App
 
 ```bash
-heroku create your-app-name
+heroku create just-recordings
 ```
 
 ### 2. Add PostgreSQL Addon
@@ -27,23 +26,34 @@ heroku addons:create heroku-postgresql:essential-0
 
 This automatically sets the `DATABASE_URL` environment variable.
 
-### 3. Connect Your Repository
+### 3. Add Cloudinary Addon
+
+The app uses Cloudinary for video storage. Add the Cloudinary addon:
+
+```bash
+heroku addons:create cloudinary:starter
+```
+
+This automatically sets the `CLOUDINARY_URL` environment variable, which includes the cloud name, API key, and API secret.
+
+### 4. Connect Your Repository
 
 If using GitHub deployment:
 
 ```bash
 # In the Heroku dashboard, connect to your GitHub repository
 # Or use the Heroku Git remote:
-heroku git:remote -a your-app-name
+heroku git:remote -a just-recordings
 ```
 
 ## Environment Variables
 
-### Auto-configured by Heroku
+### Auto-configured by Heroku Addons
 
 | Variable | Description |
 |----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection string (set by Heroku Postgres addon) |
+| `CLOUDINARY_URL` | Cloudinary connection URL (set by Cloudinary addon) |
 | `PORT` | Port for the web dyno (set by Heroku) |
 
 ### Required - Must Be Set Manually
@@ -52,10 +62,7 @@ heroku git:remote -a your-app-name
 |----------|-------------|-----------------|
 | `NODE_ENV` | Set to `production` | Set manually |
 | `SUPABASE_URL` | Your Supabase project URL | Supabase Dashboard > Settings > API |
-| `SUPABASE_ANON_KEY` | Supabase anonymous/public key | Supabase Dashboard > Settings > API |
-| `CLOUDINARY_CLOUD_NAME` | Your Cloudinary cloud name | Cloudinary Dashboard |
-| `CLOUDINARY_API_KEY` | Cloudinary API key | Cloudinary Dashboard > Settings |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret | Cloudinary Dashboard > Settings |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-side) | Supabase Dashboard > Settings > API |
 
 ### Setting Environment Variables
 
@@ -64,10 +71,7 @@ Via CLI:
 ```bash
 heroku config:set NODE_ENV=production
 heroku config:set SUPABASE_URL=https://your-project.supabase.co
-heroku config:set SUPABASE_ANON_KEY=your-anon-key
-heroku config:set CLOUDINARY_CLOUD_NAME=your-cloud-name
-heroku config:set CLOUDINARY_API_KEY=your-api-key
-heroku config:set CLOUDINARY_API_SECRET=your-api-secret
+heroku config:set SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
 Via Dashboard:
@@ -112,14 +116,15 @@ git push heroku main
 
 ## Cloudinary Configuration
 
-### Setting Up Cloudinary
+### Cloudinary Addon
 
-1. Create a free Cloudinary account at [cloudinary.com](https://cloudinary.com)
-2. From your Cloudinary Dashboard, note your:
-   - Cloud Name
-   - API Key
-   - API Secret
-3. Set these as environment variables (see above)
+Cloudinary is provisioned as a Heroku addon (see Initial Setup step 3). The addon automatically sets `CLOUDINARY_URL` which the API parses for credentials.
+
+To view your Cloudinary dashboard:
+
+```bash
+heroku addons:open cloudinary
+```
 
 ### Cloudinary Usage
 
@@ -166,9 +171,17 @@ git push heroku main
 
 ### Cloudinary Upload Failures
 
-- Verify all three Cloudinary environment variables are set
+```bash
+# Verify CLOUDINARY_URL is set
+heroku config:get CLOUDINARY_URL
+
+# Open Cloudinary dashboard
+heroku addons:open cloudinary
+```
+
+- Verify `CLOUDINARY_URL` is set (should be auto-configured by addon)
 - Check Cloudinary dashboard for API usage limits
-- Ensure the API key/secret are correct (not rotated)
+- Verify the addon is properly attached to your app
 
 ## Monitoring
 
