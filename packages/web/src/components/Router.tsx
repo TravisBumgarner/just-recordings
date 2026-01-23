@@ -70,7 +70,7 @@ const Router = ({ isElectron }: { isElectron: boolean }) => {
   const db = useMemo(() => new RecorderDatabase(), [])
   const recorderService = useMemo(() => new RecorderService(db), [db])
   const tokenGetter = useMemo(() => createTokenGetter(), [])
-  const uploader = useMemo(() => createUploader(API_BASE_URL, true, tokenGetter), [tokenGetter])
+  const uploader = useMemo(() => createUploader(API_BASE_URL, tokenGetter), [tokenGetter])
   const uploadManager = useMemo(() => new UploadManager(db, uploader), [db, uploader])
   // Initialize upload manager on app load to resume any pending uploads
   useEffect(() => {
