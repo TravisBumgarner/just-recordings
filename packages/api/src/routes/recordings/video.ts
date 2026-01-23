@@ -67,3 +67,9 @@ export async function processRequest(
   const fileContent = await fs.readFile(context.recording.path)
   res.send(fileContent)
 }
+
+export async function handler(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const context = await validate(req, res)
+  if (!context) return
+  await processRequest(req, res, context)
+}

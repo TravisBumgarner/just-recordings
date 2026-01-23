@@ -78,3 +78,9 @@ export async function processRequest(
 
   sendSuccess(res, { deleted: true })
 }
+
+export async function handler(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const context = await validate(req, res)
+  if (!context) return
+  await processRequest(req, res, context)
+}

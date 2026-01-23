@@ -61,3 +61,10 @@ export function processRequest(
   // File has already been saved by multer middleware
   res.json({ received: true, index })
 }
+
+// Note: This handler is called AFTER multer middleware processes the file
+export function handler(req: AuthenticatedRequest, res: Response): void {
+  const context = validate(req, res)
+  if (!context) return
+  processRequest(req, res, context)
+}

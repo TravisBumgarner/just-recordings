@@ -25,3 +25,9 @@ export async function processRequest(
   const recordings = await getAllRecordings(context.userId)
   sendSuccess(res, { recordings })
 }
+
+export async function handler(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const context = validate(req, res)
+  if (!context) return
+  await processRequest(req, res, context)
+}

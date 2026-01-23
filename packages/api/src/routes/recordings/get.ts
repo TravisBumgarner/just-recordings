@@ -56,3 +56,9 @@ export function processRequest(
 ): void {
   sendSuccess(res, context.recording)
 }
+
+export async function handler(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const context = await validate(req, res)
+  if (!context) return
+  processRequest(req, res, context)
+}

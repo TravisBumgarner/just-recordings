@@ -3,11 +3,11 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { type NextFunction, type Request, type Response, Router } from 'express'
 import multer from 'multer'
-import { type AuthenticatedRequest, requireAuth } from '../../middleware/auth.js'
+import { requireAuth } from '../../middleware/auth.js'
 import { isValidChunkIndex, isValidUUID } from '../shared/validation.js'
-import { validate as chunkValidate, processRequest as chunkProcessRequest } from './chunk.js'
-import { validate as finalizeValidate, processRequest as finalizeProcessRequest } from './finalize.js'
-import { validate as startValidate, processRequest as startProcessRequest } from './start.js'
+import { handler as chunkHandler } from './chunk.js'
+import { handler as finalizeHandler } from './finalize.js'
+import { handler as startHandler } from './start.js'
 
 const router = Router()
 
@@ -49,7 +49,7 @@ const storage = multer.diskStorage({
   },
 })
 
-export const upload = multer({ storage })
+const upload = multer({ storage })
 
 // Dev-only middleware - returns 404 if not in development
 export function devOnly(_req: Request, res: Response, next: NextFunction): void {
@@ -65,25 +65,13 @@ router.use(devOnly)
 router.use(requireAuth)
 
 // POST /api/dev/upload/start - Create new upload session
-router.post('/start', async (req: AuthenticatedRequest, res: Response) => {
-  const context = startValidate(req, res)
-  if (!context) return
-  await startProcessRequest(req, res, context)
-})
+router.post('/start', startHandler)
 
 // POST /api/dev/upload/:uploadId/chunk - Upload a chunk
-router.post('/:uploadId/chunk', upload.single('chunk'), async (req: AuthenticatedRequest, res: Response) => {
-  const context = chunkValidate(req, res)
-  if (!context) return
-  chunkProcessRequest(req, res, context)
-})
+router.post('/:uploadId/chunk', upload.single('chunk'), chunkHandler)
 
 // POST /api/dev/upload/:uploadId/finalize - Merge chunks into final file
-router.post('/:uploadId/finalize', async (req: AuthenticatedRequest, res: Response) => {
-  const context = finalizeValidate(req, res)
-  if (!context) return
-  await finalizeProcessRequest(req, res, context)
-})
+router.post('/:uploadId/finalize', finalizeHandler)
 
 // Helper to create upload session
 export function createUploadSession(userId: string): UploadSession {
