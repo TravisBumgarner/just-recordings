@@ -1,7 +1,6 @@
-import fs from 'node:fs/promises'
 import { type Response, Router } from 'express'
-import { deleteRecording, getRecordingById } from '../../db/queries/recordings.js'
 import { type AuthenticatedRequest, requireAuth } from '../../middleware/auth.js'
+import { validate as deleteValidate, processRequest as deleteProcessRequest } from './delete.js'
 import { validate as getValidate, processRequest as getProcessRequest } from './get.js'
 import { validate as listValidate, processRequest as listProcessRequest } from './list.js'
 import { validate as thumbnailValidate, processRequest as thumbnailProcessRequest } from './thumbnail.js'
@@ -42,35 +41,9 @@ router.get('/:id/thumbnail', async (req: AuthenticatedRequest, res: Response) =>
 
 // DELETE /api/recordings/:id - Delete recording (owned by user)
 router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.params
-  const userId = req.user?.userId
-  const recording = await getRecordingById(id, userId)
-
-  if (!recording) {
-    res.status(404).json({ error: 'Recording not found' })
-    return
-  }
-
-  // Delete video file
-  try {
-    await fs.unlink(recording.path)
-  } catch {
-    // File might already be deleted, continue
-  }
-
-  // Delete thumbnail file if it exists
-  if (recording.thumbnailPath) {
-    try {
-      await fs.unlink(recording.thumbnailPath)
-    } catch {
-      // Thumbnail might already be deleted, continue
-    }
-  }
-
-  // Remove from database
-  await deleteRecording(id)
-
-  res.json({ success: true })
+  const context = await deleteValidate(req, res)
+  if (!context) return
+  await deleteProcessRequest(req, res, context)
 })
 
 export { router as recordingsRouter }

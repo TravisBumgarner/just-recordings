@@ -65,6 +65,7 @@ describe('Upload endpoints', () => {
         .post('/api/dev/upload/start')
         .set('Authorization', 'Bearer valid-token')
       expect(response.status).toBe(200)
+      expect(response.body.success).toBe(true)
     })
   })
 
@@ -112,7 +113,8 @@ describe('Upload endpoints', () => {
         .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
-      expect(response.body).toHaveProperty('uploadId')
+      expect(response.body.success).toBe(true)
+      expect(response.body.data).toHaveProperty('uploadId')
     })
   })
 
@@ -135,9 +137,10 @@ describe('Upload endpoints', () => {
       const response = await request(app)
         .post('/api/dev/upload/start')
         .set('Authorization', 'Bearer valid-token')
-      expect(response.body).toHaveProperty('uploadId')
-      expect(typeof response.body.uploadId).toBe('string')
-      expect(response.body.uploadId.length).toBeGreaterThan(0)
+      expect(response.body.success).toBe(true)
+      expect(response.body.data).toHaveProperty('uploadId')
+      expect(typeof response.body.data.uploadId).toBe('string')
+      expect(response.body.data.uploadId.length).toBeGreaterThan(0)
     })
   })
 
@@ -154,7 +157,7 @@ describe('Upload endpoints', () => {
       const startResponse = await request(app)
         .post('/api/dev/upload/start')
         .set('Authorization', 'Bearer valid-token')
-      const { uploadId } = startResponse.body
+      const { uploadId } = startResponse.body.data
 
       const response = await request(app)
         .post(`/api/dev/upload/${uploadId}/chunk`)
@@ -169,7 +172,7 @@ describe('Upload endpoints', () => {
       const startResponse = await request(app)
         .post('/api/dev/upload/start')
         .set('Authorization', 'Bearer valid-token')
-      const { uploadId } = startResponse.body
+      const { uploadId } = startResponse.body.data
 
       const response = await request(app)
         .post(`/api/dev/upload/${uploadId}/chunk`)
@@ -185,7 +188,7 @@ describe('Upload endpoints', () => {
       const startResponse = await request(app)
         .post('/api/dev/upload/start')
         .set('Authorization', 'Bearer valid-token')
-      const { uploadId } = startResponse.body
+      const { uploadId } = startResponse.body.data
 
       await request(app)
         .post(`/api/dev/upload/${uploadId}/chunk`)
@@ -215,7 +218,7 @@ describe('Upload endpoints', () => {
       const startResponse = await request(app)
         .post('/api/dev/upload/start')
         .set('Authorization', 'Bearer valid-token')
-      const { uploadId } = startResponse.body
+      const { uploadId } = startResponse.body.data
 
       // Upload a chunk
       await request(app)
@@ -240,7 +243,7 @@ describe('Upload endpoints', () => {
       const startResponse = await request(app)
         .post('/api/dev/upload/start')
         .set('Authorization', 'Bearer valid-token')
-      const { uploadId } = startResponse.body
+      const { uploadId } = startResponse.body.data
 
       await request(app)
         .post(`/api/dev/upload/${uploadId}/chunk`)
@@ -258,16 +261,16 @@ describe('Upload endpoints', () => {
         })
 
       expect(response.body.success).toBe(true)
-      expect(response.body.fileId).toBeTruthy()
-      expect(response.body.path).toContain('uploads')
-      expect(response.body.size).toBeGreaterThan(0)
+      expect(response.body.data.fileId).toBeTruthy()
+      expect(response.body.data.path).toContain('uploads')
+      expect(response.body.data.size).toBeGreaterThan(0)
     })
 
     it('merges multiple chunks in order', async () => {
       const startResponse = await request(app)
         .post('/api/dev/upload/start')
         .set('Authorization', 'Bearer valid-token')
-      const { uploadId } = startResponse.body
+      const { uploadId } = startResponse.body.data
 
       // Upload chunks out of order
       await request(app)
@@ -292,7 +295,7 @@ describe('Upload endpoints', () => {
         })
 
       // Read the merged file and verify order
-      const content = await fs.readFile(response.body.path, 'utf-8')
+      const content = await fs.readFile(response.body.data.path, 'utf-8')
       expect(content).toBe('FIRSTSECOND')
     })
 
@@ -300,7 +303,7 @@ describe('Upload endpoints', () => {
       const startResponse = await request(app)
         .post('/api/dev/upload/start')
         .set('Authorization', 'Bearer valid-token')
-      const { uploadId } = startResponse.body
+      const { uploadId } = startResponse.body.data
 
       await request(app)
         .post(`/api/dev/upload/${uploadId}/chunk`)
@@ -330,7 +333,7 @@ describe('Upload endpoints', () => {
       const startResponse = await request(app)
         .post('/api/dev/upload/start')
         .set('Authorization', 'Bearer valid-token')
-      const { uploadId } = startResponse.body
+      const { uploadId } = startResponse.body.data
 
       await request(app)
         .post(`/api/dev/upload/${uploadId}/chunk`)

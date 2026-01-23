@@ -289,7 +289,7 @@ tasks:
       - Mounted in recordings/index.ts
     depends_on: [3]
     effort: 2
-    status: scoped
+    status: completed
 
   - id: 9
     github_issue: 125
@@ -306,7 +306,7 @@ tasks:
       - All recording tests pass
     depends_on: [4, 5, 6, 7, 8]
     effort: 1
-    status: scoped
+    status: completed
 
   # Milestone 3: Upload Routes Refactor
   - id: 10
@@ -329,7 +329,7 @@ tasks:
       - Import updated in app.ts
     depends_on: [1, 2]
     effort: 2
-    status: scoped
+    status: completed
 
   - id: 11
     github_issue: 127
@@ -351,7 +351,7 @@ tasks:
       - Mounted in upload/index.ts
     depends_on: [10]
     effort: 1
-    status: scoped
+    status: completed
 
   - id: 12
     github_issue: 128
@@ -372,7 +372,7 @@ tasks:
       - Mounted in upload/index.ts
     depends_on: [10]
     effort: 2
-    status: scoped
+    status: completed
 
   - id: 13
     github_issue: 129
@@ -393,7 +393,7 @@ tasks:
       - Returns { success: true, data: { fileId, path, size } }
     depends_on: [10]
     effort: 3
-    status: scoped
+    status: completed
 
   - id: 14
     github_issue: 130
@@ -410,4 +410,4 @@ tasks:
       - All upload tests pass
     depends_on: [11, 12, 13]
     effort: 1
-    status: scoped
+    status: completed
