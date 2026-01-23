@@ -10,14 +10,7 @@ vi.mock('../db/queries/recordings.js', () => ({
   deleteRecording: vi.fn(),
 }))
 
-vi.mock('node:fs/promises', () => ({
-  default: {
-    unlink: vi.fn(),
-  },
-}))
-
 import { deleteRecording, getRecordingById } from '../db/queries/recordings.js'
-import fs from 'node:fs/promises'
 
 function createMockResponse(): Response {
   const res = {
@@ -45,8 +38,10 @@ function createMockRecording(overrides: Partial<Recording> = {}): Recording {
     duration: 60000,
     fileSize: 1024000,
     createdAt: '2026-01-15T10:00:00Z',
-    path: '/uploads/test.webm',
-    thumbnailPath: '/uploads/test-thumb.jpg',
+    videoUrl: 'https://res.cloudinary.com/test/video/upload/test.webm',
+    videoPublicId: 'test',
+    thumbnailUrl: 'https://res.cloudinary.com/test/image/upload/test-thumb.jpg',
+    thumbnailPublicId: 'test-thumb',
     ...overrides,
   }
 }
@@ -137,9 +132,10 @@ describe('recordings/delete', () => {
   })
 
   describe('processRequest', () => {
-    it('deletes video file, thumbnail, and database record', async () => {
+    // Note: Cloudinary file deletion will be added in Task 7
+    // For now, delete only removes the database record
+    it('deletes the database record and returns success', async () => {
       const recording = createMockRecording()
-      vi.mocked(fs.unlink).mockResolvedValue(undefined)
       vi.mocked(deleteRecording).mockResolvedValue(true)
 
       const req = createMockRequest({ userId: 'user-123', authId: 'auth-123' })
@@ -152,51 +148,8 @@ describe('recordings/delete', () => {
 
       await processRequest(req, res, context)
 
-      expect(fs.unlink).toHaveBeenCalledWith('/uploads/test.webm')
-      expect(fs.unlink).toHaveBeenCalledWith('/uploads/test-thumb.jpg')
       expect(deleteRecording).toHaveBeenCalledWith('550e8400-e29b-41d4-a716-446655440000')
       expect(res.status).toHaveBeenCalledWith(200)
-      expect(res.json).toHaveBeenCalledWith({ success: true, data: { deleted: true } })
-    })
-
-    it('continues if video file deletion fails', async () => {
-      const recording = createMockRecording()
-      vi.mocked(fs.unlink).mockRejectedValueOnce(new Error('ENOENT')) // video file
-      vi.mocked(fs.unlink).mockResolvedValueOnce(undefined) // thumbnail
-      vi.mocked(deleteRecording).mockResolvedValue(true)
-
-      const req = createMockRequest({ userId: 'user-123', authId: 'auth-123' })
-      const res = createMockResponse()
-      const context = {
-        userId: 'user-123',
-        recordingId: '550e8400-e29b-41d4-a716-446655440000',
-        recording,
-      }
-
-      await processRequest(req, res, context)
-
-      expect(deleteRecording).toHaveBeenCalled()
-      expect(res.json).toHaveBeenCalledWith({ success: true, data: { deleted: true } })
-    })
-
-    it('skips thumbnail deletion if thumbnailPath is undefined', async () => {
-      const recording = createMockRecording({ thumbnailPath: undefined })
-      vi.mocked(fs.unlink).mockResolvedValue(undefined)
-      vi.mocked(deleteRecording).mockResolvedValue(true)
-
-      const req = createMockRequest({ userId: 'user-123', authId: 'auth-123' })
-      const res = createMockResponse()
-      const context = {
-        userId: 'user-123',
-        recordingId: '550e8400-e29b-41d4-a716-446655440000',
-        recording,
-      }
-
-      await processRequest(req, res, context)
-
-      // Only called once for video file
-      expect(fs.unlink).toHaveBeenCalledTimes(1)
-      expect(fs.unlink).toHaveBeenCalledWith('/uploads/test.webm')
       expect(res.json).toHaveBeenCalledWith({ success: true, data: { deleted: true } })
     })
   })

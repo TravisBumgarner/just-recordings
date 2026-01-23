@@ -8,8 +8,10 @@ export const recordingSchema = z.object({
   duration: z.number(),
   fileSize: z.number(),
   createdAt: z.string(),
-  path: z.string(),
-  thumbnailPath: z.string().optional(),
+  videoUrl: z.string(),
+  videoPublicId: z.string(),
+  thumbnailUrl: z.string().optional(),
+  thumbnailPublicId: z.string().optional(),
 })
 
 export type Recording = z.infer<typeof recordingSchema>

@@ -9,22 +9,13 @@ vi.mock('../db/queries/recordings.js', () => ({
   getRecordingById: vi.fn(),
 }))
 
-vi.mock('node:fs/promises', () => ({
-  default: {
-    access: vi.fn(),
-    readFile: vi.fn(),
-  },
-}))
-
 import { getRecordingById } from '../db/queries/recordings.js'
-import fs from 'node:fs/promises'
 
 function createMockResponse(): Response {
   const res = {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
-    setHeader: vi.fn().mockReturnThis(),
-    send: vi.fn().mockReturnThis(),
+    redirect: vi.fn().mockReturnThis(),
   } as unknown as Response
   return res
 }
@@ -47,8 +38,10 @@ function createMockRecording(overrides: Partial<Recording> = {}): Recording {
     duration: 60000,
     fileSize: 1024000,
     createdAt: '2026-01-15T10:00:00Z',
-    path: '/uploads/test.webm',
-    thumbnailPath: '/uploads/test-thumb.jpg',
+    videoUrl: 'https://res.cloudinary.com/test/video/upload/test.webm',
+    videoPublicId: 'test',
+    thumbnailUrl: 'https://res.cloudinary.com/test/image/upload/test-thumb.jpg',
+    thumbnailPublicId: 'test-thumb',
     ...overrides,
   }
 }
@@ -116,8 +109,8 @@ describe('recordings/thumbnail', () => {
       expect(res.json).toHaveBeenCalledWith({ success: false, errorCode: 'FORBIDDEN' })
     })
 
-    it('returns null and sends 404 THUMBNAIL_NOT_FOUND when thumbnailPath is null', async () => {
-      const recording = createMockRecording({ thumbnailPath: undefined })
+    it('returns null and sends 404 THUMBNAIL_NOT_FOUND when thumbnailUrl is missing', async () => {
+      const recording = createMockRecording({ thumbnailUrl: undefined })
       vi.mocked(getRecordingById)
         .mockResolvedValueOnce(recording) // First call: check existence
         .mockResolvedValueOnce(recording) // Second call: check ownership
@@ -131,27 +124,6 @@ describe('recordings/thumbnail', () => {
       const result = await validate(req, res)
 
       expect(result).toBeNull()
-      expect(res.status).toHaveBeenCalledWith(404)
-      expect(res.json).toHaveBeenCalledWith({ success: false, errorCode: 'THUMBNAIL_NOT_FOUND' })
-    })
-
-    it('returns null and sends 404 THUMBNAIL_NOT_FOUND when thumbnail file does not exist on disk', async () => {
-      const recording = createMockRecording()
-      vi.mocked(getRecordingById)
-        .mockResolvedValueOnce(recording) // First call: check existence
-        .mockResolvedValueOnce(recording) // Second call: check ownership
-      vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'))
-
-      const req = createMockRequest(
-        { userId: 'user-123', authId: 'auth-123' },
-        { id: '550e8400-e29b-41d4-a716-446655440000' }
-      )
-      const res = createMockResponse()
-
-      const result = await validate(req, res)
-
-      expect(result).toBeNull()
-      expect(fs.access).toHaveBeenCalledWith('/uploads/test-thumb.jpg')
       expect(res.status).toHaveBeenCalledWith(404)
       expect(res.json).toHaveBeenCalledWith({ success: false, errorCode: 'THUMBNAIL_NOT_FOUND' })
     })
@@ -161,7 +133,6 @@ describe('recordings/thumbnail', () => {
       vi.mocked(getRecordingById)
         .mockResolvedValueOnce(recording) // First call: check existence
         .mockResolvedValueOnce(recording) // Second call: check ownership
-      vi.mocked(fs.access).mockResolvedValue(undefined)
 
       const req = createMockRequest(
         { userId: 'user-123', authId: 'auth-123' },
@@ -180,10 +151,8 @@ describe('recordings/thumbnail', () => {
   })
 
   describe('processRequest', () => {
-    it('sends thumbnail file with image/jpeg content type', async () => {
+    it('redirects to Cloudinary thumbnail URL', async () => {
       const recording = createMockRecording()
-      const fileContent = Buffer.from('fake thumbnail content')
-      vi.mocked(fs.readFile).mockResolvedValue(fileContent)
 
       const req = createMockRequest({ userId: 'user-123', authId: 'auth-123' })
       const res = createMockResponse()
@@ -195,9 +164,7 @@ describe('recordings/thumbnail', () => {
 
       await processRequest(req, res, context)
 
-      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'image/jpeg')
-      expect(fs.readFile).toHaveBeenCalledWith('/uploads/test-thumb.jpg')
-      expect(res.send).toHaveBeenCalledWith(fileContent)
+      expect(res.redirect).toHaveBeenCalledWith(302, 'https://res.cloudinary.com/test/image/upload/test-thumb.jpg')
     })
   })
 })

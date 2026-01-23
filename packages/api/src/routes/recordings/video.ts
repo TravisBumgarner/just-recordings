@@ -1,6 +1,5 @@
 import type { Recording } from '@just-recordings/shared'
 import type { Response } from 'express'
-import fs from 'node:fs/promises'
 import { getRecordingById } from '../../db/queries/recordings.js'
 import type { AuthenticatedRequest } from '../../middleware/auth.js'
 import { requireUserId } from '../shared/auth.js'
@@ -43,10 +42,10 @@ export async function validate(
     return null
   }
 
-  // Check if video file exists on disk
-  try {
-    await fs.access(ownedRecording.path)
-  } catch {
+  // Check if video URL exists
+  // Note: In the future, this will redirect to Cloudinary URL
+  // For now, we just check the URL exists
+  if (!ownedRecording.videoUrl) {
     sendNotFound(res, 'FILE_NOT_FOUND')
     return null
   }
@@ -63,9 +62,8 @@ export async function processRequest(
   res: Response,
   context: VideoValidationContext
 ): Promise<void> {
-  res.setHeader('Content-Type', context.recording.mimeType)
-  const fileContent = await fs.readFile(context.recording.path)
-  res.send(fileContent)
+  // Redirect to Cloudinary URL
+  res.redirect(302, context.recording.videoUrl)
 }
 
 export async function handler(req: AuthenticatedRequest, res: Response): Promise<void> {

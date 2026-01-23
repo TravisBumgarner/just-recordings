@@ -9,22 +9,13 @@ vi.mock('../db/queries/recordings.js', () => ({
   getRecordingById: vi.fn(),
 }))
 
-vi.mock('node:fs/promises', () => ({
-  default: {
-    access: vi.fn(),
-    readFile: vi.fn(),
-  },
-}))
-
 import { getRecordingById } from '../db/queries/recordings.js'
-import fs from 'node:fs/promises'
 
 function createMockResponse(): Response {
   const res = {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
-    setHeader: vi.fn().mockReturnThis(),
-    send: vi.fn().mockReturnThis(),
+    redirect: vi.fn().mockReturnThis(),
   } as unknown as Response
   return res
 }
@@ -47,7 +38,8 @@ function createMockRecording(overrides: Partial<Recording> = {}): Recording {
     duration: 60000,
     fileSize: 1024000,
     createdAt: '2026-01-15T10:00:00Z',
-    path: '/uploads/test.webm',
+    videoUrl: 'https://res.cloudinary.com/test/video/upload/test.webm',
+    videoPublicId: 'test',
     ...overrides,
   }
 }
@@ -115,12 +107,11 @@ describe('recordings/video', () => {
       expect(res.json).toHaveBeenCalledWith({ success: false, errorCode: 'FORBIDDEN' })
     })
 
-    it('returns null and sends 404 FILE_NOT_FOUND when video file does not exist on disk', async () => {
-      const recording = createMockRecording()
+    it('returns null and sends 404 FILE_NOT_FOUND when videoUrl is missing', async () => {
+      const recording = createMockRecording({ videoUrl: undefined as unknown as string })
       vi.mocked(getRecordingById)
         .mockResolvedValueOnce(recording) // First call: check existence
         .mockResolvedValueOnce(recording) // Second call: check ownership
-      vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'))
 
       const req = createMockRequest(
         { userId: 'user-123', authId: 'auth-123' },
@@ -131,7 +122,6 @@ describe('recordings/video', () => {
       const result = await validate(req, res)
 
       expect(result).toBeNull()
-      expect(fs.access).toHaveBeenCalledWith('/uploads/test.webm')
       expect(res.status).toHaveBeenCalledWith(404)
       expect(res.json).toHaveBeenCalledWith({ success: false, errorCode: 'FILE_NOT_FOUND' })
     })
@@ -141,7 +131,6 @@ describe('recordings/video', () => {
       vi.mocked(getRecordingById)
         .mockResolvedValueOnce(recording) // First call: check existence
         .mockResolvedValueOnce(recording) // Second call: check ownership
-      vi.mocked(fs.access).mockResolvedValue(undefined)
 
       const req = createMockRequest(
         { userId: 'user-123', authId: 'auth-123' },
@@ -160,10 +149,8 @@ describe('recordings/video', () => {
   })
 
   describe('processRequest', () => {
-    it('sends video file with correct content type', async () => {
-      const recording = createMockRecording({ mimeType: 'video/webm' })
-      const fileContent = Buffer.from('fake video content')
-      vi.mocked(fs.readFile).mockResolvedValue(fileContent)
+    it('redirects to Cloudinary video URL', async () => {
+      const recording = createMockRecording()
 
       const req = createMockRequest({ userId: 'user-123', authId: 'auth-123' })
       const res = createMockResponse()
@@ -175,9 +162,7 @@ describe('recordings/video', () => {
 
       await processRequest(req, res, context)
 
-      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'video/webm')
-      expect(fs.readFile).toHaveBeenCalledWith('/uploads/test.webm')
-      expect(res.send).toHaveBeenCalledWith(fileContent)
+      expect(res.redirect).toHaveBeenCalledWith(302, 'https://res.cloudinary.com/test/video/upload/test.webm')
     })
   })
 })

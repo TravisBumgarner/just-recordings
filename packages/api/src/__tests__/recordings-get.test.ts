@@ -37,7 +37,8 @@ function createMockRecording(overrides: Partial<Recording> = {}): Recording {
     duration: 60000,
     fileSize: 1024000,
     createdAt: '2026-01-15T10:00:00Z',
-    path: '/uploads/test.webm',
+    videoUrl: 'https://res.cloudinary.com/test/video/upload/test.webm',
+    videoPublicId: 'test',
     ...overrides,
   }
 }

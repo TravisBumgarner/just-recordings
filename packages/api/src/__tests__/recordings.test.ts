@@ -1,9 +1,5 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
 import request from 'supertest'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-
-const UPLOADS_DIR = 'uploads'
 
 // Mock the supabase lib for auth
 vi.mock('../lib/supabase.js', () => ({
@@ -74,19 +70,19 @@ async function createTestRecording(
     duration: number
     fileSize: number
     createdAt: string
-    thumbnailPath?: string
+    thumbnailUrl?: string
+    thumbnailPublicId?: string
     userId?: string
   },
 ) {
-  await fs.mkdir(UPLOADS_DIR, { recursive: true })
-
-  // Write video file
-  const videoPath = path.join(UPLOADS_DIR, `${id}.webm`)
-  await fs.writeFile(videoPath, Buffer.from('fake video content'))
+  // Create mock Cloudinary URLs
+  const videoUrl = `https://res.cloudinary.com/test/video/upload/${id}.webm`
+  const videoPublicId = id
 
   const recording = {
     id,
-    path: videoPath,
+    videoUrl,
+    videoPublicId,
     ...metadata,
   }
 
@@ -96,19 +92,14 @@ async function createTestRecording(
   return recording
 }
 
-// Helper to clean up test files
-async function cleanupTestFiles() {
-  try {
-    await fs.rm(UPLOADS_DIR, { recursive: true, force: true })
-  } catch {
-    // Ignore errors
-  }
+// Helper to clean up test data
+function cleanupTestData() {
   mockRepo._resetMock()
 }
 
 describe('Recordings endpoints', () => {
   beforeEach(async () => {
-    await cleanupTestFiles()
+    await cleanupTestData()
     // Default to authenticated user
     mockGetUser.mockResolvedValue({
       data: { user: { id: 'test-user-id', email: 'test@example.com' } },
@@ -117,7 +108,7 @@ describe('Recordings endpoints', () => {
   })
 
   afterEach(async () => {
-    await cleanupTestFiles()
+    await cleanupTestData()
     mockGetUser.mockReset()
   })
 
@@ -311,8 +302,9 @@ describe('Recordings endpoints', () => {
       expect(response.body).toEqual({ success: false, errorCode: 'RECORDING_NOT_FOUND' })
     })
 
-    it('serves video file with correct content type', async () => {
-      await createTestRecording('550e8400-e29b-41d4-a716-446655440011', {
+    it('redirects to Cloudinary video URL', async () => {
+      const recordingId = '550e8400-e29b-41d4-a716-446655440011'
+      await createTestRecording(recordingId, {
         name: 'Video Test',
         mimeType: 'video/webm',
         duration: 60000,
@@ -322,29 +314,14 @@ describe('Recordings endpoints', () => {
       })
 
       const response = await request(app)
-        .get('/api/recordings/550e8400-e29b-41d4-a716-446655440011/video')
+        .get(`/api/recordings/${recordingId}/video`)
         .set('Authorization', 'Bearer valid-token')
+        .redirects(0)
 
-      expect(response.status).toBe(200)
-      expect(response.headers['content-type']).toContain('video/webm')
-    })
-
-    it('returns video file content', async () => {
-      await createTestRecording('550e8400-e29b-41d4-a716-446655440012', {
-        name: 'Video Content',
-        mimeType: 'video/webm',
-        duration: 60000,
-        fileSize: 1024,
-        createdAt: '2026-01-18T12:00:00Z',
-        userId: 'test-user-id',
-      })
-
-      const response = await request(app)
-        .get('/api/recordings/550e8400-e29b-41d4-a716-446655440012/video')
-        .set('Authorization', 'Bearer valid-token')
-        .buffer()
-
-      expect(response.body.toString()).toBe('fake video content')
+      expect(response.status).toBe(302)
+      expect(response.headers.location).toBe(
+        `https://res.cloudinary.com/test/video/upload/${recordingId}.webm`
+      )
     })
 
     it('returns 403 FORBIDDEN for video of recording not owned by user', async () => {
@@ -403,26 +380,8 @@ describe('Recordings endpoints', () => {
       expect(response.body).toEqual({ success: true, data: { deleted: true } })
     })
 
-    it('removes video file from disk', async () => {
-      const recording = await createTestRecording('550e8400-e29b-41d4-a716-446655440022', {
-        name: 'Delete File',
-        mimeType: 'video/webm',
-        duration: 60000,
-        fileSize: 1024,
-        createdAt: '2026-01-18T12:00:00Z',
-        userId: 'test-user-id',
-      })
-
-      await request(app)
-        .delete('/api/recordings/550e8400-e29b-41d4-a716-446655440022')
-        .set('Authorization', 'Bearer valid-token')
-
-      const exists = await fs
-        .access(recording.path)
-        .then(() => true)
-        .catch(() => false)
-      expect(exists).toBe(false)
-    })
+    // Note: Cloudinary file deletion is handled in Task 7
+    // This test verifies the database record is deleted (covered below)
 
     it('removes recording from database', async () => {
       await createTestRecording('550e8400-e29b-41d4-a716-446655440023', {
