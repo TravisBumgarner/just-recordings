@@ -11,6 +11,8 @@
     "dev:all": "docker-compose up -d && concurrently -n api,web,desktop -c blue,green,yellow \"npm run dev -w @just-recordings/api\" \"npm run dev -w @just-recordings/web\" \"npm run dev -w @just-recordings/desktop\"",
     "build": "npm run build --workspaces --if-present",
     "build:desktop": "npm run build -w @just-recordings/web && npm run build -w @just-recordings/desktop",
+    "build:heroku": "npm run build -w @just-recordings/shared && npm run build -w @just-recordings/web && npm run build -w @just-recordings/api",
+    "heroku-postbuild": "npm run build:heroku",
     "test": "npm run test --workspaces --if-present",
     "test:watch": "concurrently -n api,desktop,recorder,shared,web -c blue,green,yellow,magenta,cyan \"npm run test:watch -w @just-recordings/api\" \"npm run test:watch -w @just-recordings/desktop\" \"npm run test:watch -w @just-recordings/recorder\" \"npm run test:watch -w @just-recordings/shared\" \"npm run test:watch -w @just-recordings/web\"",
     "db:up": "docker-compose up -d",
@@ -30,6 +32,6 @@
     "lint-staged": "^16.2.7"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "22.x"
   }
 }

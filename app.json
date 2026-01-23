@@ -1,0 +1,46 @@
+{
+  "name": "just-recordings",
+  "description": "A simple screen recording application",
+  "repository": "https://github.com/travisbumgarner/just-recordings",
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "addons": [
+    {
+      "plan": "heroku-postgresql:essential-0"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "value": "production"
+    },
+    "SUPABASE_URL": {
+      "description": "Supabase project URL for authentication",
+      "required": true
+    },
+    "SUPABASE_ANON_KEY": {
+      "description": "Supabase anonymous key for authentication",
+      "required": true
+    },
+    "CLOUDINARY_CLOUD_NAME": {
+      "description": "Cloudinary cloud name for video storage",
+      "required": true
+    },
+    "CLOUDINARY_API_KEY": {
+      "description": "Cloudinary API key",
+      "required": true
+    },
+    "CLOUDINARY_API_SECRET": {
+      "description": "Cloudinary API secret",
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  }
+}
