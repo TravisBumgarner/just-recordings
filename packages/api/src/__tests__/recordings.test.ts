@@ -10,6 +10,19 @@ vi.mock('../lib/supabase.js', () => ({
   },
 }))
 
+// Mock Cloudinary config for delete operations
+vi.mock('../config.js', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../config.js')>()
+  return {
+    ...original,
+    getCloudinary: vi.fn(() => ({
+      uploader: {
+        destroy: vi.fn().mockResolvedValue({ result: 'ok' }),
+      },
+    })),
+  }
+})
+
 // Mock the user database queries module
 // Note: The mock returns id: 'test-user-id' to match the userId used in test recordings
 vi.mock('../db/queries/users.js', () => ({

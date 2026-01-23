@@ -10,7 +10,12 @@ vi.mock('../db/queries/recordings.js', () => ({
   deleteRecording: vi.fn(),
 }))
 
+vi.mock('../config.js', () => ({
+  getCloudinary: vi.fn(),
+}))
+
 import { deleteRecording, getRecordingById } from '../db/queries/recordings.js'
+import { getCloudinary } from '../config.js'
 
 function createMockResponse(): Response {
   const res = {
@@ -38,10 +43,10 @@ function createMockRecording(overrides: Partial<Recording> = {}): Recording {
     duration: 60000,
     fileSize: 1024000,
     createdAt: '2026-01-15T10:00:00Z',
-    videoUrl: 'https://res.cloudinary.com/test/video/upload/test.webm',
-    videoPublicId: 'test',
-    thumbnailUrl: 'https://res.cloudinary.com/test/image/upload/test-thumb.jpg',
-    thumbnailPublicId: 'test-thumb',
+    videoUrl: 'https://res.cloudinary.com/test/video/upload/recordings/test-video',
+    videoPublicId: 'recordings/test-video',
+    thumbnailUrl: 'https://res.cloudinary.com/test/image/upload/recordings/test-video.jpg',
+    thumbnailPublicId: 'recordings/test-video',
     ...overrides,
   }
 }
@@ -132,12 +137,41 @@ describe('recordings/delete', () => {
   })
 
   describe('processRequest', () => {
-    // Note: Cloudinary file deletion will be added in Task 7
-    // For now, delete only removes the database record
-    it('deletes the database record and returns success', async () => {
-      const recording = createMockRecording()
+    it('deletes the video from Cloudinary using videoPublicId', async () => {
+      const mockDestroy = vi.fn().mockResolvedValue({ result: 'ok' })
+      const mockCloudinary = {
+        uploader: {
+          destroy: mockDestroy,
+        },
+      }
+      vi.mocked(getCloudinary).mockReturnValue(mockCloudinary as any)
       vi.mocked(deleteRecording).mockResolvedValue(true)
 
+      const recording = createMockRecording()
+      const req = createMockRequest({ userId: 'user-123', authId: 'auth-123' })
+      const res = createMockResponse()
+      const context = {
+        userId: 'user-123',
+        recordingId: '550e8400-e29b-41d4-a716-446655440000',
+        recording,
+      }
+
+      await processRequest(req, res, context)
+
+      expect(mockDestroy).toHaveBeenCalledWith('recordings/test-video', { resource_type: 'video' })
+    })
+
+    it('deletes the database record after Cloudinary deletion', async () => {
+      const mockDestroy = vi.fn().mockResolvedValue({ result: 'ok' })
+      const mockCloudinary = {
+        uploader: {
+          destroy: mockDestroy,
+        },
+      }
+      vi.mocked(getCloudinary).mockReturnValue(mockCloudinary as any)
+      vi.mocked(deleteRecording).mockResolvedValue(true)
+
+      const recording = createMockRecording()
       const req = createMockRequest({ userId: 'user-123', authId: 'auth-123' })
       const res = createMockResponse()
       const context = {
@@ -149,6 +183,29 @@ describe('recordings/delete', () => {
       await processRequest(req, res, context)
 
       expect(deleteRecording).toHaveBeenCalledWith('550e8400-e29b-41d4-a716-446655440000')
+    })
+
+    it('returns success response after deletion', async () => {
+      const mockDestroy = vi.fn().mockResolvedValue({ result: 'ok' })
+      const mockCloudinary = {
+        uploader: {
+          destroy: mockDestroy,
+        },
+      }
+      vi.mocked(getCloudinary).mockReturnValue(mockCloudinary as any)
+      vi.mocked(deleteRecording).mockResolvedValue(true)
+
+      const recording = createMockRecording()
+      const req = createMockRequest({ userId: 'user-123', authId: 'auth-123' })
+      const res = createMockResponse()
+      const context = {
+        userId: 'user-123',
+        recordingId: '550e8400-e29b-41d4-a716-446655440000',
+        recording,
+      }
+
+      await processRequest(req, res, context)
+
       expect(res.status).toHaveBeenCalledWith(200)
       expect(res.json).toHaveBeenCalledWith({ success: true, data: { deleted: true } })
     })

@@ -1,5 +1,6 @@
 import type { Recording } from '@just-recordings/shared'
 import type { Response } from 'express'
+import { getCloudinary } from '../../config.js'
 import { deleteRecording, getRecordingById } from '../../db/queries/recordings.js'
 import type { AuthenticatedRequest } from '../../middleware/auth.js'
 import { requireUserId } from '../shared/auth.js'
@@ -54,10 +55,11 @@ export async function processRequest(
   res: Response,
   context: DeleteValidationContext
 ): Promise<void> {
-  const { recordingId } = context
+  const { recordingId, recording } = context
 
-  // Note: Cloudinary file deletion will be added in Task 7
-  // For now, just remove from database
+  // Delete video from Cloudinary
+  const cloudinary = getCloudinary()
+  await cloudinary.uploader.destroy(recording.videoPublicId, { resource_type: 'video' })
 
   // Remove from database
   await deleteRecording(recordingId)
