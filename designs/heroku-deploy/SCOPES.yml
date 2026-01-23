@@ -69,7 +69,7 @@ tasks:
       - Query functions updated to use new column names
     depends_on: []
     effort: 2
-    status: implementing
+    status: completed
 
   # Milestone 2: Direct Cloudinary Upload Flow
   - id: 4
