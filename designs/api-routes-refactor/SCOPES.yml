@@ -181,7 +181,7 @@ tasks:
       - Existing tests continue to pass
     depends_on: [1, 2]
     effort: 1
-    status: scoped
+    status: completed
 
   - id: 4
     github_issue: 120

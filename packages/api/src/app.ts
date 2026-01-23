@@ -1,6 +1,6 @@
 import cors from 'cors'
 import express from 'express'
-import { recordingsRouter } from './routes/recordings.js'
+import { recordingsRouter } from './routes/recordings/index.js'
 import { uploadRouter } from './routes/upload.js'
 import { usersRouter } from './routes/users.js'
 
