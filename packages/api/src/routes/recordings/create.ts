@@ -22,6 +22,23 @@ export interface CreateRecordingResponse {
   createdAt: string
 }
 
+/**
+ * Validate Cloudinary public ID format.
+ * Valid public IDs:
+ * - Contain alphanumeric characters, underscores, hyphens, and forward slashes
+ * - Don't contain path traversal sequences (..)
+ * - Don't start or end with slashes
+ * - Are not empty
+ */
+function isValidCloudinaryPublicId(publicId: string): boolean {
+  if (!publicId || publicId.length === 0) return false
+  if (publicId.includes('..')) return false
+  if (publicId.startsWith('/') || publicId.endsWith('/')) return false
+  // Allow alphanumeric, underscore, hyphen, forward slash
+  const validPattern = /^[a-zA-Z0-9_\-/]+$/
+  return validPattern.test(publicId)
+}
+
 export async function validate(
   req: AuthenticatedRequest,
   res: Response
@@ -33,13 +50,19 @@ export async function validate(
   // Validate request body
   const { cloudinaryPublicId, cloudinaryUrl, filename, duration } = req.body
 
-  // Check required fields
+  // Check required fields and types
   if (
     typeof cloudinaryPublicId !== 'string' ||
     typeof cloudinaryUrl !== 'string' ||
     typeof filename !== 'string' ||
     typeof duration !== 'number'
   ) {
+    sendBadRequest(res)
+    return null
+  }
+
+  // Validate Cloudinary public ID format
+  if (!isValidCloudinaryPublicId(cloudinaryPublicId)) {
     sendBadRequest(res)
     return null
   }
