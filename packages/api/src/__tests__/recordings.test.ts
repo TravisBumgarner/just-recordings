@@ -171,7 +171,8 @@ describe('Recordings endpoints', () => {
         .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
-      expect(response.body.recordings).toEqual([])
+      expect(response.body.success).toBe(true)
+      expect(response.body.data.recordings).toEqual([])
     })
 
     it('returns list of recordings with metadata', async () => {
@@ -189,8 +190,9 @@ describe('Recordings endpoints', () => {
         .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
-      expect(response.body.recordings).toHaveLength(1)
-      expect(response.body.recordings[0]).toMatchObject({
+      expect(response.body.success).toBe(true)
+      expect(response.body.data.recordings).toHaveLength(1)
+      expect(response.body.data.recordings[0]).toMatchObject({
         id: 'test-id-1',
         name: 'Recording 1',
         duration: 60000,
@@ -221,8 +223,9 @@ describe('Recordings endpoints', () => {
         .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
-      expect(response.body.recordings).toHaveLength(1)
-      expect(response.body.recordings[0].id).toBe('my-recording')
+      expect(response.body.success).toBe(true)
+      expect(response.body.data.recordings).toHaveLength(1)
+      expect(response.body.data.recordings[0].id).toBe('my-recording')
     })
   })
 
@@ -408,7 +411,7 @@ describe('Recordings endpoints', () => {
       const listResponse = await request(app)
         .get('/api/recordings')
         .set('Authorization', 'Bearer valid-token')
-      expect(listResponse.body.recordings).toHaveLength(0)
+      expect(listResponse.body.data.recordings).toHaveLength(0)
     })
 
     it('returns 404 for recording not owned by user', async () => {
@@ -474,8 +477,8 @@ describe('Recordings endpoints', () => {
         .get('/api/recordings')
         .set('Authorization', 'Bearer valid-token')
 
-      expect(listResponse.body.recordings).toHaveLength(1)
-      expect(listResponse.body.recordings[0]).toMatchObject({
+      expect(listResponse.body.data.recordings).toHaveLength(1)
+      expect(listResponse.body.data.recordings[0]).toMatchObject({
         id: finalizeResponse.body.fileId,
         name: 'My Recording',
         mimeType: 'video/webm',

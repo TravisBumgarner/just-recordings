@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises'
 import { type Response, Router } from 'express'
-import { deleteRecording, getAllRecordings, getRecordingById } from '../../db/queries/recordings.js'
+import { deleteRecording, getRecordingById } from '../../db/queries/recordings.js'
 import { type AuthenticatedRequest, requireAuth } from '../../middleware/auth.js'
+import { validate as listValidate, processRequest as listProcessRequest } from './list.js'
 
 const router = Router()
 
@@ -10,9 +11,9 @@ router.use(requireAuth)
 
 // GET /api/recordings - List all recordings for authenticated user
 router.get('/', async (req: AuthenticatedRequest, res: Response) => {
-  const userId = req.user?.userId
-  const recordings = await getAllRecordings(userId)
-  res.json({ recordings })
+  const context = listValidate(req, res)
+  if (!context) return
+  await listProcessRequest(req, res, context)
 })
 
 // GET /api/recordings/:id - Get single recording metadata (owned by user)

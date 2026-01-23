@@ -1,0 +1,27 @@
+import type { Response } from 'express'
+import { getAllRecordings } from '../../db/queries/recordings.js'
+import type { AuthenticatedRequest } from '../../middleware/auth.js'
+import { requireUserId } from '../shared/auth.js'
+import { sendSuccess } from '../shared/responses.js'
+
+export interface ListValidationContext {
+  userId: string
+}
+
+export function validate(
+  req: AuthenticatedRequest,
+  res: Response
+): ListValidationContext | null {
+  const auth = requireUserId(req, res)
+  if (!auth) return null
+  return { userId: auth.userId }
+}
+
+export async function processRequest(
+  _req: AuthenticatedRequest,
+  res: Response,
+  context: ListValidationContext
+): Promise<void> {
+  const recordings = await getAllRecordings(context.userId)
+  sendSuccess(res, { recordings })
+}
