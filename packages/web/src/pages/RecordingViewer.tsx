@@ -11,10 +11,12 @@ import {
   DialogTitle,
   Typography,
 } from '@mui/material'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import PageWrapper from '@/styles/shared/PageWrapper'
-import { deleteRecording, getRecording, getVideoUrl } from '../api/recordings'
+import { deleteRecordingV2, getRecording, getVideoUrl } from '../api/recordings'
+import { ErrorAlert } from '../components/ErrorAlert'
+import { useApiError } from '../hooks/useApiError'
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000)
@@ -48,6 +50,7 @@ function RecordingViewerPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const { errorMessage, isOpen, handleResponse, clearError } = useApiError()
 
   useEffect(() => {
     const fetchRecording = async () => {
@@ -90,9 +93,12 @@ function RecordingViewerPage() {
 
   const handleDeleteConfirm = async () => {
     if (recording?.id) {
-      await deleteRecording(recording.id)
-      navigate('/')
+      const response = await deleteRecordingV2(recording.id)
+      if (handleResponse(response)) {
+        navigate('/')
+      }
     }
+    setDeleteDialogOpen(false)
   }
 
   if (loading) {
@@ -189,6 +195,8 @@ function RecordingViewerPage() {
             </Button>
           </DialogActions>
         </Dialog>
+
+        <ErrorAlert message={errorMessage} open={isOpen} onClose={clearError} />
       </Box>
     </PageWrapper>
   )

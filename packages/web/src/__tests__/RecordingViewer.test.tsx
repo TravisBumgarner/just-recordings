@@ -8,14 +8,14 @@ import RecordingViewerPage from '../pages/RecordingViewer'
 vi.mock('../api/recordings', () => ({
   getRecording: vi.fn(),
   getVideoUrl: vi.fn((id: string) => `/api/recordings/${id}/video`),
-  deleteRecording: vi.fn(),
+  deleteRecordingV2: vi.fn(),
 }))
 
-import { deleteRecording, getRecording, getVideoUrl } from '../api/recordings'
+import { deleteRecordingV2, getRecording, getVideoUrl } from '../api/recordings'
 
 const mockGetRecording = vi.mocked(getRecording)
 const mockGetVideoUrl = vi.mocked(getVideoUrl)
-const mockDeleteRecording = vi.mocked(deleteRecording)
+const mockDeleteRecording = vi.mocked(deleteRecordingV2)
 
 // Helper to create mock recording
 function createMockRecording(overrides: Partial<Recording> = {}): Recording {
@@ -222,7 +222,7 @@ describe('RecordingViewerPage', () => {
         success: true,
         recording: createMockRecording({ id: 'delete-test' }),
       })
-      mockDeleteRecording.mockResolvedValue({ success: true })
+      mockDeleteRecording.mockResolvedValue({ success: true, data: { deleted: true } })
 
       renderAtPath(<RecordingViewerPage />, '/recordings/:id', ['/recordings/delete-test'])
 
@@ -245,7 +245,7 @@ describe('RecordingViewerPage', () => {
 
     it('navigates to home after deletion', async () => {
       mockGetRecording.mockResolvedValue({ success: true, recording: createMockRecording() })
-      mockDeleteRecording.mockResolvedValue({ success: true })
+      mockDeleteRecording.mockResolvedValue({ success: true, data: { deleted: true } })
 
       renderAtPath(<RecordingViewerPage />, '/recordings/:id', ['/recordings/test-id'])
 

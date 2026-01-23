@@ -1,4 +1,5 @@
 import {
+  type ApiResponse,
   type DeleteRecordingResult,
   deleteRecordingResultSchema,
   type GetRecordingResult,
@@ -167,5 +168,49 @@ export const deleteRecording = async (id: string): Promise<DeleteRecordingResult
       success: false,
       message: error instanceof Error ? error.message : 'Network error',
     }
+  }
+}
+
+// New standardized API response format for delete
+export const deleteRecordingV2 = async (id: string): Promise<ApiResponse<{ deleted: true }>> => {
+  try {
+    const tokenResponse = await getToken()
+    if (!tokenResponse.success || !tokenResponse.token) {
+      return {
+        success: false,
+        errorCode: 'UNAUTHORIZED',
+      }
+    }
+
+    const response = await fetch(`${config.apiBaseUrl}/recordings/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${tokenResponse.token}`,
+      },
+    })
+
+    if (!response.ok) {
+      const json = await response.json().catch(() => ({}))
+      if (json.errorCode) {
+        return {
+          success: false,
+          errorCode: json.errorCode,
+        }
+      }
+      if (response.status === 401) {
+        return { success: false, errorCode: 'UNAUTHORIZED' }
+      }
+      if (response.status === 403) {
+        return { success: false, errorCode: 'FORBIDDEN' }
+      }
+      if (response.status === 404) {
+        return { success: false, errorCode: 'RECORDING_NOT_FOUND' }
+      }
+      return { success: false, errorCode: 'INTERNAL_ERROR' }
+    }
+
+    return { success: true, data: { deleted: true } }
+  } catch {
+    return { success: false, errorCode: 'INTERNAL_ERROR' }
   }
 }

@@ -1,3 +1,5 @@
+import { Alert, Snackbar } from '@mui/material'
+
 interface ErrorAlertProps {
   message: string | null
   open: boolean
@@ -5,6 +7,11 @@ interface ErrorAlertProps {
 }
 
 export function ErrorAlert({ message, open, onClose }: ErrorAlertProps) {
-  // Stub implementation
-  return null
+  return (
+    <Snackbar open={open} onClose={onClose}>
+      <Alert severity="error" onClose={onClose}>
+        {message}
+      </Alert>
+    </Snackbar>
+  )
 }
