@@ -247,7 +247,7 @@ tasks:
       - Mounted in recordings/index.ts
     depends_on: [3]
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 7
     github_issue: 123
