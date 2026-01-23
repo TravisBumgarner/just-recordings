@@ -73,7 +73,7 @@ tasks:
       - deleteByTag can mass-delete files
     depends_on: [1]
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 3
     github_issue: 147
