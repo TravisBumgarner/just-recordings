@@ -4,7 +4,6 @@ import express from 'express'
 import config from './config.js'
 import { cloudinaryRouter } from './routes/cloudinary/index.js'
 import { recordingsRouter } from './routes/recordings/index.js'
-import { uploadRouter } from './routes/upload/index.js'
 import { usersRouter } from './routes/users.js'
 
 const app = express()
@@ -19,7 +18,6 @@ app.get('/api/health', (_req, res) => {
 })
 
 app.use('/api/upload', cloudinaryRouter)
-app.use('/api/dev/upload', uploadRouter)
 app.use('/api/recordings', recordingsRouter)
 app.use('/api/users', usersRouter)
 
