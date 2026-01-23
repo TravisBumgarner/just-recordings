@@ -238,7 +238,7 @@ tasks:
       - Build scripts work for Heroku deployment
     depends_on: [9]
     effort: 2
-    status: implementing
+    status: completed
 
   - id: 11
     github_issue: 153
