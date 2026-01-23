@@ -1,30 +1,30 @@
 import type { Response } from 'express'
-import { type ErrorCode } from '@just-recordings/shared'
+import type { ErrorCode } from '@just-recordings/shared'
 
-export function sendSuccess<T>(_res: Response, _data: T, _status = 200): void {
-  // stub
+export function sendSuccess<T>(res: Response, data: T, status = 200): void {
+  res.status(status).json({ success: true, data })
 }
 
-export function sendError(_res: Response, _errorCode: ErrorCode, _status: number): void {
-  // stub
+export function sendError(res: Response, errorCode: ErrorCode, status: number): void {
+  res.status(status).json({ success: false, errorCode })
 }
 
-export function sendUnauthorized(_res: Response): void {
-  // stub
+export function sendUnauthorized(res: Response): void {
+  sendError(res, 'UNAUTHORIZED', 401)
 }
 
-export function sendForbidden(_res: Response): void {
-  // stub
+export function sendForbidden(res: Response): void {
+  sendError(res, 'FORBIDDEN', 403)
 }
 
-export function sendNotFound(_res: Response, _errorCode: ErrorCode = 'NOT_FOUND'): void {
-  // stub
+export function sendNotFound(res: Response, errorCode: ErrorCode = 'NOT_FOUND'): void {
+  sendError(res, errorCode, 404)
 }
 
-export function sendBadRequest(_res: Response, _errorCode: ErrorCode = 'INVALID_INPUT'): void {
-  // stub
+export function sendBadRequest(res: Response, errorCode: ErrorCode = 'INVALID_INPUT'): void {
+  sendError(res, errorCode, 400)
 }
 
-export function sendInternalError(_res: Response): void {
-  // stub
+export function sendInternalError(res: Response): void {
+  sendError(res, 'INTERNAL_ERROR', 500)
 }
