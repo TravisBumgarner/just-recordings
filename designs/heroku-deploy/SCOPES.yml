@@ -214,7 +214,7 @@ tasks:
       - Development mode unchanged
     depends_on: []
     effort: 2
-    status: scoped
+    status: testing
 
   - id: 10
     github_issue: 152
