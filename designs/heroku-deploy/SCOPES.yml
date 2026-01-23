@@ -147,7 +147,7 @@ tasks:
       - Registers completed upload with API
     depends_on: [4, 5]
     effort: 3
-    status: implementing
+    status: completed
 
   - id: 7
     github_issue: 159
