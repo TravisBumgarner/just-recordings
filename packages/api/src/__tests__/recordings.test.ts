@@ -230,17 +230,26 @@ describe('Recordings endpoints', () => {
   })
 
   describe('GET /api/recordings/:id', () => {
-    it('returns 404 when recording does not exist', async () => {
+    it('returns 400 INVALID_UUID when id is not a valid UUID', async () => {
       const response = await request(app)
-        .get('/api/recordings/nonexistent')
+        .get('/api/recordings/not-a-uuid')
+        .set('Authorization', 'Bearer valid-token')
+
+      expect(response.status).toBe(400)
+      expect(response.body).toEqual({ success: false, errorCode: 'INVALID_UUID' })
+    })
+
+    it('returns 404 RECORDING_NOT_FOUND when recording does not exist', async () => {
+      const response = await request(app)
+        .get('/api/recordings/550e8400-e29b-41d4-a716-446655440000')
         .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(404)
-      expect(response.body.error).toBe('Recording not found')
+      expect(response.body).toEqual({ success: false, errorCode: 'RECORDING_NOT_FOUND' })
     })
 
     it('returns recording metadata for owned recording', async () => {
-      await createTestRecording('test-id', {
+      await createTestRecording('550e8400-e29b-41d4-a716-446655440001', {
         name: 'Test Recording',
         mimeType: 'video/webm',
         duration: 90000,
@@ -250,12 +259,13 @@ describe('Recordings endpoints', () => {
       })
 
       const response = await request(app)
-        .get('/api/recordings/test-id')
+        .get('/api/recordings/550e8400-e29b-41d4-a716-446655440001')
         .set('Authorization', 'Bearer valid-token')
 
       expect(response.status).toBe(200)
-      expect(response.body).toMatchObject({
-        id: 'test-id',
+      expect(response.body.success).toBe(true)
+      expect(response.body.data).toMatchObject({
+        id: '550e8400-e29b-41d4-a716-446655440001',
         name: 'Test Recording',
         mimeType: 'video/webm',
         duration: 90000,
@@ -263,8 +273,8 @@ describe('Recordings endpoints', () => {
       })
     })
 
-    it('returns 404 for recording not owned by user', async () => {
-      await createTestRecording('other-user-recording', {
+    it('returns 403 FORBIDDEN for recording not owned by user', async () => {
+      await createTestRecording('550e8400-e29b-41d4-a716-446655440002', {
         name: 'Other User Recording',
         mimeType: 'video/webm',
         duration: 90000,
@@ -274,11 +284,11 @@ describe('Recordings endpoints', () => {
       })
 
       const response = await request(app)
-        .get('/api/recordings/other-user-recording')
+        .get('/api/recordings/550e8400-e29b-41d4-a716-446655440002')
         .set('Authorization', 'Bearer valid-token')
 
-      expect(response.status).toBe(404)
-      expect(response.body.error).toBe('Recording not found')
+      expect(response.status).toBe(403)
+      expect(response.body).toEqual({ success: false, errorCode: 'FORBIDDEN' })
     })
   })
 
