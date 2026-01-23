@@ -1,6 +1,9 @@
 import {
+  type ApiFailure,
+  type ApiResponse,
   type DeleteRecordingResult,
   deleteRecordingResultSchema,
+  type ErrorCode,
   type GetRecordingResult,
   type GetRecordingsResult,
   getRecordingResultSchema,
@@ -8,6 +11,30 @@ import {
 } from '@just-recordings/shared'
 import { getToken } from '@/services/supabase'
 import config from '../config'
+
+// Helper to convert HTTP error response to ApiFailure
+async function parseErrorResponse(
+  response: Response,
+  notFoundCode: ErrorCode = 'NOT_FOUND'
+): Promise<ApiFailure> {
+  // Try to get errorCode from response body first
+  const json = await response.json().catch(() => ({}))
+  if (json.errorCode) {
+    return { success: false, errorCode: json.errorCode }
+  }
+
+  // Fall back to HTTP status code mapping
+  switch (response.status) {
+    case 401:
+      return { success: false, errorCode: 'UNAUTHORIZED' }
+    case 403:
+      return { success: false, errorCode: 'FORBIDDEN' }
+    case 404:
+      return { success: false, errorCode: notFoundCode }
+    default:
+      return { success: false, errorCode: 'INTERNAL_ERROR' }
+  }
+}
 
 export const getRecordings = async (): Promise<GetRecordingsResult> => {
   try {
@@ -167,5 +194,30 @@ export const deleteRecording = async (id: string): Promise<DeleteRecordingResult
       success: false,
       message: error instanceof Error ? error.message : 'Network error',
     }
+  }
+}
+
+// New standardized API response format for delete
+export const deleteRecordingV2 = async (id: string): Promise<ApiResponse<{ deleted: true }>> => {
+  try {
+    const tokenResponse = await getToken()
+    if (!tokenResponse.success || !tokenResponse.token) {
+      return { success: false, errorCode: 'UNAUTHORIZED' }
+    }
+
+    const response = await fetch(`${config.apiBaseUrl}/recordings/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${tokenResponse.token}`,
+      },
+    })
+
+    if (!response.ok) {
+      return parseErrorResponse(response, 'RECORDING_NOT_FOUND')
+    }
+
+    return { success: true, data: { deleted: true } }
+  } catch {
+    return { success: false, errorCode: 'INTERNAL_ERROR' }
   }
 }
