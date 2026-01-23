@@ -203,7 +203,7 @@ tasks:
       - Mounted in recordings/index.ts
     depends_on: [3]
     effort: 1
-    status: implementing
+    status: completed
 
   - id: 5
     github_issue: 121
