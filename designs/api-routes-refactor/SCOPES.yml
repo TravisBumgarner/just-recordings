@@ -110,7 +110,7 @@ tasks:
       - At least one API call updated to demonstrate usage
     depends_on: [15]
     effort: 2
-    status: implementing
+    status: completed
 
   # Milestone 1: Shared Route Utilities
   - id: 1
