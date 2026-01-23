@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createUploader } from '../uploader'
 import { chunkBlob } from '../uploader/chunkBlob'
+import { CloudinaryUploader } from '../uploader/CloudinaryUploader'
 import { DevUploader } from '../uploader/DevUploader'
-import { ProdUploader } from '../uploader/ProdUploader'
 import type { TokenGetter } from '../uploader/types'
 
 describe('DevUploader', () => {
@@ -276,48 +276,15 @@ describe('DevUploader with auth token', () => {
   })
 })
 
-describe('ProdUploader', () => {
-  let uploader: ProdUploader
-
-  beforeEach(() => {
-    uploader = new ProdUploader()
-  })
-
-  describe('startUpload', () => {
-    it('throws "Not implemented" error', async () => {
-      await expect(uploader.startUpload()).rejects.toThrow('Not implemented')
-    })
-  })
-
-  describe('uploadChunk', () => {
-    it('throws "Not implemented" error', async () => {
-      const chunk = new Blob(['data'])
-      await expect(uploader.uploadChunk('id', chunk, 0)).rejects.toThrow('Not implemented')
-    })
-  })
-
-  describe('finalizeUpload', () => {
-    it('throws "Not implemented" error', async () => {
-      await expect(
-        uploader.finalizeUpload('id', {
-          filename: 'test.webm',
-          mimeType: 'video/webm',
-          totalChunks: 1,
-        }),
-      ).rejects.toThrow('Not implemented')
-    })
-  })
-})
-
 describe('createUploader', () => {
   it('returns DevUploader when isDev is true', () => {
     const uploader = createUploader('http://localhost:3001/api', true)
     expect(uploader).toBeInstanceOf(DevUploader)
   })
 
-  it('returns ProdUploader when isDev is false', () => {
+  it('returns CloudinaryUploader when isDev is false', () => {
     const uploader = createUploader('http://localhost:3001/api', false)
-    expect(uploader).toBeInstanceOf(ProdUploader)
+    expect(uploader).toBeInstanceOf(CloudinaryUploader)
   })
 
   it('accepts optional getToken parameter for DevUploader', () => {
