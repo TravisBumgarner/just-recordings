@@ -1,0 +1,413 @@
+project: API Routes Security Refactor
+repo: TravisBumgarner/just-recordings
+design_file: null  # User requirements provided directly
+scoping_date: 2026-01-23
+
+milestones:
+  - number: 0
+    title: "0. Standardized API Response Format"
+    description: Create typed Success/Failure response format with error codes and frontend alert display
+    branch:
+      working: 131-standardized-api-responses
+      base: main
+
+  - number: 1
+    title: "1. Shared Route Utilities"
+    description: Create shared utilities for route validation and authentication guards
+    branch:
+      working: 117-shared-route-utilities
+      base: 131-standardized-api-responses
+
+  - number: 2
+    title: "2. Recordings Routes Refactor"
+    description: Refactor recordings routes to folder structure with validate/processRequest pattern
+    branch:
+      working: 119-recordings-routes-refactor
+      base: 117-shared-route-utilities
+
+  - number: 3
+    title: "3. Upload Routes Refactor"
+    description: Refactor upload routes to folder structure with validate/processRequest pattern
+    branch:
+      working: 126-upload-routes-refactor
+      base: 119-recordings-routes-refactor
+
+tasks:
+  # Milestone 0: Standardized API Response Format
+  - id: 15
+    github_issue: 131
+    milestone: 0
+    title: Create standardized API response types and error codes
+    description: |
+      Create standardized TypeScript types for API responses in the shared package.
+      All API responses should follow a discriminated union pattern with success: true/false.
+
+      Types to create:
+      - ErrorCode const object with all error codes (UNAUTHORIZED, FORBIDDEN, NOT_FOUND, etc.)
+      - ApiSuccess<T> = { success: true, data: T }
+      - ApiFailure = { success: false, errorCode: ErrorCode }
+      - ApiResponse<T> = ApiSuccess<T> | ApiFailure
+      - errorMessages map with user-friendly messages for each code
+
+      Files to create:
+      - packages/shared/src/api/responses.ts
+    acceptance_criteria:
+      - ErrorCode const object with all error codes
+      - ApiSuccess<T> and ApiFailure types defined
+      - errorMessages map with user-friendly messages
+      - All types exported from shared package
+    depends_on: []
+    effort: 2
+    status: completed
+
+  - id: 16
+    github_issue: 132
+    milestone: 0
+    title: Create API response helper functions
+    description: |
+      Create helper functions in the API package to send standardized responses.
+      These will be used by all route handlers.
+
+      Helpers to create:
+      - sendSuccess<T>(res, data, status) - sends { success: true, data }
+      - sendError(res, errorCode, status) - sends { success: false, errorCode }
+      - sendUnauthorized(res) - 401 with UNAUTHORIZED
+      - sendForbidden(res) - 403 with FORBIDDEN
+      - sendNotFound(res, errorCode) - 404 with specified code
+      - sendBadRequest(res, errorCode) - 400 with specified code
+
+      Files to create:
+      - packages/api/src/routes/shared/responses.ts
+    acceptance_criteria:
+      - sendSuccess helper sends { success: true, data }
+      - sendError helper sends { success: false, errorCode }
+      - Convenience helpers for common HTTP status codes
+      - Unit tests for each helper
+    depends_on: [15]
+    effort: 1
+    status: scoped
+
+  - id: 17
+    github_issue: 133
+    milestone: 0
+    title: Create frontend error alert system using Material UI
+    description: |
+      Create a frontend error handling system that displays user-friendly error messages
+      using Material UI's Alert component.
+
+      Components to create:
+      - ErrorAlert component using MUI Alert inside Snackbar
+      - useApiError hook to handle ApiResponse and manage error state
+
+      Files to create:
+      - packages/web/src/components/ErrorAlert.tsx
+      - packages/web/src/hooks/useApiError.ts
+    acceptance_criteria:
+      - ErrorAlert displays message from errorMessages map
+      - Uses Material UI Alert in Snackbar
+      - Auto-dismisses after 6 seconds
+      - useApiError hook handles ApiResponse parsing
+      - At least one API call updated to demonstrate usage
+    depends_on: [15]
+    effort: 2
+    status: scoped
+
+  # Milestone 1: Shared Route Utilities
+  - id: 1
+    github_issue: 117
+    milestone: 1
+    title: Create shared route validation utilities
+    description: |
+      Create a shared utilities module for route validation. Extract isValidUUID and
+      isValidChunkIndex from upload.ts to a shared location.
+
+      Files to create:
+      - packages/api/src/routes/shared/validation.ts
+      - packages/api/src/routes/shared/index.ts
+    acceptance_criteria:
+      - isValidUUID function validates UUID v4 format
+      - isValidChunkIndex function validates non-negative integers
+      - Functions exported from shared/index.ts
+      - Unit tests for both validation functions
+    depends_on: [16]
+    effort: 1
+    status: scoped
+
+  - id: 2
+    github_issue: 118
+    milestone: 1
+    title: Create requireUserId helper for authenticated routes
+    description: |
+      Create a helper function that extracts userId from authenticated requests with proper
+      type guards and early return. Replaces the pattern `const userId = req.user?.userId`
+      which doesn't provide type safety or early return.
+
+      Uses sendUnauthorized helper from responses.ts for consistent error format.
+
+      Files to create:
+      - packages/api/src/routes/shared/auth.ts
+
+      Usage pattern:
+      ```typescript
+      const auth = requireUserId(req, res)
+      if (!auth) return
+      const { userId } = auth
+      ```
+    acceptance_criteria:
+      - Helper returns null and sends 401 with UNAUTHORIZED errorCode if userId missing
+      - Helper returns { userId: string } if authenticated
+      - Uses sendUnauthorized from responses.ts
+      - Unit tests for the helper
+    depends_on: [16]
+    effort: 1
+    status: scoped
+
+  # Milestone 2: Recordings Routes Refactor
+  - id: 3
+    github_issue: 119
+    milestone: 2
+    title: Create recordings route folder structure with index.ts
+    description: |
+      Create the folder structure for recordings routes. Replace recordings.ts with
+      recordings/ folder containing index.ts for router setup and middleware.
+
+      Files to create:
+      - packages/api/src/routes/recordings/index.ts
+
+      Update app.ts to import from new location.
+    acceptance_criteria:
+      - recordings/index.ts creates Router and applies requireAuth middleware
+      - Import updated in app.ts
+      - Existing tests continue to pass
+    depends_on: [1, 2]
+    effort: 1
+    status: scoped
+
+  - id: 4
+    github_issue: 120
+    milestone: 2
+    title: Refactor GET /api/recordings with validate/processRequest pattern
+    description: |
+      Refactor the list recordings route to use validate/processRequest pattern.
+      Use standardized response format with sendSuccess/sendError helpers.
+
+      Files to create:
+      - packages/api/src/routes/recordings/list.ts
+
+      validate() uses requireUserId, processRequest() calls getAllRecordings
+      and returns { success: true, data: { recordings } }.
+    acceptance_criteria:
+      - validate() function uses requireUserId helper
+      - processRequest() uses sendSuccess to return data
+      - Response format is { success: true, data: { recordings } }
+      - Mounted in recordings/index.ts
+    depends_on: [3]
+    effort: 1
+    status: scoped
+
+  - id: 5
+    github_issue: 121
+    milestone: 2
+    title: Refactor GET /api/recordings/:id with validate/processRequest pattern
+    description: |
+      Refactor the get single recording route to use validate/processRequest pattern.
+      Use standardized error responses with appropriate ErrorCodes.
+
+      Files to create:
+      - packages/api/src/routes/recordings/get.ts
+
+      validate() checks auth, UUID format, existence, and ownership.
+      Returns appropriate errorCode for each failure case.
+    acceptance_criteria:
+      - Validates UUID format, returns INVALID_UUID on failure
+      - Returns UNAUTHORIZED if not authenticated
+      - Returns RECORDING_NOT_FOUND if recording doesn't exist
+      - Returns FORBIDDEN if user doesn't own recording
+      - Success returns { success: true, data: recording }
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 6
+    github_issue: 122
+    milestone: 2
+    title: Refactor GET /api/recordings/:id/video with validate/processRequest pattern
+    description: |
+      Refactor the serve video route to use validate/processRequest pattern.
+
+      Files to create:
+      - packages/api/src/routes/recordings/video.ts
+
+      validate() checks auth, UUID, existence, ownership, and file on disk.
+      Returns FILE_NOT_FOUND if video file missing from disk.
+    acceptance_criteria:
+      - All validations in validate() function with appropriate errorCodes
+      - Returns FILE_NOT_FOUND if video file doesn't exist on disk
+      - File serving logic in processRequest()
+      - Mounted in recordings/index.ts
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 7
+    github_issue: 123
+    milestone: 2
+    title: Refactor GET /api/recordings/:id/thumbnail with validate/processRequest pattern
+    description: |
+      Refactor the serve thumbnail route to use validate/processRequest pattern.
+
+      Files to create:
+      - packages/api/src/routes/recordings/thumbnail.ts
+
+      validate() checks auth, UUID, existence, ownership, thumbnailPath, and file on disk.
+      Returns THUMBNAIL_NOT_FOUND if thumbnail missing.
+    acceptance_criteria:
+      - All validations in validate() function
+      - Returns THUMBNAIL_NOT_FOUND if thumbnailPath null or file missing
+      - File serving logic in processRequest()
+      - Mounted in recordings/index.ts
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 8
+    github_issue: 124
+    milestone: 2
+    title: Refactor DELETE /api/recordings/:id with validate/processRequest pattern
+    description: |
+      Refactor the delete recording route to use validate/processRequest pattern.
+
+      Files to create:
+      - packages/api/src/routes/recordings/delete.ts
+
+      processRequest() handles file deletion and database cleanup.
+      Returns { success: true, data: { deleted: true } }.
+    acceptance_criteria:
+      - All validations in validate() with appropriate errorCodes
+      - File deletion and DB cleanup in processRequest()
+      - Success returns { success: true, data: { deleted: true } }
+      - Mounted in recordings/index.ts
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 9
+    github_issue: 125
+    milestone: 2
+    title: Remove old recordings.ts and finalize recordings folder migration
+    description: |
+      Clean up the old recordings.ts file after all routes migrated.
+
+      Files to delete:
+      - packages/api/src/routes/recordings.ts
+    acceptance_criteria:
+      - Old recordings.ts deleted
+      - No references to old file remain
+      - All recording tests pass
+    depends_on: [4, 5, 6, 7, 8]
+    effort: 1
+    status: scoped
+
+  # Milestone 3: Upload Routes Refactor
+  - id: 10
+    github_issue: 126
+    milestone: 3
+    title: Create upload route folder structure with index.ts
+    description: |
+      Create the folder structure for upload routes. Replace upload.ts with upload/
+      folder containing index.ts for router setup, middleware, multer config, and
+      uploadSessions Map.
+
+      Files to create:
+      - packages/api/src/routes/upload/index.ts
+
+      Update app.ts to import from new location.
+    acceptance_criteria:
+      - upload/index.ts creates Router with devOnly and requireAuth middleware
+      - Multer storage configuration in shared location
+      - uploadSessions Map accessible to route handlers
+      - Import updated in app.ts
+    depends_on: [1, 2]
+    effort: 2
+    status: scoped
+
+  - id: 11
+    github_issue: 127
+    milestone: 3
+    title: Refactor POST /api/dev/upload/start with validate/processRequest pattern
+    description: |
+      Refactor the start upload session route to use validate/processRequest pattern.
+      Use standardized response format.
+
+      Files to create:
+      - packages/api/src/routes/upload/start.ts
+
+      uploadId generated on backend with randomUUID().
+      Returns { success: true, data: { uploadId } }.
+    acceptance_criteria:
+      - validate() uses requireUserId
+      - processRequest() generates uploadId, stores session, creates temp dir
+      - Returns { success: true, data: { uploadId } }
+      - Mounted in upload/index.ts
+    depends_on: [10]
+    effort: 1
+    status: scoped
+
+  - id: 12
+    github_issue: 128
+    milestone: 3
+    title: Refactor POST /api/dev/upload/:uploadId/chunk with validate/processRequest pattern
+    description: |
+      Refactor the upload chunk route to use validate/processRequest pattern.
+
+      Files to create:
+      - packages/api/src/routes/upload/chunk.ts
+
+      Validation coordinated with multer storage callbacks.
+      Returns appropriate errorCodes for validation failures.
+    acceptance_criteria:
+      - validate() checks auth, uploadId format (INVALID_UUID), chunk index, ownership
+      - Returns FORBIDDEN if user doesn't own upload session
+      - Returns INVALID_CHUNK_INDEX for bad chunk index
+      - Mounted in upload/index.ts
+    depends_on: [10]
+    effort: 2
+    status: scoped
+
+  - id: 13
+    github_issue: 129
+    milestone: 3
+    title: Refactor POST /api/dev/upload/:uploadId/finalize with validate/processRequest pattern
+    description: |
+      Refactor the finalize upload route to use validate/processRequest pattern.
+
+      Files to create:
+      - packages/api/src/routes/upload/finalize.ts
+
+      Recording fileId generated on backend with randomUUID().
+      Returns appropriate errorCodes and { success: true, data: { fileId, path, size } }.
+    acceptance_criteria:
+      - validate() checks auth, uploadId, request body, session ownership
+      - Returns MISSING_CHUNKS if chunks can't be read
+      - processRequest() merges chunks, generates thumbnail, saves to DB
+      - Returns { success: true, data: { fileId, path, size } }
+    depends_on: [10]
+    effort: 3
+    status: scoped
+
+  - id: 14
+    github_issue: 130
+    milestone: 3
+    title: Remove old upload.ts and finalize upload folder migration
+    description: |
+      Clean up the old upload.ts file after all routes migrated.
+
+      Files to delete:
+      - packages/api/src/routes/upload.ts
+    acceptance_criteria:
+      - Old upload.ts deleted
+      - No references to old file remain
+      - All upload tests pass
+    depends_on: [11, 12, 13]
+    effort: 1
+    status: scoped
