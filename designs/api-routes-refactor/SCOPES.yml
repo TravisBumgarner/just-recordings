@@ -58,7 +58,7 @@ tasks:
       - All types exported from shared package
     depends_on: []
     effort: 2
-    status: implementing
+    status: completed
 
   - id: 16
     github_issue: 132
