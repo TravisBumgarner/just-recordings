@@ -54,6 +54,7 @@ const config = {
   isDevelopment: parsed.data.NODE_ENV === 'development',
   cloudinary: {
     cloudName: parsed.data.CLOUDINARY_CLOUD_NAME,
+    apiKey: parsed.data.CLOUDINARY_API_KEY,
     isConfigured: cloudinaryConfigured,
   },
 }

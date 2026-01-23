@@ -15,7 +15,7 @@ vi.mock('../config.js', () => ({
   getCloudinary: vi.fn(),
 }))
 
-import config, { getCloudinary } from '../config.js'
+import { getCloudinary } from '../config.js'
 
 function createMockResponse(): Response {
   const res = {
@@ -67,6 +67,7 @@ describe('cloudinary/signature', () => {
         utils: {
           api_sign_request: vi.fn().mockReturnValue('test-signature'),
         },
+        config: vi.fn().mockReturnValue({ api_secret: 'test-secret' }),
       }
       vi.mocked(getCloudinary).mockReturnValue(mockCloudinary as any)
 
@@ -93,6 +94,7 @@ describe('cloudinary/signature', () => {
         utils: {
           api_sign_request: vi.fn().mockReturnValue('test-signature'),
         },
+        config: vi.fn().mockReturnValue({ api_secret: 'test-secret' }),
       }
       vi.mocked(getCloudinary).mockReturnValue(mockCloudinary as any)
 
@@ -111,6 +113,7 @@ describe('cloudinary/signature', () => {
         utils: {
           api_sign_request: vi.fn().mockReturnValue('test-signature'),
         },
+        config: vi.fn().mockReturnValue({ api_secret: 'test-secret' }),
       }
       vi.mocked(getCloudinary).mockReturnValue(mockCloudinary as any)
 
@@ -129,6 +132,7 @@ describe('cloudinary/signature', () => {
         utils: {
           api_sign_request: vi.fn().mockReturnValue('test-signature'),
         },
+        config: vi.fn().mockReturnValue({ api_secret: 'test-secret' }),
       }
       vi.mocked(getCloudinary).mockReturnValue(mockCloudinary as any)
       const nowSeconds = Math.floor(Date.now() / 1000)
@@ -151,6 +155,7 @@ describe('cloudinary/signature', () => {
         utils: {
           api_sign_request: mockApiSignRequest,
         },
+        config: vi.fn().mockReturnValue({ api_secret: 'test-secret' }),
       }
       vi.mocked(getCloudinary).mockReturnValue(mockCloudinary as any)
 

@@ -1,7 +1,8 @@
 import type { Response } from 'express'
+import config, { getCloudinary } from '../../config.js'
 import type { AuthenticatedRequest } from '../../middleware/auth.js'
 import { requireUserId } from '../shared/auth.js'
-import { sendInternalError, sendSuccess } from '../shared/responses.js'
+import { sendSuccess } from '../shared/responses.js'
 
 export interface SignatureValidationContext {
   userId: string
@@ -32,8 +33,41 @@ export function processRequest(
   res: Response,
   _context: SignatureValidationContext
 ): void {
-  // Stub - will be implemented in ralph-code phase
-  sendInternalError(res)
+  const cloudinary = getCloudinary()
+
+  // Generate timestamp (current unix time in seconds)
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  // Set up folder and tags
+  const folder = 'recordings'
+  const envTag = `env:${config.nodeEnv}`
+  const tags = [envTag]
+  const resourceType = 'video'
+
+  // Parameters to sign
+  const paramsToSign = {
+    timestamp,
+    folder,
+    tags: tags.join(','),
+  }
+
+  // Generate signature using Cloudinary's utility
+  const signature = cloudinary.utils.api_sign_request(
+    paramsToSign,
+    cloudinary.config().api_secret as string
+  )
+
+  const response: SignatureResponse = {
+    signature,
+    timestamp,
+    cloudName: config.cloudinary.cloudName,
+    apiKey: config.cloudinary.apiKey,
+    folder,
+    tags,
+    resourceType,
+  }
+
+  sendSuccess(res, response)
 }
 
 export function handler(req: AuthenticatedRequest, res: Response): void {
