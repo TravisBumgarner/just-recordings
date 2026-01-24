@@ -24,12 +24,10 @@ const config: ForgeConfig = {
       process.env.SHOULD_APPLE_SIGN === '1'
         ? {
             identity: process.env.APPLE_IDENTITY,
-            optionsForFile: () => {
-              return {
-                hardenedRuntime: true,
-                entitlements: 'entitlements.plist',
-              }
-            },
+            optionsForFile: () => ({
+              hardenedRuntime: true,
+              entitlements: './build/entitlements.mac.plist',
+            }),
           }
         : undefined,
   },
@@ -46,6 +44,7 @@ const config: ForgeConfig = {
     new MakerDeb({
       options: {
         name: 'just-recordings',
+        bin: 'just-recordings',
         productName: 'Just Recordings',
       },
     }),
