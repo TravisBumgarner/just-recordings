@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import type { RecorderState, Recording, RecordingOptions } from '@just-recordings/recorder'
+import type { RecorderState, Recording } from '@just-recordings/recorder'
 import { RecorderService } from '@just-recordings/recorder'
 
 export type FlowState = 'idle' | 'settings' | 'countdown' | 'recording' | 'saving'
@@ -27,7 +27,7 @@ export interface UseRecordingFlowReturn {
   openSettings: () => void
   closeSettings: () => void
   startWithSettings: (settings: RecordingSettings) => void
-  onCountdownComplete: () => void
+  onCountdownComplete: () => Promise<void>
   pause: () => void
   resume: () => void
   stop: () => Promise<void>
@@ -47,22 +47,78 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
   const [recorderState, setRecorderState] = useState<RecorderState>('idle')
   const [currentSettings, setCurrentSettings] = useState<RecordingSettings | null>(null)
 
+  // Store options in ref to avoid stale closures
+  const optionsRef = useRef(options)
+  optionsRef.current = options
+
   // Create or use provided RecorderService
   const recorderServiceRef = useRef<RecorderService>(
     options.recorderService ?? new RecorderService(),
   )
 
-  // TODO: Implement all methods
-  const openSettings = useCallback(() => {}, [])
-  const closeSettings = useCallback(() => {}, [])
-  const startWithSettings = useCallback((_settings: RecordingSettings) => {}, [])
-  const onCountdownComplete = useCallback(() => {}, [])
-  const pause = useCallback(() => {}, [])
-  const resume = useCallback(() => {}, [])
-  const stop = useCallback(async () => {}, [])
-  const cancel = useCallback(() => {}, [])
-  const restart = useCallback(() => {}, [])
-  const getElapsedTime = useCallback(() => 0, [])
+  // Subscribe to recorder state changes
+  useEffect(() => {
+    const unsubscribe = recorderServiceRef.current.onStateChange((state) => {
+      setRecorderState(state)
+    })
+    return unsubscribe
+  }, [])
+
+  const openSettings = useCallback(() => {
+    setFlowState('settings')
+  }, [])
+
+  const closeSettings = useCallback(() => {
+    setFlowState('idle')
+  }, [])
+
+  const startWithSettings = useCallback((settings: RecordingSettings) => {
+    setCurrentSettings(settings)
+    setFlowState('countdown')
+  }, [])
+
+  const onCountdownComplete = useCallback(async () => {
+    if (!currentSettings) return
+
+    await recorderServiceRef.current.startScreenRecording({
+      includeSystemAudio: currentSettings.includeSystemAudio,
+      includeMicrophone: currentSettings.includeMicrophone,
+      includeWebcam: currentSettings.includeWebcam,
+    })
+    setFlowState('recording')
+  }, [currentSettings])
+
+  const pause = useCallback(() => {
+    recorderServiceRef.current.pauseRecording()
+  }, [])
+
+  const resume = useCallback(() => {
+    recorderServiceRef.current.resumeRecording()
+  }, [])
+
+  const stop = useCallback(async () => {
+    setFlowState('saving')
+    const recording = await recorderServiceRef.current.stopRecording()
+    optionsRef.current.onRecordingSaved?.(recording)
+    setCurrentSettings(null)
+    setFlowState('idle')
+  }, [])
+
+  const cancel = useCallback(() => {
+    recorderServiceRef.current.cancelRecording()
+    setCurrentSettings(null)
+    setFlowState('idle')
+  }, [])
+
+  const restart = useCallback(() => {
+    recorderServiceRef.current.cancelRecording()
+    // Keep currentSettings intact for restart
+    setFlowState('countdown')
+  }, [])
+
+  const getElapsedTime = useCallback(() => {
+    return recorderServiceRef.current.getElapsedTime()
+  }, [])
 
   return {
     flowState,

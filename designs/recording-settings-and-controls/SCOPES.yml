@@ -185,7 +185,7 @@ tasks:
       - Restart discards and shows countdown again
     depends_on: [4, 5, 6, 8]
     effort: 3
-    status: testing
+    status: implementing
 
   - id: 10
     github_issue: 201
