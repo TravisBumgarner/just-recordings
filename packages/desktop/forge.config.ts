@@ -22,6 +22,16 @@ const config: ForgeConfig = {
     asar: true,
     icon: './build/icon',
     extraResource: ['./resources'],
+    osxSign:
+      process.env.SHOULD_APPLE_SIGN === '1'
+        ? {
+            identity: process.env.APPLE_IDENTITY,
+            optionsForFile: () => ({
+              hardenedRuntime: true,
+              entitlements: './build/entitlements.mac.plist',
+            }),
+          }
+        : undefined,
   },
   rebuildConfig: {},
   makers: [
