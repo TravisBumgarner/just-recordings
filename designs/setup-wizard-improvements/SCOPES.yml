@@ -60,7 +60,7 @@ tasks:
       - Accessible (proper ARIA labels)
     depends_on: []
     effort: 1
-    status: implementing
+    status: completed
 
   - id: 3
     github_issue: null
