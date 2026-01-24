@@ -104,7 +104,7 @@ tasks:
       - Modal remains functional - user can still attempt to start recording
     depends_on: [1, 2, 3]
     effort: 2
-    status: implementing
+    status: completed
 
   # Milestone 3: Permission Handling - Desktop Setup
   - id: 5
