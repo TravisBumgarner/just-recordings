@@ -1,0 +1,96 @@
+project: Desktop Cross-Platform Releases
+repo: TravisBumgarner/just-recordings
+design_file: designs/desktop-releases/DESIGN.md
+scoping_date: 2026-01-23
+
+milestones:
+  - number: 29
+    title: "Desktop Cross-Platform Releases"
+    description: Set up electron-builder and GitHub Actions for automated desktop app builds on Windows, macOS, and Linux
+    branch:
+      working: 180-desktop-releases
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 180
+    milestone: 29
+    title: Add electron-builder configuration
+    description: |
+      Create the electron-builder.yml configuration file for cross-platform desktop builds.
+
+      The configuration should include:
+      - App ID and product name
+      - Windows NSIS installer target
+      - macOS DMG/ZIP with notarization
+      - Linux AppImage and deb targets
+      - GitHub Releases publisher
+    acceptance_criteria:
+      - Create packages/desktop/electron-builder.yml with full cross-platform config
+      - Configure ASAR unpacking for resources
+      - Configure hardened runtime and entitlements for macOS
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 2
+    github_issue: 181
+    milestone: 29
+    title: Create build assets directory with icons and entitlements
+    description: |
+      Set up the build resources directory with app icons for all platforms
+      and macOS entitlements file for hardened runtime.
+    acceptance_criteria:
+      - Create packages/desktop/build/ directory
+      - Add placeholder icons (icon.icns, icon.ico, icon.png)
+      - Create entitlements.mac.plist with required permissions
+    depends_on: []
+    effort: 1
+    status: scoped
+
+  - id: 3
+    github_issue: 182
+    milestone: 29
+    title: Update desktop package.json with build scripts
+    description: |
+      Add electron-builder dependency and platform-specific build scripts
+      to the desktop package.
+    acceptance_criteria:
+      - Add electron-builder as dev dependency
+      - Add build:win, build:mac, build:linux, and publish scripts
+      - Ensure scripts work with monorepo structure
+    depends_on: [1]
+    effort: 1
+    status: scoped
+
+  - id: 4
+    github_issue: 183
+    milestone: 29
+    title: Create GitHub Actions workflow for desktop releases
+    description: |
+      Create a GitHub Actions workflow that builds and publishes the desktop
+      app for Windows, macOS, and Linux using a build matrix.
+    acceptance_criteria:
+      - Create .github/workflows/desktop-release.yml
+      - Configure workflow_dispatch trigger
+      - Set up build matrix for all three platforms
+      - Configure Apple certificate import for macOS
+      - Set up environment variables for secrets
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 5
+    github_issue: 184
+    milestone: 29
+    title: Create .github/README.md documenting release workflow
+    description: |
+      Document the GitHub Actions setup, required secrets, and certificate
+      management for the release workflow.
+    acceptance_criteria:
+      - Create .github/README.md with secrets documentation
+      - Include macOS code signing setup instructions
+      - Document certificate regeneration steps
+    depends_on: [4]
+    effort: 1
+    status: scoped

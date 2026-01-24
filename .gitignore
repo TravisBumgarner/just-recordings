@@ -4,6 +4,7 @@ node_modules/
 # Build outputs
 dist/
 build/
+!packages/desktop/build/
 *.tsbuildinfo
 
 # Environment files
