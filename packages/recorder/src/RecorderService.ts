@@ -9,6 +9,7 @@ export class RecorderService {
   private listeners: Set<(state: RecorderState) => void> = new Set()
   private mediaRecorder: MediaRecorder | null = null
   private mediaStream: MediaStream | null = null
+  private microphoneStream: MediaStream | null = null
   private chunks: Blob[] = []
   private startTime: number = 0
   private pausedTime: number = 0
@@ -43,11 +44,36 @@ export class RecorderService {
       this.mimeType = DEFAULT_MIME_TYPE
     }
 
-    // Get display media stream
-    this.mediaStream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: false,
-    })
+    // Get display media stream with optional system audio
+    const includeSystemAudio = options?.includeSystemAudio ?? false
+    try {
+      this.mediaStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: includeSystemAudio,
+      })
+    } catch {
+      // If system audio request fails, retry without audio
+      if (includeSystemAudio) {
+        this.mediaStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false,
+        })
+      } else {
+        throw new Error('Failed to get display media')
+      }
+    }
+
+    // Get microphone stream if requested
+    if (options?.includeMicrophone) {
+      try {
+        this.microphoneStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        })
+      } catch {
+        // Permission denied or no microphone - continue without mic
+        this.microphoneStream = null
+      }
+    }
 
     // Reset chunks
     this.chunks = []
@@ -101,8 +127,9 @@ export class RecorderService {
         const duration = Date.now() - this.startTime
         const blob = new Blob(this.chunks, { type: this.mimeType })
 
-        // Stop all tracks
+        // Stop all tracks from all streams
         this.mediaStream?.getTracks().forEach((track) => track.stop())
+        this.microphoneStream?.getTracks().forEach((track) => track.stop())
 
         // Create recording object
         const recording: Recording = {
@@ -118,6 +145,7 @@ export class RecorderService {
         // Cleanup
         this.mediaRecorder = null
         this.mediaStream = null
+        this.microphoneStream = null
         this.chunks = []
         this.startTime = 0
         this.pausedTime = 0
@@ -176,12 +204,14 @@ export class RecorderService {
       this.mediaRecorder.stop()
     }
 
-    // Stop all media tracks
+    // Stop all media tracks from all streams
     this.mediaStream?.getTracks().forEach((track) => track.stop())
+    this.microphoneStream?.getTracks().forEach((track) => track.stop())
 
     // Cleanup without saving
     this.mediaRecorder = null
     this.mediaStream = null
+    this.microphoneStream = null
     this.chunks = []
     this.startTime = 0
     this.pausedTime = 0
