@@ -136,6 +136,10 @@ export class RecorderService {
     }
   }
 
+  cancelRecording(): void {
+    // Stub - to be implemented
+  }
+
   // Storage operations
   async saveRecording(recording: Recording): Promise<number> {
     return await this.db.recordings.add(recording)
