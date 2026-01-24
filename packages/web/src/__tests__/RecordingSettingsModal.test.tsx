@@ -39,8 +39,8 @@ describe('RecordingSettingsModal', () => {
     )
   })
 
-  describe('permission status badges', () => {
-    it('shows permission status badge next to microphone option', async () => {
+  describe('checkbox rendering', () => {
+    it('renders with three checkboxes for audio/video sources', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -50,27 +50,15 @@ describe('RecordingSettingsModal', () => {
       )
 
       await waitFor(() => {
-        expect(screen.getByTestId('microphone-permission-badge')).toBeInTheDocument()
-      })
-    })
-
-    it('shows permission status badge next to camera option', async () => {
-      render(
-        <RecordingSettingsModal
-          open={true}
-          onClose={mockOnClose}
-          onStartRecording={mockOnStartRecording}
-        />,
-      )
-
-      await waitFor(() => {
-        expect(screen.getByTestId('camera-permission-badge')).toBeInTheDocument()
+        expect(screen.getByRole('checkbox', { name: /system audio/i })).toBeInTheDocument()
+        expect(screen.getByRole('checkbox', { name: /microphone/i })).toBeInTheDocument()
+        expect(screen.getByRole('checkbox', { name: /webcam/i })).toBeInTheDocument()
       })
     })
   })
 
-  describe('permission checking on open', () => {
-    it('checks microphone permission status when modal opens', async () => {
+  describe('checkbox toggleability', () => {
+    it('system audio checkbox is independently toggleable', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -79,12 +67,17 @@ describe('RecordingSettingsModal', () => {
         />,
       )
 
-      await waitFor(() => {
-        expect(mockPermissionService.checkMicrophone).toHaveBeenCalled()
-      })
+      const systemAudioCheckbox = screen.getByRole('checkbox', { name: /system audio/i })
+      expect(systemAudioCheckbox).not.toBeChecked()
+
+      fireEvent.click(systemAudioCheckbox)
+      expect(systemAudioCheckbox).toBeChecked()
+
+      fireEvent.click(systemAudioCheckbox)
+      expect(systemAudioCheckbox).not.toBeChecked()
     })
 
-    it('checks camera permission status when modal opens', async () => {
+    it('microphone checkbox is independently toggleable', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -93,49 +86,14 @@ describe('RecordingSettingsModal', () => {
         />,
       )
 
-      await waitFor(() => {
-        expect(mockPermissionService.checkCamera).toHaveBeenCalled()
-      })
-    })
-  })
-
-  describe('denied permission messages', () => {
-    it('shows PermissionDeniedMessage when denied microphone permission is toggled on', async () => {
-      mockPermissionService.checkMicrophone.mockResolvedValue({
-        granted: false,
-        state: 'denied',
-        canRequest: false,
-      })
-
-      render(
-        <RecordingSettingsModal
-          open={true}
-          onClose={mockOnClose}
-          onStartRecording={mockOnStartRecording}
-        />,
-      )
-
-      // Wait for permissions to load
-      await waitFor(() => {
-        expect(mockPermissionService.checkMicrophone).toHaveBeenCalled()
-      })
-
-      // Toggle on microphone
       const microphoneCheckbox = screen.getByRole('checkbox', { name: /microphone/i })
-      fireEvent.click(microphoneCheckbox)
+      expect(microphoneCheckbox).not.toBeChecked()
 
-      await waitFor(() => {
-        expect(screen.getByTestId('microphone-denied-message')).toBeInTheDocument()
-      })
+      fireEvent.click(microphoneCheckbox)
+      expect(microphoneCheckbox).toBeChecked()
     })
 
-    it('shows PermissionDeniedMessage when denied camera permission is toggled on', async () => {
-      mockPermissionService.checkCamera.mockResolvedValue({
-        granted: false,
-        state: 'denied',
-        canRequest: false,
-      })
-
+    it('webcam checkbox is independently toggleable', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -144,29 +102,41 @@ describe('RecordingSettingsModal', () => {
         />,
       )
 
-      // Wait for permissions to load
-      await waitFor(() => {
-        expect(mockPermissionService.checkCamera).toHaveBeenCalled()
-      })
+      const webcamCheckbox = screen.getByRole('checkbox', { name: /webcam/i })
+      expect(webcamCheckbox).not.toBeChecked()
 
-      // Toggle on camera
-      const cameraCheckbox = screen.getByRole('checkbox', { name: /camera/i })
-      fireEvent.click(cameraCheckbox)
+      fireEvent.click(webcamCheckbox)
+      expect(webcamCheckbox).toBeChecked()
+    })
+  })
 
-      await waitFor(() => {
-        expect(screen.getByTestId('camera-denied-message')).toBeInTheDocument()
+  describe('start button', () => {
+    it('passes settings to onStartRecording callback', async () => {
+      render(
+        <RecordingSettingsModal
+          open={true}
+          onClose={mockOnClose}
+          onStartRecording={mockOnStartRecording}
+        />,
+      )
+
+      // Toggle on system audio and microphone
+      fireEvent.click(screen.getByRole('checkbox', { name: /system audio/i }))
+      fireEvent.click(screen.getByRole('checkbox', { name: /microphone/i }))
+
+      // Click start
+      fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
+
+      expect(mockOnStartRecording).toHaveBeenCalledWith({
+        includeSystemAudio: true,
+        includeMicrophone: true,
+        includeWebcam: false,
       })
     })
   })
 
-  describe('modal functionality', () => {
-    it('remains functional - user can still attempt to start recording', async () => {
-      mockPermissionService.checkMicrophone.mockResolvedValue({
-        granted: false,
-        state: 'denied',
-        canRequest: false,
-      })
-
+  describe('cancel button', () => {
+    it('calls onClose when cancel button is clicked', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -175,18 +145,13 @@ describe('RecordingSettingsModal', () => {
         />,
       )
 
-      // Wait for permissions to load
-      await waitFor(() => {
-        expect(mockPermissionService.checkMicrophone).toHaveBeenCalled()
-      })
+      fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
 
-      // Start recording button should be clickable
-      const startButton = screen.getByRole('button', { name: /start recording/i })
-      fireEvent.click(startButton)
-
-      expect(mockOnStartRecording).toHaveBeenCalled()
+      expect(mockOnClose).toHaveBeenCalled()
     })
+  })
 
+  describe('modal visibility', () => {
     it('does not render when open is false', () => {
       render(
         <RecordingSettingsModal
@@ -197,6 +162,18 @@ describe('RecordingSettingsModal', () => {
       )
 
       expect(screen.queryByTestId('recording-settings-modal')).not.toBeInTheDocument()
+    })
+
+    it('renders when open is true', () => {
+      render(
+        <RecordingSettingsModal
+          open={true}
+          onClose={mockOnClose}
+          onStartRecording={mockOnStartRecording}
+        />,
+      )
+
+      expect(screen.getByTestId('recording-settings-modal')).toBeInTheDocument()
     })
   })
 })
