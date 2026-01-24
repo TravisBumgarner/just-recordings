@@ -1,13 +1,7 @@
 import {
-  type ApiFailure,
   type ApiResponse,
-  type DeleteRecordingResult,
-  deleteRecordingResultSchema,
   type ErrorCode,
-  type GetRecordingResult,
-  type GetRecordingsResult,
-  getRecordingResultSchema,
-  getRecordingsResultSchema,
+  type Recording,
 } from '@just-recordings/shared'
 import { getToken } from '@/services/supabase'
 import config from '../config'
@@ -16,7 +10,7 @@ import config from '../config'
 async function parseErrorResponse(
   response: Response,
   notFoundCode: ErrorCode = 'NOT_FOUND'
-): Promise<ApiFailure> {
+): Promise<{ success: false; errorCode: ErrorCode }> {
   // Try to get errorCode from response body first
   const json = await response.json().catch(() => ({}))
   if (json.errorCode) {
@@ -36,14 +30,11 @@ async function parseErrorResponse(
   }
 }
 
-export const getRecordings = async (): Promise<GetRecordingsResult> => {
+export const getRecordings = async (): Promise<ApiResponse<Recording[]>> => {
   try {
     const tokenResponse = await getToken()
     if (!tokenResponse.success || !tokenResponse.token) {
-      return {
-        success: false,
-        message: 'Unauthorized',
-      }
+      return { success: false, errorCode: 'UNAUTHORIZED' }
     }
 
     const response = await fetch(`${config.apiBaseUrl}/recordings`, {
@@ -53,34 +44,22 @@ export const getRecordings = async (): Promise<GetRecordingsResult> => {
     })
 
     if (!response.ok) {
-      return {
-        success: false,
-        message: `Failed to fetch recordings with status ${response.status}`,
-      }
+      return parseErrorResponse(response)
     }
 
     const json = await response.json()
     // API returns { success: true, data: { recordings: [...] } }
-    return getRecordingsResultSchema.parse({
-      success: true,
-      recordings: json.data.recordings,
-    })
-  } catch (error) {
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Network error',
-    }
+    return { success: true, data: json.data.recordings }
+  } catch {
+    return { success: false, errorCode: 'INTERNAL_ERROR' }
   }
 }
 
-export const getRecording = async (id: string): Promise<GetRecordingResult> => {
+export const getRecording = async (id: string): Promise<ApiResponse<Recording>> => {
   try {
     const tokenResponse = await getToken()
     if (!tokenResponse.success || !tokenResponse.token) {
-      return {
-        success: false,
-        message: 'Unauthorized',
-      }
+      return { success: false, errorCode: 'UNAUTHORIZED' }
     }
 
     const response = await fetch(`${config.apiBaseUrl}/recordings/${id}`, {
@@ -90,37 +69,22 @@ export const getRecording = async (id: string): Promise<GetRecordingResult> => {
     })
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return {
-          success: false,
-          message: 'Recording not found',
-        }
-      }
-      return {
-        success: false,
-        message: `Failed to fetch recording with status ${response.status}`,
-      }
+      return parseErrorResponse(response, 'RECORDING_NOT_FOUND')
     }
 
     const json = await response.json()
     // API returns { success: true, data: {...} }
-    return getRecordingResultSchema.parse({
-      success: true,
-      recording: json.data,
-    })
-  } catch (error) {
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Network error',
-    }
+    return { success: true, data: json.data }
+  } catch {
+    return { success: false, errorCode: 'INTERNAL_ERROR' }
   }
 }
 
-export const getVideoUrl = async (id: string): Promise<string | null> => {
+export const getVideoUrl = async (id: string): Promise<ApiResponse<string>> => {
   try {
     const tokenResponse = await getToken()
     if (!tokenResponse.success || !tokenResponse.token) {
-      return null
+      return { success: false, errorCode: 'UNAUTHORIZED' }
     }
 
     const response = await fetch(`${config.apiBaseUrl}/recordings/${id}/video`, {
@@ -130,21 +94,21 @@ export const getVideoUrl = async (id: string): Promise<string | null> => {
     })
 
     if (!response.ok) {
-      return null
+      return parseErrorResponse(response, 'FILE_NOT_FOUND')
     }
 
     const blob = await response.blob()
-    return URL.createObjectURL(blob)
+    return { success: true, data: URL.createObjectURL(blob) }
   } catch {
-    return null
+    return { success: false, errorCode: 'INTERNAL_ERROR' }
   }
 }
 
-export const getThumbnailUrl = async (id: string): Promise<string | null> => {
+export const getThumbnailUrl = async (id: string): Promise<ApiResponse<string>> => {
   try {
     const tokenResponse = await getToken()
     if (!tokenResponse.success || !tokenResponse.token) {
-      return null
+      return { success: false, errorCode: 'UNAUTHORIZED' }
     }
 
     const response = await fetch(`${config.apiBaseUrl}/recordings/${id}/thumbnail`, {
@@ -154,53 +118,17 @@ export const getThumbnailUrl = async (id: string): Promise<string | null> => {
     })
 
     if (!response.ok) {
-      return null
+      return parseErrorResponse(response, 'THUMBNAIL_NOT_FOUND')
     }
 
     const blob = await response.blob()
-    return URL.createObjectURL(blob)
+    return { success: true, data: URL.createObjectURL(blob) }
   } catch {
-    return null
+    return { success: false, errorCode: 'INTERNAL_ERROR' }
   }
 }
 
-export const deleteRecording = async (id: string): Promise<DeleteRecordingResult> => {
-  try {
-    const tokenResponse = await getToken()
-    if (!tokenResponse.success || !tokenResponse.token) {
-      return {
-        success: false,
-        message: 'Unauthorized',
-      }
-    }
-
-    const response = await fetch(`${config.apiBaseUrl}/recordings/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${tokenResponse.token}`,
-      },
-    })
-
-    if (!response.ok) {
-      return {
-        success: false,
-        message: `Failed to delete recording with status ${response.status}`,
-      }
-    }
-
-    return deleteRecordingResultSchema.parse({
-      success: true,
-    })
-  } catch (error) {
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Network error',
-    }
-  }
-}
-
-// New standardized API response format for delete
-export const deleteRecordingV2 = async (id: string): Promise<ApiResponse<{ deleted: true }>> => {
+export const deleteRecording = async (id: string): Promise<ApiResponse<{ deleted: true }>> => {
   try {
     const tokenResponse = await getToken()
     if (!tokenResponse.success || !tokenResponse.token) {

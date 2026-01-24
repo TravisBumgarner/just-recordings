@@ -20,10 +20,13 @@ import {
   ListItem,
   Typography,
 } from '@mui/material'
-import { useCallback, useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useThumbnailUrl } from '@/hooks/queries/useRecordingMedia'
+import { useRecordings } from '@/hooks/queries/useRecordings'
+import { queryKeys } from '@/lib/queryKeys'
 import PageWrapper from '@/styles/shared/PageWrapper'
-import { getRecordings, getThumbnailUrl } from '../api/recordings'
 import { setRecordingState } from '../utils/electron'
 
 export interface HomeProps {
@@ -48,19 +51,10 @@ function formatDate(dateString: string): string {
 }
 
 function RecordingCard({ recording }: { recording: ApiRecording }) {
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null)
-  const [thumbnailLoading, setThumbnailLoading] = useState(true)
-
-  useEffect(() => {
-    if (recording.thumbnailUrl) {
-      setThumbnailLoading(true)
-      getThumbnailUrl(recording.id)
-        .then(setThumbnailUrl)
-        .finally(() => setThumbnailLoading(false))
-    } else {
-      setThumbnailLoading(false)
-    }
-  }, [recording.id, recording.thumbnailUrl])
+  const { data: thumbnailUrl, isLoading: thumbnailLoading } = useThumbnailUrl(
+    recording.id,
+    !!recording.thumbnailUrl
+  )
 
   return (
     <Grid item xs={12} sm={6} md={4}>
@@ -124,32 +118,38 @@ function RecordingCard({ recording }: { recording: ApiRecording }) {
 }
 
 function Home({ recorderService, uploadManager }: HomeProps) {
-  const [recordings, setRecordings] = useState<ApiRecording[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const queryClient = useQueryClient()
+  const { data: recordings = [], isLoading, isError } = useRecordings()
   const [queue, setQueue] = useState<Recording[]>([])
   const [recorderState, setRecorderState] = useState<RecorderState>('idle')
-
-  useEffect(() => {
-    const fetchRecordings = async () => {
-      const response = await getRecordings()
-      if (response.success) {
-        setRecordings(response.recordings)
-      } else {
-        setError(true)
-      }
-      setLoading(false)
-    }
-    fetchRecordings()
-  }, [])
+  const previousQueueRef = useRef<Recording[]>([])
 
   useEffect(() => {
     // Fetch initial queue state
     uploadManager.getQueue().then(setQueue)
-    // Subscribe to queue changes
-    const unsubscribe = uploadManager.onQueueChange(setQueue)
+
+    // Subscribe to queue changes and detect completed uploads
+    const unsubscribe = uploadManager.onQueueChange((newQueue) => {
+      const prevQueue = previousQueueRef.current
+
+      // Find recordings that were uploading but are now gone (completed)
+      const completedUploads = prevQueue.filter(
+        (prev) =>
+          prev.uploadStatus === 'uploading' &&
+          !newQueue.some((curr) => curr.id === prev.id)
+      )
+
+      // If any uploads completed, invalidate recordings list
+      if (completedUploads.length > 0) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.recordings })
+      }
+
+      previousQueueRef.current = newQueue
+      setQueue(newQueue)
+    })
+
     return unsubscribe
-  }, [uploadManager])
+  }, [uploadManager, queryClient])
 
   useEffect(() => {
     const unsubscribe = recorderService.onStateChange(setRecorderState)
@@ -165,13 +165,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
     setRecordingState(false)
     const recording = await recorderService.stopRecording()
     await uploadManager.enqueue(recording)
-    // Refresh recordings list after a short delay to allow upload to complete
-    setTimeout(async () => {
-      const response = await getRecordings()
-      if (response.success) {
-        setRecordings(response.recordings)
-      }
-    }, 1000)
+    // Invalidation happens automatically via onQueueChange when upload completes
   }, [recorderService, uploadManager])
 
   const handleRetry = useCallback(
@@ -289,7 +283,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
           </Box>
         )}
 
-        {loading && (
+        {isLoading && (
           <Box
             sx={{ display: 'flex', justifyContent: 'center', py: 4 }}
             data-testid="loading-indicator"
@@ -298,7 +292,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
           </Box>
         )}
 
-        {error && (
+        {isError && (
           <Box sx={{ textAlign: 'center', py: 4 }} data-testid="error-state">
             <Typography variant="h6" color="text.secondary">
               Failed to load recordings
@@ -309,7 +303,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
           </Box>
         )}
 
-        {!loading && !error && recordings.length === 0 && (
+        {!isLoading && !isError && recordings.length === 0 && (
           <Box sx={{ textAlign: 'center', py: 4 }} data-testid="empty-state">
             <Typography variant="h6" color="text.secondary">
               No recordings yet
@@ -320,7 +314,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
           </Box>
         )}
 
-        {!loading && !error && recordings.length > 0 && (
+        {!isLoading && !isError && recordings.length > 0 && (
           <Grid container spacing={3}>
             {recordings.map((recording) => (
               <RecordingCard key={recording.id} recording={recording} />
