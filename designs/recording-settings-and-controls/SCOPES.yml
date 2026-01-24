@@ -147,7 +147,7 @@ tasks:
       - Cleans up interval on unmount
     depends_on: [2]
     effort: 1
-    status: implementing
+    status: completed
 
   - id: 8
     github_issue: 199
