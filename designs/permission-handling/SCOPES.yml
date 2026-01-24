@@ -123,7 +123,7 @@ tasks:
       - Handles gracefully if called on non-macOS platform (no-op)
     depends_on: []
     effort: 1
-    status: scoped
+    status: testing
 
   - id: 6
     github_issue: 212
