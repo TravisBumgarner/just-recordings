@@ -69,23 +69,25 @@ function App() {
   const isElectron = isElectronCheck()
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       {!isElectron && <Header />}
       <Router isElectron={isElectron} />
       {!isElectron && <Footer />}
       <RenderModal />
-    </QueryClientProvider>
+    </>
   )
 }
 
 const WrappedApp = () => {
   return (
-    <BrowserRouter>
-      <AppThemeProvider>
-        <App />
-        <ScrollToTop />
-      </AppThemeProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AppThemeProvider>
+          <App />
+          <ScrollToTop />
+        </AppThemeProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   )
 }
 
