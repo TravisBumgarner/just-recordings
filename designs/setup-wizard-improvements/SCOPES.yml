@@ -40,7 +40,7 @@ tasks:
       - Auto-hide resumes after setup completes
     depends_on: []
     effort: 2
-    status: implementing
+    status: completed
 
   # Milestone 2: Permission Testing and Microphone
   - id: 2
