@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -9,8 +10,8 @@ vi.mock('../utils/electron', () => ({
 }))
 
 // Mock the API
-vi.mock('../api', () => ({
-  getRecordings: vi.fn(() => Promise.resolve({ success: true, recordings: [] })),
+vi.mock('../api/recordings', () => ({
+  getRecordings: vi.fn(() => Promise.resolve({ success: true, data: [] })),
   getThumbnailUrl: vi.fn(),
 }))
 
@@ -60,14 +61,24 @@ describe('Home - Electron IPC integration', () => {
     vi.clearAllMocks()
   })
 
+  const createTestQueryClient = () =>
+    new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    })
+
   const renderHome = () => {
+    const queryClient = createTestQueryClient()
     return render(
-      <MemoryRouter>
-        <Home
-          recorderService={mockRecorderService as never}
-          uploadManager={mockUploadManager as never}
-        />
-      </MemoryRouter>,
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <Home
+            recorderService={mockRecorderService as never}
+            uploadManager={mockUploadManager as never}
+          />
+        </MemoryRouter>
+      </QueryClientProvider>,
     )
   }
 

@@ -1,4 +1,3 @@
-import type { Recording } from '@just-recordings/shared'
 import {
   Box,
   Button,
@@ -11,12 +10,15 @@ import {
   DialogTitle,
   Typography,
 } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ErrorAlert } from '@/components/ErrorAlert'
+import { useDeleteRecording } from '@/hooks/mutations/useDeleteRecording'
+import { useVideoUrl } from '@/hooks/queries/useRecordingMedia'
+import { useRecording } from '@/hooks/queries/useRecordings'
+import { ApiError } from '@/lib/ApiError'
 import PageWrapper from '@/styles/shared/PageWrapper'
-import { deleteRecordingV2, getRecording, getVideoUrl } from '../api/recordings'
-import { ErrorAlert } from '../components/ErrorAlert'
-import { useApiError } from '../hooks/useApiError'
+import { errorMessages } from '@just-recordings/shared'
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000)
@@ -46,42 +48,13 @@ function formatDate(dateString: string): string {
 function RecordingViewerPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [recording, setRecording] = useState<Recording | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const { errorMessage, isOpen, handleResponse, clearError } = useApiError()
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [errorOpen, setErrorOpen] = useState(false)
 
-  useEffect(() => {
-    const fetchRecording = async () => {
-      if (!id) {
-        setError(true)
-        setLoading(false)
-        return
-      }
-
-      const response = await getRecording(id)
-      if (response.success) {
-        setRecording(response.recording)
-      } else {
-        setError(true)
-      }
-      setLoading(false)
-    }
-    fetchRecording()
-  }, [id])
-
-  const [videoUrl, setVideoUrl] = useState<string | null>(null)
-  
-  useEffect(() => {
-    const fetchVideoUrl = async () => {
-      if (id) {
-        const url = await getVideoUrl(id)
-        setVideoUrl(url)
-      }
-    }
-    fetchVideoUrl()
-  }, [id])
+  const { data: recording, isLoading, isError } = useRecording(id)
+  const { data: videoUrl } = useVideoUrl(id)
+  const deleteRecording = useDeleteRecording()
 
   const handleDeleteClick = () => {
     setDeleteDialogOpen(true)
@@ -91,17 +64,31 @@ function RecordingViewerPage() {
     setDeleteDialogOpen(false)
   }
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = () => {
     if (recording?.id) {
-      const response = await deleteRecordingV2(recording.id)
-      if (handleResponse(response)) {
-        navigate('/')
-      }
+      deleteRecording.mutate(recording.id, {
+        onSuccess: () => {
+          navigate('/')
+        },
+        onError: (error) => {
+          if (error instanceof ApiError) {
+            setErrorMessage(errorMessages[error.errorCode])
+          } else {
+            setErrorMessage('An unexpected error occurred')
+          }
+          setErrorOpen(true)
+        },
+      })
     }
     setDeleteDialogOpen(false)
   }
 
-  if (loading) {
+  const clearError = () => {
+    setErrorOpen(false)
+    setErrorMessage(null)
+  }
+
+  if (isLoading) {
     return (
       <Container maxWidth="lg">
         <Box sx={{ py: 4 }}>
@@ -116,7 +103,7 @@ function RecordingViewerPage() {
     )
   }
 
-  if (error || !recording) {
+  if (isError || !recording) {
     return (
       <Container maxWidth="lg">
         <Box sx={{ py: 4 }}>
@@ -172,8 +159,13 @@ function RecordingViewerPage() {
         </Box>
 
         {/* Delete Button */}
-        <Button variant="outlined" color="error" onClick={handleDeleteClick}>
-          Delete Recording
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={handleDeleteClick}
+          disabled={deleteRecording.isPending}
+        >
+          {deleteRecording.isPending ? 'Deleting...' : 'Delete Recording'}
         </Button>
 
         {/* Delete Confirmation Dialog */}
@@ -196,7 +188,7 @@ function RecordingViewerPage() {
           </DialogActions>
         </Dialog>
 
-        <ErrorAlert message={errorMessage} open={isOpen} onClose={clearError} />
+        <ErrorAlert message={errorMessage} open={errorOpen} onClose={clearError} />
       </Box>
     </PageWrapper>
   )

@@ -1,26 +1,21 @@
-import { type HealthResult, healthResultSchema } from '@just-recordings/shared'
+import type { ApiResponse } from '@just-recordings/shared'
 import config from '../config'
 
-export const checkHealth = async (): Promise<HealthResult> => {
+export interface HealthStatus {
+  status: string
+}
+
+export const checkHealth = async (): Promise<ApiResponse<HealthStatus>> => {
   try {
     const response = await fetch(`${config.apiBaseUrl}/health`)
 
     if (!response.ok) {
-      return {
-        success: false,
-        message: `Health check failed with status ${response.status}`,
-      }
+      return { success: false, errorCode: 'INTERNAL_ERROR' }
     }
 
     const json = await response.json()
-    return healthResultSchema.parse({
-      success: true,
-      status: json.status,
-    })
-  } catch (error) {
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Network error',
-    }
+    return { success: true, data: { status: json.status } }
+  } catch {
+    return { success: false, errorCode: 'INTERNAL_ERROR' }
   }
 }

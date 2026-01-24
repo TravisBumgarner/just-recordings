@@ -4,7 +4,7 @@ import useGlobalStore from '../store'
 
 export const loadUserIntoState = async () => {
   const result = await getUser()
-  let success: boolean = false
+  let success = false
 
   const store = useGlobalStore.getState()
 
@@ -12,7 +12,7 @@ export const loadUserIntoState = async () => {
     store.setAuthUser(result.user)
     const userDetails = await getMe()
     if (userDetails.success) {
-      store.setAppUser(userDetails)
+      store.setAppUser(userDetails.data)
       success = true
     }
   }

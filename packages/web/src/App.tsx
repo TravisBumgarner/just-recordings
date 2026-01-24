@@ -16,7 +16,18 @@ import { Z_INDICES } from './styles/styleConsts'
 import AppThemeProvider from './styles/Theme'
 import { isElectronCheck } from './utils/electron'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: 0,
+    },
+  },
+})
 
 function App() {
   useLoadUserIntoState()
