@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 
 const SETUP_COMPLETE_KEY = 'just-recordings-setup-complete'
 
@@ -8,9 +8,17 @@ export interface UseSetupStatusReturn {
 }
 
 export function useSetupStatus(): UseSetupStatusReturn {
-  // Stub implementation
+  const [isSetupComplete, setIsSetupComplete] = useState(() => {
+    return localStorage.getItem(SETUP_COMPLETE_KEY) === 'true'
+  })
+
+  const markSetupComplete = useCallback(() => {
+    localStorage.setItem(SETUP_COMPLETE_KEY, 'true')
+    setIsSetupComplete(true)
+  }, [])
+
   return {
-    isSetupComplete: true,
-    markSetupComplete: () => {},
+    isSetupComplete,
+    markSetupComplete,
   }
 }
