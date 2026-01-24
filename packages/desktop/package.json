@@ -3,7 +3,6 @@
   "productName": "Just Recordings",
   "version": "0.0.1",
   "description": "Just Recordings Desktop App",
-  "type": "module",
   "main": ".vite/build/index.js",
   "author": {
     "name": "Travis Bumgarner",
@@ -22,7 +21,6 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@electron-forge/plugin-auto-unpack-natives": "^7.10.2",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0"
   },
@@ -36,7 +34,7 @@
     "@electron-forge/publisher-github": "^7.10.2",
     "@electron/notarize": "^2.3.2",
     "@types/node": "^20.11.0",
-    "electron": "28.1.0",
+    "electron": "^38.2.2",
     "typescript": "^5.3.3",
     "vite": "^5.0.11",
     "vitest": "^1.2.2",
