@@ -1,9 +1,10 @@
 {
   "name": "@just-recordings/desktop",
+  "productName": "Just Recordings",
   "version": "0.0.1",
   "description": "Just Recordings Desktop App",
   "type": "module",
-  "main": "./out/main/index.js",
+  "main": ".vite/build/main.js",
   "author": {
     "name": "Travis Bumgarner",
     "email": "11890057+TravisBumgarner@users.noreply.github.com"
@@ -13,28 +14,32 @@
     "url": "https://github.com/TravisBumgarner/just-recordings.git"
   },
   "scripts": {
-    "dev": "electron-vite dev",
-    "build": "electron-vite build",
-    "postbuild": "node scripts/copy-web-dist.js",
-    "preview": "electron-vite preview",
+    "dev": "electron-forge start",
+    "package": "SHOULD_APPLE_SIGN=0 electron-forge package",
+    "make": "SHOULD_APPLE_SIGN=1 electron-forge make",
+    "publish": "electron-forge publish",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "build:win": "npm run build && electron-builder --win --config",
-    "build:mac": "npm run build && electron-builder --mac --config",
-    "build:linux": "npm run build && electron-builder --linux --config",
-    "publish": "npm run build && electron-builder --publish always"
+    "test:watch": "vitest"
   },
   "dependencies": {
+    "@electron-forge/plugin-auto-unpack-natives": "^7.10.2",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^7.8.3",
+    "@electron-forge/maker-deb": "^7.10.2",
+    "@electron-forge/maker-dmg": "^7.10.2",
+    "@electron-forge/maker-squirrel": "^7.10.2",
+    "@electron-forge/maker-zip": "^7.10.2",
+    "@electron-forge/plugin-vite": "^7.10.2",
+    "@electron-forge/publisher-github": "^7.10.2",
+    "@electron/notarize": "^2.3.2",
     "@types/node": "^20.11.0",
     "electron": "28.1.0",
-    "electron-builder": "^25.1.8",
-    "electron-vite": "^2.0.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.11",
-    "vitest": "^1.2.2"
+    "vitest": "^1.2.2",
+    "zod": "^3.22.4"
   }
 }
