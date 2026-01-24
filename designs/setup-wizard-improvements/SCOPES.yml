@@ -1,0 +1,121 @@
+project: Setup Wizard Improvements
+repo: TravisBumgarner/just-recordings
+design_file: designs/setup-wizard-improvements/DESIGN.md
+scoping_date: 2026-01-24
+
+milestones:
+  - number: 1
+    title: "1. Desktop Window Behavior"
+    description: Keep the desktop window visible during the setup wizard flow
+    branch:
+      working: setup-wizard-window-behavior
+      base: main
+
+  - number: 2
+    title: "2. Permission Testing and Microphone"
+    description: Add permission testing UI and microphone permission step
+    branch:
+      working: setup-wizard-permission-testing
+      base: main
+
+tasks:
+  # Milestone 1: Desktop Window Behavior
+  - id: 1
+    github_issue: null
+    milestone: 1
+    title: Keep desktop window visible during setup
+    description: |
+      Currently the desktop window auto-hides when it loses focus (blur event).
+      This causes the window to disappear when users click "Open System Preferences".
+
+      Add IPC communication to disable auto-hide during setup:
+      - Expose a `setSetupMode(enabled: boolean)` IPC handler
+      - When setup mode is enabled, don't hide window on blur
+      - Call setSetupMode(true) when wizard mounts, setSetupMode(false) when complete
+    acceptance_criteria:
+      - Window stays visible when System Preferences opens during setup
+      - setSetupMode IPC handler exists and works
+      - SetupWizard calls setSetupMode(true) on mount
+      - SetupWizard calls setSetupMode(false) when "Get Started" is clicked
+      - Auto-hide resumes after setup completes
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  # Milestone 2: Permission Testing and Microphone
+  - id: 2
+    github_issue: null
+    milestone: 2
+    title: Add permission test feedback UI components
+    description: |
+      Create UI components for showing permission test results:
+      - Success state (green checkmark, "Permission granted")
+      - Failed state (red X, "Permission denied")
+      - Testing state (spinner, "Testing...")
+
+      These will be used by both screen recording and microphone test buttons.
+    acceptance_criteria:
+      - PermissionTestResult component shows success/failed/testing states
+      - Uses appropriate icons and colors
+      - Accessible (proper ARIA labels)
+    depends_on: []
+    effort: 1
+    status: scoped
+
+  - id: 3
+    github_issue: null
+    milestone: 2
+    title: Add screen recording test button to wizard
+    description: |
+      Add a "Test Screen Recording" button to step 2 of the wizard.
+      When clicked, briefly request screen capture permission to verify it works.
+      Show the test result using PermissionTestResult component.
+    acceptance_criteria:
+      - "Test Screen Recording" button appears in step 2
+      - Clicking test button attempts getDisplayMedia()
+      - Immediately stops any streams obtained
+      - Shows success feedback when permission granted
+      - Shows failure feedback when permission denied
+      - Button can be clicked multiple times to retry
+    depends_on: [2]
+    effort: 2
+    status: scoped
+
+  - id: 4
+    github_issue: null
+    milestone: 2
+    title: Add microphone System Preferences IPC handler
+    description: |
+      Extend the openSystemPreferences IPC handler to support opening
+      the microphone privacy panel on macOS.
+    acceptance_criteria:
+      - openSystemPreferences('microphone') opens Privacy_Microphone panel
+      - Works on macOS
+      - Returns null gracefully on other platforms
+    depends_on: []
+    effort: 1
+    status: scoped
+
+  - id: 5
+    github_issue: null
+    milestone: 2
+    title: Add microphone permission step to wizard
+    description: |
+      Add a new step 3 to the wizard for microphone permission:
+      - Explain why microphone access is needed
+      - "Open System Preferences" button for microphone
+      - "Test Microphone" button with feedback
+      - Allow skipping (microphone is optional)
+
+      Renumber existing "Complete" step to step 4.
+    acceptance_criteria:
+      - New step 3 for microphone permission exists
+      - "Open System Preferences" opens microphone panel
+      - "Test Microphone" attempts getUserMedia({ audio: true })
+      - Shows success/failure feedback
+      - "Skip" button allows proceeding without granting
+      - Complete step is now step 4
+      - Wizard flow works end-to-end
+    depends_on: [2, 4]
+    effort: 2
+    status: scoped
