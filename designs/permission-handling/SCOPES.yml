@@ -67,7 +67,7 @@ tasks:
       - Component is compact/inline-friendly for use in settings modals
     depends_on: [1]
     effort: 1
-    status: testing
+    status: implementing
 
   - id: 3
     github_issue: 209
