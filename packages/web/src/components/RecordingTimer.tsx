@@ -1,4 +1,5 @@
 import { Typography } from '@mui/material'
+import { useEffect, useState } from 'react'
 
 export interface RecordingTimerProps {
   /** Function that returns elapsed time in milliseconds */
@@ -11,8 +12,18 @@ export interface RecordingTimerProps {
  * Formats milliseconds into MM:SS or HH:MM:SS format
  */
 export function formatTime(ms: number): string {
-  // Stub - will be implemented
-  return '00:00'
+  const totalSeconds = Math.floor(ms / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  const pad = (n: number) => n.toString().padStart(2, '0')
+
+  if (hours > 0) {
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+  }
+
+  return `${pad(minutes)}:${pad(seconds)}`
 }
 
 /**
@@ -20,10 +31,21 @@ export function formatTime(ms: number): string {
  * Polls getElapsedTime() and formats for display.
  */
 export function RecordingTimer({ getElapsedTime, updateInterval = 100 }: RecordingTimerProps) {
-  // Stub implementation
+  const [elapsed, setElapsed] = useState(() => getElapsedTime())
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setElapsed(getElapsedTime())
+    }, updateInterval)
+
+    return () => {
+      clearInterval(intervalId)
+    }
+  }, [getElapsedTime, updateInterval])
+
   return (
     <Typography variant="h6" component="span" data-testid="recording-timer">
-      00:00
+      {formatTime(elapsed)}
     </Typography>
   )
 }
