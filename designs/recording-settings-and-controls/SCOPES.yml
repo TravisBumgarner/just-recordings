@@ -114,7 +114,7 @@ tasks:
       - Uses existing Modal system for consistency
     depends_on: []
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 6
     github_issue: 197
