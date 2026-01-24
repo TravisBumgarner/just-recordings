@@ -61,7 +61,7 @@ tasks:
       - Returns 0 when not recording
     depends_on: []
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 3
     github_issue: 194
