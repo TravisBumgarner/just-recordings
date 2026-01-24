@@ -11,6 +11,9 @@ const api = {
   setRecordingState: (isRecording: boolean) => {
     ipcRenderer.send('recording-state-changed', isRecording)
   },
+  setSetupMode: (enabled: boolean) => {
+    ipcRenderer.send('set-setup-mode', enabled)
+  },
   openExternal: (url: string) => {
     ipcRenderer.send('open-external', url)
   },
