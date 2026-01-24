@@ -34,7 +34,7 @@ describe('CloudinaryUploader', () => {
       }
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockSignature),
+        json: () => Promise.resolve({ data: mockSignature }),
       } as Response)
 
       const signature = await uploader.requestSignature()
@@ -60,7 +60,7 @@ describe('CloudinaryUploader', () => {
       }
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockSignature),
+        json: () => Promise.resolve({ data: mockSignature }),
       } as Response)
 
       await uploaderWithAuth.requestSignature()
@@ -95,7 +95,7 @@ describe('CloudinaryUploader', () => {
       }
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockSignature),
+        json: () => Promise.resolve({ data: mockSignature }),
       } as Response)
 
       const uploadId = await uploader.startUpload()
@@ -120,7 +120,7 @@ describe('CloudinaryUploader', () => {
       }
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockSignature),
+        json: () => Promise.resolve({ data: mockSignature }),
       } as Response)
 
       const uploadId = await uploader.startUpload()
@@ -145,7 +145,7 @@ describe('CloudinaryUploader', () => {
       }
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockSignature),
+        json: () => Promise.resolve({ data: mockSignature }),
       } as Response)
 
       await uploader.startUpload()
@@ -174,7 +174,7 @@ describe('CloudinaryUploader', () => {
       expect(options?.method).toBe('POST')
     })
 
-    it('includes X-Unique-Upload-Id header', async () => {
+    it('includes X-Unique-Upload-Id header for multi-chunk uploads', async () => {
       const mockSignature = {
         signature: 'test-signature',
         timestamp: 1234567890,
@@ -186,10 +186,14 @@ describe('CloudinaryUploader', () => {
       }
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockSignature),
+        json: () => Promise.resolve({ data: mockSignature }),
       } as Response)
 
       const uploadId = await uploader.startUpload()
+
+      // Store a chunk first to set totalSize
+      const chunk = new Blob(['a'.repeat(1000)], { type: 'video/webm' })
+      await uploader.uploadChunk(uploadId, chunk, 0)
 
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
@@ -200,8 +204,8 @@ describe('CloudinaryUploader', () => {
           }),
       } as Response)
 
-      const chunk = new Blob(['a'.repeat(1000)], { type: 'video/webm' })
-      await uploader.uploadChunkToCloudinary(chunk, 0, 1)
+      // Use totalChunks > 1 to trigger chunking headers (small files with single chunk skip headers)
+      await uploader.uploadChunkToCloudinary(chunk, 0, 2)
 
       const fetchCalls = vi.mocked(fetch).mock.calls
       const cloudinaryCall = fetchCalls.find((call) => String(call[0]).includes('cloudinary.com'))
@@ -210,6 +214,50 @@ describe('CloudinaryUploader', () => {
       const headers = options.headers as Record<string, string>
 
       expect(headers['X-Unique-Upload-Id']).toBe(uploadId)
+    })
+
+    it('skips chunking headers for small single-chunk files', async () => {
+      const mockSignature = {
+        signature: 'test-signature',
+        timestamp: 1234567890,
+        cloudName: 'test-cloud',
+        apiKey: 'test-api-key',
+        folder: 'recordings',
+        tags: ['env:development'],
+        resourceType: 'video',
+      }
+      vi.mocked(fetch).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ data: mockSignature }),
+      } as Response)
+
+      await uploader.startUpload()
+
+      // Store a small chunk
+      const chunk = new Blob(['a'.repeat(1000)], { type: 'video/webm' })
+      await uploader.uploadChunk('test-id', chunk, 0)
+
+      vi.mocked(fetch).mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            public_id: 'recordings/test-video',
+            secure_url: 'https://res.cloudinary.com/test-cloud/video/upload/recordings/test-video.webm',
+          }),
+      } as Response)
+
+      // Single chunk under 5MB should skip chunking headers
+      await uploader.uploadChunkToCloudinary(chunk, 0, 1)
+
+      const fetchCalls = vi.mocked(fetch).mock.calls
+      const cloudinaryCall = fetchCalls.find((call) => String(call[0]).includes('cloudinary.com'))
+      if (!cloudinaryCall) throw new Error('Cloudinary call not found')
+      const options = cloudinaryCall[1] as RequestInit
+      const headers = options.headers as Record<string, string>
+
+      // Should NOT have chunking headers for small files
+      expect(headers['X-Unique-Upload-Id']).toBeUndefined()
+      expect(headers['Content-Range']).toBeUndefined()
     })
 
     it('includes Content-Range header for chunked uploads', async () => {
@@ -224,7 +272,7 @@ describe('CloudinaryUploader', () => {
       }
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockSignature),
+        json: () => Promise.resolve({ data: mockSignature }),
       } as Response)
 
       await uploader.startUpload()
@@ -263,7 +311,7 @@ describe('CloudinaryUploader', () => {
       }
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockSignature),
+        json: () => Promise.resolve({ data: mockSignature }),
       } as Response)
 
       await uploader.startUpload()
@@ -290,10 +338,12 @@ describe('CloudinaryUploader', () => {
         ok: true,
         json: () =>
           Promise.resolve({
-            id: 'recording-123',
-            videoUrl: 'https://res.cloudinary.com/test/video/upload/recordings/test.webm',
-            thumbnailUrl: 'https://res.cloudinary.com/test/video/upload/c_thumb,w_320,h_180/recordings/test.jpg',
-            createdAt: '2024-01-01T00:00:00.000Z',
+            data: {
+              id: 'recording-123',
+              videoUrl: 'https://res.cloudinary.com/test/video/upload/recordings/test.webm',
+              thumbnailUrl: 'https://res.cloudinary.com/test/video/upload/c_thumb,w_320,h_180/recordings/test.jpg',
+              createdAt: '2024-01-01T00:00:00.000Z',
+            },
           }),
       } as Response)
 
@@ -329,10 +379,12 @@ describe('CloudinaryUploader', () => {
         ok: true,
         json: () =>
           Promise.resolve({
-            id: 'recording-123',
-            videoUrl: 'https://example.com/video.webm',
-            thumbnailUrl: 'https://example.com/thumb.jpg',
-            createdAt: '2024-01-01T00:00:00.000Z',
+            data: {
+              id: 'recording-123',
+              videoUrl: 'https://example.com/video.webm',
+              thumbnailUrl: 'https://example.com/thumb.jpg',
+              createdAt: '2024-01-01T00:00:00.000Z',
+            },
           }),
       } as Response)
 
@@ -361,7 +413,7 @@ describe('CloudinaryUploader', () => {
       }
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockSignature),
+        json: () => Promise.resolve({ data: mockSignature }),
       } as Response)
 
       const uploadId = await uploader.startUpload()
@@ -385,11 +437,13 @@ describe('CloudinaryUploader', () => {
         ok: true,
         json: () =>
           Promise.resolve({
-            id: 'recording-123',
-            videoUrl: 'https://res.cloudinary.com/test-cloud/video/upload/recordings/test-video.webm',
-            thumbnailUrl:
-              'https://res.cloudinary.com/test-cloud/video/upload/c_thumb,w_320,h_180/recordings/test-video.jpg',
-            createdAt: '2024-01-01T00:00:00.000Z',
+            data: {
+              id: 'recording-123',
+              videoUrl: 'https://res.cloudinary.com/test-cloud/video/upload/recordings/test-video.webm',
+              thumbnailUrl:
+                'https://res.cloudinary.com/test-cloud/video/upload/c_thumb,w_320,h_180/recordings/test-video.jpg',
+              createdAt: '2024-01-01T00:00:00.000Z',
+            },
           }),
       } as Response)
 
@@ -416,7 +470,7 @@ describe('CloudinaryUploader', () => {
       }
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockSignature),
+        json: () => Promise.resolve({ data: mockSignature }),
       } as Response)
 
       const uploadId = await uploader.startUpload()

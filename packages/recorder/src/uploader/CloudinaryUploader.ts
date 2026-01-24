@@ -58,8 +58,9 @@ export class CloudinaryUploader implements Uploader {
       throw new Error(errorData.error || `Failed to get signature: ${response.status}`)
     }
 
-    const data = await response.json()
-    return data as CloudinarySignature
+    const json = await response.json()
+    // API returns { success: true, data: {...} }
+    return json.data as CloudinarySignature
   }
 
   async startUpload(): Promise<string> {
@@ -87,20 +88,13 @@ export class CloudinaryUploader implements Uploader {
   async uploadChunkToCloudinary(
     chunk: Blob,
     chunkIndex: number,
-    _totalChunks: number
+    totalChunks: number
   ): Promise<CloudinaryUploadResponse | null> {
     if (!this.signature || !this.uploadId) {
       throw new Error('Upload not started. Call startUpload() first.')
     }
 
     const { signature, timestamp, cloudName, apiKey, folder, tags } = this.signature
-
-    // Calculate byte range for Content-Range header
-    let startByte = 0
-    for (let i = 0; i < chunkIndex; i++) {
-      startByte += this.chunks[i]?.size || 0
-    }
-    const endByte = startByte + chunk.size - 1
 
     // Build form data for Cloudinary upload
     const formData = new FormData()
@@ -111,13 +105,24 @@ export class CloudinaryUploader implements Uploader {
     formData.append('folder', folder)
     formData.append('tags', tags.join(','))
 
-    // Headers for chunked upload
-    const headers: Record<string, string> = {
-      'X-Unique-Upload-Id': this.uploadId,
-      'Content-Range': `bytes ${startByte}-${endByte}/${this.totalSize}`,
-    }
-
     const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`
+
+    // For small files (single chunk under 5MB), use simple upload without chunking headers
+    // Cloudinary requires all chunks except the last to be >= 5MB
+    const isSmallFile = totalChunks === 1 && this.totalSize < 5 * 1024 * 1024
+
+    const headers: Record<string, string> = {}
+    if (!isSmallFile) {
+      // Calculate byte range for Content-Range header
+      let startByte = 0
+      for (let i = 0; i < chunkIndex; i++) {
+        startByte += this.chunks[i]?.size || 0
+      }
+      const endByte = startByte + chunk.size - 1
+
+      headers['X-Unique-Upload-Id'] = this.uploadId
+      headers['Content-Range'] = `bytes ${startByte}-${endByte}/${this.totalSize}`
+    }
 
     const response = await fetch(cloudinaryUrl, {
       method: 'POST',
@@ -168,7 +173,9 @@ export class CloudinaryUploader implements Uploader {
       throw new Error(errorData.error || `Failed to register recording: ${response.status}`)
     }
 
-    const data = await response.json()
+    const json = await response.json()
+    // API returns { success: true, data: {...} }
+    const data = json.data
 
     // Map the API response to UploadResult format
     return {

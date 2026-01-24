@@ -60,9 +60,10 @@ export const getRecordings = async (): Promise<GetRecordingsResult> => {
     }
 
     const json = await response.json()
+    // API returns { success: true, data: { recordings: [...] } }
     return getRecordingsResultSchema.parse({
       success: true,
-      recordings: json.recordings,
+      recordings: json.data.recordings,
     })
   } catch (error) {
     return {
@@ -102,9 +103,10 @@ export const getRecording = async (id: string): Promise<GetRecordingResult> => {
     }
 
     const json = await response.json()
+    // API returns { success: true, data: {...} }
     return getRecordingResultSchema.parse({
       success: true,
-      recording: json,
+      recording: json.data,
     })
   } catch (error) {
     return {

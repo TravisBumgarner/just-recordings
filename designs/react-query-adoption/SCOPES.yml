@@ -1,0 +1,189 @@
+project: React Query Adoption
+repo: travisbumgarner/just-recordings
+design_file: designs/react-query-adoption/DESIGN.md
+scoping_date: 2026-01-23
+
+milestones:
+  - number: 1
+    title: "1. React Query Infrastructure & Hooks"
+    description: Add react-query infrastructure, standardize API responses, and create query/mutation hooks
+    branch:
+      working: react-query-infrastructure
+      base: main
+
+  - number: 2
+    title: "2. React Query Component Migration"
+    description: Migrate all components to use react-query hooks and clean up deprecated patterns
+    branch:
+      working: react-query-migration
+      base: react-query-infrastructure
+
+tasks:
+  - id: 1
+    github_issue: 170
+    milestone: 1
+    title: Create react-query infrastructure
+    description: |
+      Set up the foundational infrastructure for react-query adoption:
+      1. Create an `ApiError` class for consistent error handling in query/mutation functions
+      2. Configure `QueryClient` with sensible defaults (staleTime, retry, refetchOnWindowFocus)
+    acceptance_criteria:
+      - ApiError class exists and extends Error
+      - ApiError accepts an ErrorCode and provides user-friendly message
+      - QueryClient is configured with default options for staleTime, retry, and refetchOnWindowFocus
+    depends_on: []
+    effort: 1
+    status: scoped
+
+  - id: 2
+    github_issue: 171
+    milestone: 1
+    title: Standardize API response formats for react-query
+    description: |
+      Update all frontend API functions to use the standardized `ApiResponse<T>` format.
+      This ensures consistent error handling when used with react-query hooks.
+
+      Files to modify:
+      - packages/web/src/api/recordings.ts
+      - packages/web/src/api/users.ts
+      - packages/web/src/api/health.ts
+    acceptance_criteria:
+      - getRecordings returns ApiResponse<Recording[]>
+      - getRecording returns ApiResponse<Recording>
+      - deleteRecording uses standardized format (remove V2 suffix)
+      - getVideoUrl and getThumbnailUrl return ApiResponse<string>
+      - getMe returns ApiResponse<AppUser>
+      - checkHealth returns ApiResponse<{ status: string }>
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  - id: 3
+    github_issue: 172
+    milestone: 1
+    title: Create recording query hooks
+    description: |
+      Create react-query hooks for fetching recording data:
+      - useRecordings() - fetches all recordings
+      - useRecording(id) - fetches single recording
+      - useVideoUrl(id) - fetches video blob URL
+      - useThumbnailUrl(id, hasThumbnail) - fetches thumbnail blob URL
+
+      Files to create:
+      - packages/web/src/hooks/queries/useRecordings.ts
+      - packages/web/src/hooks/queries/useRecordingMedia.ts
+    acceptance_criteria:
+      - useRecordings hook returns list of recordings with loading/error states
+      - useRecording(id) hook returns single recording, disabled when id is empty
+      - useVideoUrl(id) hook returns blob URL with infinite staleTime
+      - useThumbnailUrl(id, hasThumbnail) hook returns blob URL, disabled when no thumbnail
+    depends_on: [1, 2]
+    effort: 2
+    status: scoped
+
+  - id: 4
+    github_issue: 173
+    milestone: 1
+    title: Create recording mutation hooks
+    description: |
+      Create react-query mutation hooks for recording operations:
+      - useDeleteRecording() - handles deletion with cache invalidation
+
+      Files to create:
+      - packages/web/src/hooks/mutations/useDeleteRecording.ts
+    acceptance_criteria:
+      - useDeleteRecording hook handles delete mutations
+      - On success, invalidates recordings list query
+      - On success, removes specific recording and media from cache
+      - Throws ApiError on failure
+    depends_on: [1, 2]
+    effort: 1
+    status: scoped
+
+  - id: 5
+    github_issue: 174
+    milestone: 1
+    title: Create utility query hooks (health, user)
+    description: |
+      Create react-query hooks for health checks and user data:
+      - useHealth() - health check with retry
+      - useAuthUser() - Supabase auth user
+      - useCurrentUser() - app user details
+
+      Files to create:
+      - packages/web/src/hooks/queries/useHealth.ts
+      - packages/web/src/hooks/queries/useCurrentUser.ts
+    acceptance_criteria:
+      - useHealth hook fetches health status with appropriate retry/stale settings
+      - useAuthUser hook fetches Supabase auth user
+      - useCurrentUser hook fetches app user, only enabled when auth user exists
+    depends_on: [1, 2]
+    effort: 2
+    status: scoped
+
+  - id: 6
+    github_issue: 175
+    milestone: 2
+    title: Migrate Home pages to react-query
+    description: |
+      Update Home.Web.tsx and Home.Desktop.tsx to use react-query hooks:
+      - Replace useState/useEffect with useRecordings
+      - Replace setTimeout refetch with queryClient.invalidateQueries
+      - Update RecordingCard to use useThumbnailUrl
+
+      Files to modify:
+      - packages/web/src/pages/Home.Web.tsx
+      - packages/web/src/pages/Home.Desktop.tsx
+    acceptance_criteria:
+      - Home.Web.tsx uses useRecordings() hook
+      - Home.Web.tsx uses queryClient.invalidateQueries() instead of setTimeout
+      - Home.Desktop.tsx updated similarly
+      - RecordingCard uses useThumbnailUrl() hook
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 7
+    github_issue: 176
+    milestone: 2
+    title: Migrate RecordingViewer to react-query
+    description: |
+      Update RecordingViewer.tsx to use react-query hooks:
+      - Use useRecording(id) for recording data
+      - Use useVideoUrl(id) for video blob URL
+      - Use useDeleteRecording() mutation for deletion
+
+      Files to modify:
+      - packages/web/src/pages/RecordingViewer.tsx
+    acceptance_criteria:
+      - Uses useRecording() hook for recording data
+      - Uses useVideoUrl() hook for video blob URL
+      - Uses useDeleteRecording() mutation for deletion
+      - Delete button shows loading state during mutation
+    depends_on: [3, 4]
+    effort: 2
+    status: scoped
+
+  - id: 8
+    github_issue: 177
+    milestone: 2
+    title: Migrate utility hooks and cleanup
+    description: |
+      Migrate existing utility hooks to use react-query internally:
+      - Update useHealthCheck to use useHealth
+      - Update useLoadUserIntoState to use react-query hooks
+      - Clean up unused imports and deprecated patterns
+      - Add barrel exports for new hooks
+
+      Files to modify:
+      - packages/web/src/hooks/useHealthCheck.ts
+      - packages/web/src/hooks/useLoadUserIntoState.ts
+      - packages/web/src/hooks/index.ts
+    acceptance_criteria:
+      - useHealthCheck uses useHealth internally
+      - useLoadUserIntoState uses react-query hooks internally
+      - Zustand store is still populated for components that depend on it
+      - Hooks are properly exported from barrel file
+    depends_on: [5, 6, 7]
+    effort: 2
+    status: scoped
