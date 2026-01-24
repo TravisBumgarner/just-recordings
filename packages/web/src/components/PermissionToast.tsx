@@ -1,5 +1,4 @@
 import { Alert, Button, IconButton } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
 
 export type ToastVariant = 'error' | 'warning'
 
@@ -18,6 +17,28 @@ export function PermissionToast({
   actionLabel,
   onAction,
 }: PermissionToastProps) {
-  // Stub implementation
-  return null
+  return (
+    <Alert
+      severity={variant}
+      action={
+        <>
+          {actionLabel && onAction && (
+            <Button color="inherit" size="small" onClick={onAction}>
+              {actionLabel}
+            </Button>
+          )}
+          <IconButton
+            aria-label="close"
+            color="inherit"
+            size="small"
+            onClick={onDismiss}
+          >
+            ✕
+          </IconButton>
+        </>
+      }
+    >
+      {message}
+    </Alert>
+  )
 }

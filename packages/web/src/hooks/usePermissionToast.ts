@@ -21,10 +21,33 @@ export interface UsePermissionToastReturn {
 }
 
 export function usePermissionToast(): UsePermissionToastReturn {
-  // Stub implementation
+  const [toast, setToast] = useState<ToastState | null>(null)
+
+  const showToast = useCallback(
+    (options: {
+      message: string
+      variant?: ToastVariant
+      actionLabel?: string
+      onAction?: () => void
+    }) => {
+      setToast({
+        isOpen: true,
+        message: options.message,
+        variant: options.variant ?? 'warning',
+        actionLabel: options.actionLabel,
+        onAction: options.onAction,
+      })
+    },
+    [],
+  )
+
+  const dismissToast = useCallback(() => {
+    setToast(null)
+  }, [])
+
   return {
-    toast: null,
-    showToast: () => {},
-    dismissToast: () => {},
+    toast,
+    showToast,
+    dismissToast,
   }
 }
