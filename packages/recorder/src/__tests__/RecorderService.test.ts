@@ -59,17 +59,21 @@ class MockMediaStream {
 describe('RecorderService', () => {
   let service: RecorderService
   let mockGetDisplayMedia: ReturnType<typeof vi.fn>
+  let mockGetUserMedia: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     service = new RecorderService()
 
     // Mock getDisplayMedia
     mockGetDisplayMedia = vi.fn().mockResolvedValue(new MockMediaStream())
+    // Mock getUserMedia
+    mockGetUserMedia = vi.fn().mockResolvedValue(new MockMediaStream())
 
     // @ts-expect-error - mocking navigator
     global.navigator = {
       mediaDevices: {
         getDisplayMedia: mockGetDisplayMedia,
+        getUserMedia: mockGetUserMedia,
       },
     }
 
@@ -241,6 +245,151 @@ describe('RecorderService', () => {
       service.cancelRecording()
 
       expect(service.getElapsedTime()).toBe(0)
+    })
+  })
+
+  describe('multi-source media stream composition', () => {
+    it('requests system audio when includeSystemAudio is true', async () => {
+      await service.startScreenRecording({ includeSystemAudio: true })
+
+      expect(mockGetDisplayMedia).toHaveBeenCalledWith(
+        expect.objectContaining({
+          video: true,
+          audio: true,
+        }),
+      )
+    })
+
+    it('does not request system audio when includeSystemAudio is false', async () => {
+      await service.startScreenRecording({ includeSystemAudio: false })
+
+      expect(mockGetDisplayMedia).toHaveBeenCalledWith(
+        expect.objectContaining({
+          video: true,
+          audio: false,
+        }),
+      )
+    })
+
+    it('requests microphone when includeMicrophone is true', async () => {
+      await service.startScreenRecording({ includeMicrophone: true })
+
+      expect(mockGetUserMedia).toHaveBeenCalledWith(
+        expect.objectContaining({
+          audio: true,
+        }),
+      )
+    })
+
+    it('does not request microphone when includeMicrophone is false', async () => {
+      await service.startScreenRecording({ includeMicrophone: false })
+
+      expect(mockGetUserMedia).not.toHaveBeenCalled()
+    })
+
+    it('requests both system audio and microphone when both are enabled', async () => {
+      await service.startScreenRecording({
+        includeSystemAudio: true,
+        includeMicrophone: true,
+      })
+
+      expect(mockGetDisplayMedia).toHaveBeenCalledWith(
+        expect.objectContaining({
+          video: true,
+          audio: true,
+        }),
+      )
+      expect(mockGetUserMedia).toHaveBeenCalledWith(
+        expect.objectContaining({
+          audio: true,
+        }),
+      )
+    })
+
+    it('captures video only when neither audio option is enabled', async () => {
+      await service.startScreenRecording()
+
+      expect(mockGetDisplayMedia).toHaveBeenCalledWith(
+        expect.objectContaining({
+          video: true,
+          audio: false,
+        }),
+      )
+      expect(mockGetUserMedia).not.toHaveBeenCalled()
+    })
+
+    it('stops all tracks from all streams on stop', async () => {
+      const displayTrackStop = vi.fn()
+      const micTrackStop = vi.fn()
+
+      const mockDisplayStream = {
+        getTracks: () => [{ stop: displayTrackStop, kind: 'video' }],
+        getAudioTracks: () => [],
+        getVideoTracks: () => [{ stop: displayTrackStop, kind: 'video' }],
+      }
+      const mockMicStream = {
+        getTracks: () => [{ stop: micTrackStop, kind: 'audio' }],
+        getAudioTracks: () => [{ stop: micTrackStop, kind: 'audio' }],
+      }
+
+      mockGetDisplayMedia.mockResolvedValue(mockDisplayStream)
+      mockGetUserMedia.mockResolvedValue(mockMicStream)
+
+      await service.startScreenRecording({ includeMicrophone: true })
+      await service.stopRecording()
+
+      expect(displayTrackStop).toHaveBeenCalled()
+      expect(micTrackStop).toHaveBeenCalled()
+    })
+
+    it('stops all tracks from all streams on cancel', async () => {
+      const displayTrackStop = vi.fn()
+      const micTrackStop = vi.fn()
+
+      const mockDisplayStream = {
+        getTracks: () => [{ stop: displayTrackStop, kind: 'video' }],
+        getAudioTracks: () => [],
+        getVideoTracks: () => [{ stop: displayTrackStop, kind: 'video' }],
+      }
+      const mockMicStream = {
+        getTracks: () => [{ stop: micTrackStop, kind: 'audio' }],
+        getAudioTracks: () => [{ stop: micTrackStop, kind: 'audio' }],
+      }
+
+      mockGetDisplayMedia.mockResolvedValue(mockDisplayStream)
+      mockGetUserMedia.mockResolvedValue(mockMicStream)
+
+      await service.startScreenRecording({ includeMicrophone: true })
+      service.cancelRecording()
+
+      expect(displayTrackStop).toHaveBeenCalled()
+      expect(micTrackStop).toHaveBeenCalled()
+    })
+
+    it('handles microphone permission denial gracefully', async () => {
+      mockGetUserMedia.mockRejectedValue(new DOMException('Permission denied', 'NotAllowedError'))
+
+      // Should not throw, should continue with just screen capture
+      await expect(
+        service.startScreenRecording({ includeMicrophone: true }),
+      ).resolves.not.toThrow()
+
+      expect(service.getState()).toBe('recording')
+    })
+
+    it('handles system audio permission denial gracefully', async () => {
+      // getDisplayMedia rejects when audio permission denied in some browsers
+      mockGetDisplayMedia.mockRejectedValueOnce(
+        new DOMException('Permission denied', 'NotAllowedError'),
+      )
+      // Retry without audio should work
+      mockGetDisplayMedia.mockResolvedValueOnce(new MockMediaStream())
+
+      await expect(
+        service.startScreenRecording({ includeSystemAudio: true }),
+      ).resolves.not.toThrow()
+
+      expect(service.getState()).toBe('recording')
     })
   })
 
