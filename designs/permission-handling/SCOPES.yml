@@ -47,7 +47,7 @@ tasks:
       - Export PermissionService and PermissionStatus types from package
     depends_on: []
     effort: 2
-    status: implementing
+    status: completed
 
   # Milestone 2: Permission Handling - Web UI
   - id: 2
