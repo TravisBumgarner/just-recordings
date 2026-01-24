@@ -15,8 +15,17 @@ import {
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 
-const ICON_PATH = join(__dirname, '../../resources/statusbaricon.png')
-const ICON_RECORDING_PATH = join(__dirname, '../../resources/statusbaricon-recording.png')
+// In production, extraResource files are in the Resources folder, not inside ASAR
+const getResourcePath = (filename: string) => {
+  if (is.dev) {
+    return join(__dirname, '../../resources', filename)
+  }
+  // In production, process.resourcesPath points to the Resources folder
+  return join(process.resourcesPath, 'resources', filename)
+}
+
+const ICON_PATH = getResourcePath('statusbaricon.png')
+const ICON_RECORDING_PATH = getResourcePath('statusbaricon-recording.png')
 
 // Create tray icon from file
 function createTrayIcon(): Tray {
@@ -80,7 +89,7 @@ function createWindow(): void {
     skipTaskbar: true, // Hide from taskbar/Dock
     alwaysOnTop: false,
     webPreferences: {
-      preload: join(__dirname, '../preload/index.cjs'),
+      preload: join(__dirname, 'preload.js'),
       sandbox: false,
     },
   })
