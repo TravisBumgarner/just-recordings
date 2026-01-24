@@ -20,11 +20,12 @@ import { setRecordingState } from '../utils/electron'
 
 // Create mock recorder service
 const createMockRecorderService = () => {
-  let stateCallback: ((state: string) => void) | null = null
+  const stateCallbacks: Set<(state: string) => void> = new Set()
   return {
     startScreenRecording: vi.fn(() => Promise.resolve()),
     stopRecording: vi.fn(() =>
       Promise.resolve({
+        id: 1,
         name: 'Test Recording',
         blob: new Blob(),
         mimeType: 'video/webm',
@@ -39,15 +40,17 @@ const createMockRecorderService = () => {
     cancelRecording: vi.fn(),
     getElapsedTime: vi.fn(() => 5000),
     onStateChange: vi.fn((callback: (state: string) => void) => {
-      stateCallback = callback
+      stateCallbacks.add(callback)
       return () => {
-        stateCallback = null
+        stateCallbacks.delete(callback)
       }
     }),
     getState: vi.fn(() => 'idle'),
     // Helper to trigger state changes in tests
     _triggerStateChange: (state: string) => {
-      if (stateCallback) stateCallback(state)
+      for (const callback of stateCallbacks) {
+        callback(state)
+      }
     },
   }
 }
@@ -121,23 +124,26 @@ describe('Home - Recording Flow Integration', () => {
     })
 
     it('starts recording after countdown completes', async () => {
+      vi.useRealTimers() // Use real timers for this test
+
       renderHome()
 
       // Open settings and start
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
 
-      // Advance through countdown (3 seconds)
-      act(() => {
-        vi.advanceTimersByTime(3000)
-      })
-
-      await waitFor(() => {
-        expect(mockRecorderService.startScreenRecording).toHaveBeenCalled()
-      })
+      // Wait for countdown to complete (3 seconds + buffer)
+      await waitFor(
+        () => {
+          expect(mockRecorderService.startScreenRecording).toHaveBeenCalled()
+        },
+        { timeout: 5000 },
+      )
     })
 
     it('passes selected settings to recorder service', async () => {
+      vi.useRealTimers() // Use real timers for countdown-based test
+
       renderHome()
 
       // Open settings
@@ -150,38 +156,38 @@ describe('Home - Recording Flow Integration', () => {
       // Start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
 
-      // Advance through countdown
-      act(() => {
-        vi.advanceTimersByTime(3000)
-      })
-
-      await waitFor(() => {
-        expect(mockRecorderService.startScreenRecording).toHaveBeenCalledWith(
-          expect.objectContaining({
-            includeSystemAudio: true,
-            includeMicrophone: true,
-            includeWebcam: false,
-          }),
-        )
-      })
+      // Wait for countdown to complete and recording to start
+      await waitFor(
+        () => {
+          expect(mockRecorderService.startScreenRecording).toHaveBeenCalledWith(
+            expect.objectContaining({
+              includeSystemAudio: true,
+              includeMicrophone: true,
+              includeWebcam: false,
+            }),
+          )
+        },
+        { timeout: 5000 },
+      )
     })
   })
 
   describe('Recording controls accessible during recording', () => {
     it('shows recording controls modal when recording', async () => {
+      vi.useRealTimers() // Use real timers for countdown-based test
+
       renderHome()
 
       // Start the full recording flow
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
 
-      act(() => {
-        vi.advanceTimersByTime(3000)
-      })
-
-      await waitFor(() => {
-        expect(mockRecorderService.startScreenRecording).toHaveBeenCalled()
-      })
+      await waitFor(
+        () => {
+          expect(mockRecorderService.startScreenRecording).toHaveBeenCalled()
+        },
+        { timeout: 5000 },
+      )
 
       expect(screen.getByTestId('recording-controls-modal')).toBeInTheDocument()
     })
@@ -189,18 +195,20 @@ describe('Home - Recording Flow Integration', () => {
 
   describe('Stop saves and shows in upload queue', () => {
     it('calls stopRecording and enqueues for upload when stop is clicked', async () => {
+      vi.useRealTimers() // Use real timers for countdown-based test
+
       renderHome()
 
       // Start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
-      act(() => {
-        vi.advanceTimersByTime(3000)
-      })
 
-      await waitFor(() => {
-        expect(screen.getByTestId('recording-controls-modal')).toBeInTheDocument()
-      })
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('recording-controls-modal')).toBeInTheDocument()
+        },
+        { timeout: 5000 },
+      )
 
       // Click stop
       await act(async () => {
@@ -219,18 +227,20 @@ describe('Home - Recording Flow Integration', () => {
 
   describe('Cancel/Restart work correctly', () => {
     it('discards recording when cancel is confirmed', async () => {
+      vi.useRealTimers() // Use real timers for countdown-based test
+
       renderHome()
 
       // Start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
-      act(() => {
-        vi.advanceTimersByTime(3000)
-      })
 
-      await waitFor(() => {
-        expect(screen.getByTestId('recording-controls-modal')).toBeInTheDocument()
-      })
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('recording-controls-modal')).toBeInTheDocument()
+        },
+        { timeout: 5000 },
+      )
 
       // Click cancel then confirm
       fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
@@ -245,18 +255,20 @@ describe('Home - Recording Flow Integration', () => {
     })
 
     it('shows countdown again when restart is confirmed', async () => {
+      vi.useRealTimers() // Use real timers for countdown-based test
+
       renderHome()
 
       // Start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
-      act(() => {
-        vi.advanceTimersByTime(3000)
-      })
 
-      await waitFor(() => {
-        expect(screen.getByTestId('recording-controls-modal')).toBeInTheDocument()
-      })
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('recording-controls-modal')).toBeInTheDocument()
+        },
+        { timeout: 5000 },
+      )
 
       // Click restart then confirm
       fireEvent.click(screen.getByRole('button', { name: /restart/i }))
@@ -273,35 +285,39 @@ describe('Home - Recording Flow Integration', () => {
 
   describe('Desktop tray icon updates on recording state', () => {
     it('calls setRecordingState(true) when recording starts', async () => {
+      vi.useRealTimers() // Use real timers for countdown-based test
+
       renderHome()
 
       // Start recording flow
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
-      act(() => {
-        vi.advanceTimersByTime(3000)
-      })
 
-      await waitFor(() => {
-        expect(mockRecorderService.startScreenRecording).toHaveBeenCalled()
-      })
+      await waitFor(
+        () => {
+          expect(mockRecorderService.startScreenRecording).toHaveBeenCalled()
+        },
+        { timeout: 5000 },
+      )
 
       expect(setRecordingState).toHaveBeenCalledWith(true)
     })
 
     it('calls setRecordingState(false) when recording stops', async () => {
+      vi.useRealTimers() // Use real timers for countdown-based test
+
       renderHome()
 
       // Start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
-      act(() => {
-        vi.advanceTimersByTime(3000)
-      })
 
-      await waitFor(() => {
-        expect(screen.getByTestId('recording-controls-modal')).toBeInTheDocument()
-      })
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('recording-controls-modal')).toBeInTheDocument()
+        },
+        { timeout: 5000 },
+      )
 
       // Stop recording
       await act(async () => {
@@ -314,18 +330,20 @@ describe('Home - Recording Flow Integration', () => {
     })
 
     it('calls setRecordingState(false) when recording is cancelled', async () => {
+      vi.useRealTimers() // Use real timers for countdown-based test
+
       renderHome()
 
       // Start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
-      act(() => {
-        vi.advanceTimersByTime(3000)
-      })
 
-      await waitFor(() => {
-        expect(screen.getByTestId('recording-controls-modal')).toBeInTheDocument()
-      })
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('recording-controls-modal')).toBeInTheDocument()
+        },
+        { timeout: 5000 },
+      )
 
       // Cancel recording
       fireEvent.click(screen.getByRole('button', { name: /cancel/i }))

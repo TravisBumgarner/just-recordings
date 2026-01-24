@@ -1,18 +1,20 @@
 import type {
   RecorderService,
-  RecorderState,
   Recording,
   UploadManager,
 } from '@just-recordings/recorder'
 import { Box, Button, Chip, LinearProgress, List, ListItem, Typography } from '@mui/material'
-import { useCallback, useEffect, useState } from 'react'
-import { ROUTES } from '@/consts'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from '@/sharedComponents/Link'
 import PageWrapper from '@/styles/shared/PageWrapper'
 import { generateAbsoluteUrl } from '@/utils/generateAbsoluteUrl'
 import { setRecordingState } from '../utils/electron'
 import { SetupWizard } from '../components/SetupWizard'
 import { useSetupStatus } from '../hooks/useSetupStatus'
+import { useRecordingFlow } from '../hooks/useRecordingFlow'
+import { RecordingSettingsModal } from '../components/RecordingSettingsModal'
+import { CountdownOverlay } from '../components/CountdownOverlay'
+import { RecordingControlsModal } from '../components/RecordingControlsModal'
 
 export interface HomeProps {
   recorderService: RecorderService
@@ -21,8 +23,49 @@ export interface HomeProps {
 
 function Home({ recorderService, uploadManager }: HomeProps) {
   const [queue, setQueue] = useState<Recording[]>([])
-  const [recorderState, setRecorderState] = useState<RecorderState>('idle')
   const { isSetupComplete, markSetupComplete } = useSetupStatus()
+
+  // Handle recording saved - enqueue for upload and update tray icon
+  const handleRecordingSaved = useCallback(
+    async (recording: Recording) => {
+      setRecordingState(false)
+      await uploadManager.enqueue(recording)
+    },
+    [uploadManager],
+  )
+
+  // Use the recording flow hook
+  const {
+    flowState,
+    recorderState,
+    openSettings,
+    closeSettings,
+    startWithSettings,
+    onCountdownComplete,
+    pause,
+    resume,
+    stop,
+    cancel,
+    restart,
+    getElapsedTime,
+  } = useRecordingFlow({
+    recorderService,
+    onRecordingSaved: handleRecordingSaved,
+  })
+
+  // Track previous flowState to detect transitions
+  const prevFlowStateRef = useRef(flowState)
+  useEffect(() => {
+    // When transitioning to 'recording', update tray icon
+    if (prevFlowStateRef.current === 'countdown' && flowState === 'recording') {
+      setRecordingState(true)
+    }
+    // When cancelling (recording -> idle), update tray icon
+    if (prevFlowStateRef.current === 'recording' && flowState === 'idle') {
+      setRecordingState(false)
+    }
+    prevFlowStateRef.current = flowState
+  }, [flowState])
 
   useEffect(() => {
     // Fetch initial queue state
@@ -31,22 +74,6 @@ function Home({ recorderService, uploadManager }: HomeProps) {
     const unsubscribe = uploadManager.onQueueChange(setQueue)
     return unsubscribe
   }, [uploadManager])
-
-  useEffect(() => {
-    const unsubscribe = recorderService.onStateChange(setRecorderState)
-    return unsubscribe
-  }, [recorderService])
-
-  const handleStartRecording = useCallback(async () => {
-    await recorderService.startScreenRecording()
-    setRecordingState(true)
-  }, [recorderService])
-
-  const handleStopRecording = useCallback(async () => {
-    setRecordingState(false)
-    const recording = await recorderService.stopRecording()
-    await uploadManager.enqueue(recording)
-  }, [recorderService, uploadManager])
 
   const handleRetry = useCallback(
     (id: number) => {
@@ -94,27 +121,41 @@ function Home({ recorderService, uploadManager }: HomeProps) {
 
   return (
     <PageWrapper width="full">
+      {/* Recording Settings Modal */}
+      <RecordingSettingsModal
+        open={flowState === 'settings'}
+        onClose={closeSettings}
+        onStartRecording={startWithSettings}
+      />
+
+      {/* Countdown Overlay */}
+      {flowState === 'countdown' && (
+        <CountdownOverlay seconds={3} onComplete={onCountdownComplete} />
+      )}
+
+      {/* Recording Controls Modal */}
+      <RecordingControlsModal
+        open={flowState === 'recording'}
+        recorderState={recorderState}
+        getElapsedTime={getElapsedTime}
+        onStop={stop}
+        onPause={pause}
+        onResume={resume}
+        onRestart={restart}
+        onCancel={cancel}
+      />
+
       <Box sx={{ py: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          {recorderState === 'idle' ? (
+          {flowState === 'idle' && (
             <Button
               fullWidth
               variant="contained"
               color="primary"
               size="large"
-              onClick={handleStartRecording}
+              onClick={openSettings}
             >
               Start Recording
-            </Button>
-          ) : (
-            <Button
-              fullWidth
-              variant="contained"
-              color="error"
-              size="large"
-              onClick={handleStopRecording}
-            >
-              Stop Recording
             </Button>
           )}
         </Box>
