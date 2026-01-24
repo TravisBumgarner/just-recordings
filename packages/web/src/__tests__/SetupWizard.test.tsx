@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SetupWizard } from '../components/SetupWizard'
 
 describe('SetupWizard', () => {
@@ -100,6 +100,124 @@ describe('SetupWizard', () => {
       fireEvent.click(screen.getByRole('button', { name: /open.*preferences|open.*settings/i }))
 
       expect(mockOpenSystemPreferences).toHaveBeenCalledWith('screenRecording')
+    })
+
+    it('has a Test Screen Recording button', () => {
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      expect(screen.getByRole('button', { name: /test.*screen.*recording/i })).toBeInTheDocument()
+    })
+  })
+
+  describe('screen recording test', () => {
+    let mockGetDisplayMedia: ReturnType<typeof vi.fn>
+    let mockMediaStream: { getTracks: () => { stop: () => void }[] }
+
+    beforeEach(() => {
+      mockMediaStream = {
+        getTracks: () => [{ stop: vi.fn() }],
+      }
+      mockGetDisplayMedia = vi.fn()
+      Object.defineProperty(navigator, 'mediaDevices', {
+        value: { getDisplayMedia: mockGetDisplayMedia },
+        configurable: true,
+      })
+    })
+
+    it('shows testing state when Test Screen Recording is clicked', async () => {
+      // Make getDisplayMedia hang to keep testing state visible
+      mockGetDisplayMedia.mockReturnValue(new Promise(() => {}))
+
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*screen.*recording/i }))
+
+      expect(screen.getByTestId('permission-test-result')).toHaveAttribute('data-state', 'testing')
+    })
+
+    it('shows success when getDisplayMedia succeeds', async () => {
+      mockGetDisplayMedia.mockResolvedValue(mockMediaStream)
+
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*screen.*recording/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('permission-test-result')).toHaveAttribute('data-state', 'success')
+      })
+    })
+
+    it('stops all tracks after successful test', async () => {
+      const mockStop = vi.fn()
+      mockMediaStream = {
+        getTracks: () => [{ stop: mockStop }, { stop: mockStop }],
+      }
+      mockGetDisplayMedia.mockResolvedValue(mockMediaStream)
+
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*screen.*recording/i }))
+
+      await waitFor(() => {
+        expect(mockStop).toHaveBeenCalledTimes(2)
+      })
+    })
+
+    it('shows failed when getDisplayMedia is denied', async () => {
+      mockGetDisplayMedia.mockRejectedValue(new Error('Permission denied'))
+
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*screen.*recording/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('permission-test-result')).toHaveAttribute('data-state', 'failed')
+      })
+    })
+
+    it('can retry test after failure', async () => {
+      // First attempt fails
+      mockGetDisplayMedia.mockRejectedValueOnce(new Error('Permission denied'))
+      // Second attempt succeeds
+      mockGetDisplayMedia.mockResolvedValueOnce(mockMediaStream)
+
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // First test - fails
+      fireEvent.click(screen.getByRole('button', { name: /test.*screen.*recording/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('permission-test-result')).toHaveAttribute('data-state', 'failed')
+      })
+
+      // Second test - succeeds
+      fireEvent.click(screen.getByRole('button', { name: /test.*screen.*recording/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('permission-test-result')).toHaveAttribute('data-state', 'success')
+      })
     })
   })
 
