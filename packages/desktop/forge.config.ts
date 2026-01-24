@@ -20,7 +20,6 @@ const config: ForgeConfig = {
   packagerConfig: {
     executableName: 'just-recordings',
     asar: true,
-    ignore: [],
     icon: './build/icon',
     extraResource: ['./resources'],
   },
@@ -43,7 +42,7 @@ const config: ForgeConfig = {
     }),
   ],
   plugins: [
-    ...(process.env.SHOULD_APPLE_SIGN === '1' ? [new AutoUnpackNativesPlugin({})] : []),
+    new AutoUnpackNativesPlugin({}),
     new VitePlugin({
       build: [
         {
