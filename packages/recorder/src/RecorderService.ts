@@ -11,6 +11,8 @@ export class RecorderService {
   private mediaStream: MediaStream | null = null
   private chunks: Blob[] = []
   private startTime: number = 0
+  private pausedTime: number = 0
+  private totalPausedDuration: number = 0
   private mimeType: string = DEFAULT_MIME_TYPE
   private db: RecorderDatabase
 
@@ -70,6 +72,10 @@ export class RecorderService {
       }
     }
 
+    // Reset time tracking
+    this.totalPausedDuration = 0
+    this.pausedTime = 0
+
     // Start recording with timeslice for periodic data
     this.mediaRecorder.start(TIMESLICE_MS)
     this.startTime = Date.now()
@@ -113,6 +119,9 @@ export class RecorderService {
         this.mediaRecorder = null
         this.mediaStream = null
         this.chunks = []
+        this.startTime = 0
+        this.pausedTime = 0
+        this.totalPausedDuration = 0
 
         this.setState('idle')
         resolve(recording)
@@ -125,6 +134,7 @@ export class RecorderService {
   pauseRecording(): void {
     if (this.mediaRecorder && this.state === 'recording') {
       this.mediaRecorder.pause()
+      this.pausedTime = Date.now()
       this.setState('paused')
     }
   }
@@ -132,8 +142,27 @@ export class RecorderService {
   resumeRecording(): void {
     if (this.mediaRecorder && this.state === 'paused') {
       this.mediaRecorder.resume()
+      // Add the duration we were paused to the total
+      this.totalPausedDuration += Date.now() - this.pausedTime
+      this.pausedTime = 0
       this.setState('recording')
     }
+  }
+
+  getElapsedTime(): number {
+    if (this.state === 'idle' || this.startTime === 0) {
+      return 0
+    }
+
+    const now = Date.now()
+
+    if (this.state === 'paused') {
+      // When paused, return time up to when we paused (minus any previous paused time)
+      return this.pausedTime - this.startTime - this.totalPausedDuration
+    }
+
+    // When recording, return current elapsed time minus total paused duration
+    return now - this.startTime - this.totalPausedDuration
   }
 
   cancelRecording(): void {
@@ -154,6 +183,9 @@ export class RecorderService {
     this.mediaRecorder = null
     this.mediaStream = null
     this.chunks = []
+    this.startTime = 0
+    this.pausedTime = 0
+    this.totalPausedDuration = 0
 
     this.setState('idle')
   }

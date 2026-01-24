@@ -184,6 +184,66 @@ describe('RecorderService', () => {
     })
   })
 
+  describe('getElapsedTime', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('returns 0 when not recording', () => {
+      expect(service.getElapsedTime()).toBe(0)
+    })
+
+    it('returns elapsed time in milliseconds while recording', async () => {
+      await service.startScreenRecording()
+
+      vi.advanceTimersByTime(5000)
+
+      expect(service.getElapsedTime()).toBe(5000)
+    })
+
+    it('stops counting when paused', async () => {
+      await service.startScreenRecording()
+
+      vi.advanceTimersByTime(3000)
+      service.pauseRecording()
+      vi.advanceTimersByTime(2000)
+
+      expect(service.getElapsedTime()).toBe(3000)
+    })
+
+    it('resumes counting after pause', async () => {
+      await service.startScreenRecording()
+
+      vi.advanceTimersByTime(3000)
+      service.pauseRecording()
+      vi.advanceTimersByTime(2000)
+      service.resumeRecording()
+      vi.advanceTimersByTime(1000)
+
+      expect(service.getElapsedTime()).toBe(4000)
+    })
+
+    it('returns 0 after recording stops', async () => {
+      await service.startScreenRecording()
+      vi.advanceTimersByTime(5000)
+      await service.stopRecording()
+
+      expect(service.getElapsedTime()).toBe(0)
+    })
+
+    it('returns 0 after recording is cancelled', async () => {
+      await service.startScreenRecording()
+      vi.advanceTimersByTime(5000)
+      service.cancelRecording()
+
+      expect(service.getElapsedTime()).toBe(0)
+    })
+  })
+
   describe('cancelRecording', () => {
     it('changes state to idle when recording', async () => {
       await service.startScreenRecording()
