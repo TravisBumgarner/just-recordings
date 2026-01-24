@@ -6,8 +6,10 @@ declare global {
   interface Window {
     api?: {
       setRecordingState: (isRecording: boolean) => void
+      setSetupMode: (enabled: boolean) => void
       getVersions: () => { electron: string; chrome: string; node: string }
       openExternal: (url: string) => void
+      openSystemPreferences: (panel: 'screenRecording' | 'microphone' | 'camera') => void
     }
   }
 }

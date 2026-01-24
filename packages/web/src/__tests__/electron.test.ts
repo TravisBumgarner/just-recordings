@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { isElectronCheck, setRecordingState } from '../utils/electron'
+import { isElectronCheck, setRecordingState, setSetupMode } from '../utils/electron'
 
 describe('isElectronCheck', () => {
   afterEach(() => {
@@ -40,5 +40,41 @@ describe('setRecordingState', () => {
 
   it('does not throw when window.api is undefined', () => {
     expect(() => setRecordingState(true)).not.toThrow()
+  })
+})
+
+describe('setSetupMode', () => {
+  afterEach(() => {
+    delete (window as { api?: unknown }).api
+  })
+
+  it('calls window.api.setSetupMode when in Electron', () => {
+    const mockSetSetupMode = vi.fn()
+    ;(window as { api?: unknown }).api = {
+      setSetupMode: mockSetSetupMode,
+      setRecordingState: vi.fn(),
+      getVersions: vi.fn(),
+    }
+
+    setSetupMode(true)
+
+    expect(mockSetSetupMode).toHaveBeenCalledWith(true)
+  })
+
+  it('calls window.api.setSetupMode with false', () => {
+    const mockSetSetupMode = vi.fn()
+    ;(window as { api?: unknown }).api = {
+      setSetupMode: mockSetSetupMode,
+      setRecordingState: vi.fn(),
+      getVersions: vi.fn(),
+    }
+
+    setSetupMode(false)
+
+    expect(mockSetSetupMode).toHaveBeenCalledWith(false)
+  })
+
+  it('does not throw when window.api is undefined', () => {
+    expect(() => setSetupMode(true)).not.toThrow()
   })
 })

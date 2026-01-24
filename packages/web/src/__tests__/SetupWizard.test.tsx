@@ -6,6 +6,7 @@ describe('SetupWizard', () => {
   const mockOnComplete = vi.fn()
   const mockMarkSetupComplete = vi.fn()
   const mockOpenSystemPreferences = vi.fn()
+  const mockSetSetupMode = vi.fn()
 
   afterEach(() => {
     vi.clearAllMocks()
@@ -17,6 +18,7 @@ describe('SetupWizard', () => {
     ;(window as { api?: unknown }).api = {
       openSystemPreferences: mockOpenSystemPreferences,
       setRecordingState: vi.fn(),
+      setSetupMode: mockSetSetupMode,
       getVersions: vi.fn(),
     }
 
@@ -128,6 +130,36 @@ describe('SetupWizard', () => {
       fireEvent.click(finishButton)
 
       expect(mockMarkSetupComplete).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('setup mode', () => {
+    it('calls setSetupMode(true) when wizard mounts', () => {
+      renderWizard()
+
+      expect(mockSetSetupMode).toHaveBeenCalledWith(true)
+    })
+
+    it('does not call setSetupMode when isSetupComplete is true', () => {
+      renderWizard(true)
+
+      expect(mockSetSetupMode).not.toHaveBeenCalled()
+    })
+
+    it('calls setSetupMode(false) when Get Started is clicked', () => {
+      renderWizard()
+
+      // Clear the initial mount call
+      mockSetSetupMode.mockClear()
+
+      // Navigate to complete step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click Get Started
+      fireEvent.click(screen.getByRole('button', { name: /finish|get started|done/i }))
+
+      expect(mockSetSetupMode).toHaveBeenCalledWith(false)
     })
   })
 })
