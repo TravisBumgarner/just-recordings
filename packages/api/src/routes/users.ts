@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { getOrCreateUserByAuth } from '../db/queries/users.js'
 import { type AuthenticatedRequest, requireAuth } from '../middleware/auth.js'
+import { sendInternalError, sendSuccess, sendUnauthorized } from './shared/responses.js'
 
 const router = Router()
 
@@ -9,7 +10,7 @@ router.get('/me', requireAuth, async (req, res) => {
   const authReq = req as AuthenticatedRequest
 
   if (!authReq.user) {
-    res.status(401).json({ error: 'Not authenticated' })
+    sendUnauthorized(res)
     return
   }
 
@@ -19,7 +20,7 @@ router.get('/me', requireAuth, async (req, res) => {
       email: authReq.user.email || '',
     })
 
-    res.json({
+    sendSuccess(res, {
       id: user.id,
       email: user.email,
       displayName: user.displayName,
@@ -27,7 +28,7 @@ router.get('/me', requireAuth, async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching user:', error)
-    res.status(500).json({ error: 'Failed to fetch user' })
+    sendInternalError(res)
   }
 })
 
