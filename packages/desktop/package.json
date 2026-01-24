@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "description": "Just Recordings Desktop App",
   "type": "module",
-  "main": ".vite/build/main.js",
+  "main": ".vite/build/index.js",
   "author": {
     "name": "Travis Bumgarner",
     "email": "11890057+TravisBumgarner@users.noreply.github.com"
