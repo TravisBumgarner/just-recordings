@@ -42,6 +42,7 @@ describe('Home.Desktop - SetupWizard integration', () => {
     ;(window as { api?: unknown }).api = {
       openSystemPreferences: mockOpenSystemPreferences,
       setRecordingState: vi.fn(),
+      setSetupMode: vi.fn(),
       getVersions: vi.fn(),
     }
   })

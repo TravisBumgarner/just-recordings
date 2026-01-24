@@ -15,6 +15,7 @@ import { getSystemPreferencesUrl } from './systemPreferences'
 
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
+let isSetupMode = false
 
 // In production, extraResource files are in the Resources folder, not inside ASAR
 const getResourcePath = (filename: string) => {
@@ -104,8 +105,11 @@ function createWindow(): void {
   // })
 
   // Hide window when it loses focus (menu bar app behavior)
+  // Skip hiding if setup mode is enabled (during setup wizard)
   mainWindow.on('blur', () => {
-    mainWindow?.hide()
+    if (!isSetupMode) {
+      mainWindow?.hide()
+    }
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -133,6 +137,12 @@ app.whenReady().then(() => {
   // Handle recording state changes from renderer
   ipcMain.on('recording-state-changed', (_event, isRecording: boolean) => {
     updateTrayIcon(isRecording)
+  })
+
+  // Handle setup mode changes from renderer
+  // When setup mode is enabled, the window won't auto-hide on blur
+  ipcMain.on('set-setup-mode', (_event, enabled: boolean) => {
+    isSetupMode = enabled
   })
 
   // Handle external URL opening

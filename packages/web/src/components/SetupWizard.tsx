@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Box, Button, Typography } from '@mui/material'
 
 export interface SetupWizardProps {
@@ -15,6 +15,13 @@ export function SetupWizard({
   markSetupComplete,
 }: SetupWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>('welcome')
+
+  // Enable setup mode when wizard mounts (prevents window from hiding on blur)
+  useEffect(() => {
+    if (!isSetupComplete) {
+      window.api?.setSetupMode(true)
+    }
+  }, [isSetupComplete])
 
   if (isSetupComplete) {
     return null
@@ -33,6 +40,8 @@ export function SetupWizard({
   }
 
   const handleFinish = () => {
+    // Disable setup mode before completing (re-enables auto-hide on blur)
+    window.api?.setSetupMode(false)
     markSetupComplete()
     onComplete()
   }
