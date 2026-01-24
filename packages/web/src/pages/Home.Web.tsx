@@ -21,10 +21,11 @@ import {
   Typography,
 } from '@mui/material'
 import { useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useThumbnailUrl } from '@/hooks/queries/useRecordingMedia'
 import { useRecordings } from '@/hooks/queries/useRecordings'
+import { queryKeys } from '@/lib/queryKeys'
 import PageWrapper from '@/styles/shared/PageWrapper'
 import { setRecordingState } from '../utils/electron'
 
@@ -121,14 +122,34 @@ function Home({ recorderService, uploadManager }: HomeProps) {
   const { data: recordings = [], isLoading, isError } = useRecordings()
   const [queue, setQueue] = useState<Recording[]>([])
   const [recorderState, setRecorderState] = useState<RecorderState>('idle')
+  const previousQueueRef = useRef<Recording[]>([])
 
   useEffect(() => {
     // Fetch initial queue state
     uploadManager.getQueue().then(setQueue)
-    // Subscribe to queue changes
-    const unsubscribe = uploadManager.onQueueChange(setQueue)
+
+    // Subscribe to queue changes and detect completed uploads
+    const unsubscribe = uploadManager.onQueueChange((newQueue) => {
+      const prevQueue = previousQueueRef.current
+
+      // Find recordings that were uploading but are now gone (completed)
+      const completedUploads = prevQueue.filter(
+        (prev) =>
+          prev.uploadStatus === 'uploading' &&
+          !newQueue.some((curr) => curr.id === prev.id)
+      )
+
+      // If any uploads completed, invalidate recordings list
+      if (completedUploads.length > 0) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.recordings })
+      }
+
+      previousQueueRef.current = newQueue
+      setQueue(newQueue)
+    })
+
     return unsubscribe
-  }, [uploadManager])
+  }, [uploadManager, queryClient])
 
   useEffect(() => {
     const unsubscribe = recorderService.onStateChange(setRecorderState)
@@ -144,11 +165,8 @@ function Home({ recorderService, uploadManager }: HomeProps) {
     setRecordingState(false)
     const recording = await recorderService.stopRecording()
     await uploadManager.enqueue(recording)
-    // Invalidate recordings query after a short delay to allow upload to complete
-    setTimeout(() => {
-      queryClient.invalidateQueries({ queryKey: ['recordings'] })
-    }, 1000)
-  }, [recorderService, uploadManager, queryClient])
+    // Invalidation happens automatically via onQueueChange when upload completes
+  }, [recorderService, uploadManager])
 
   const handleRetry = useCallback(
     (id: number) => {

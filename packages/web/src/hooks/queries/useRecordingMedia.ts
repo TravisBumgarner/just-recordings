@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { getThumbnailUrl, getVideoUrl } from '@/api/recordings'
 import { ApiError } from '@/lib/ApiError'
+import { queryKeys } from '@/lib/queryKeys'
 
 export function useVideoUrl(id: string | undefined) {
   return useQuery({
-    queryKey: ['video', id],
+    queryKey: queryKeys.video(id ?? ''),
     queryFn: async () => {
       if (!id) throw new Error('Recording ID is required')
       const response = await getVideoUrl(id)
@@ -21,7 +22,7 @@ export function useVideoUrl(id: string | undefined) {
 
 export function useThumbnailUrl(id: string | undefined, hasThumbnail: boolean) {
   return useQuery({
-    queryKey: ['thumbnail', id],
+    queryKey: queryKeys.thumbnail(id ?? ''),
     queryFn: async () => {
       if (!id) throw new Error('Recording ID is required')
       const response = await getThumbnailUrl(id)

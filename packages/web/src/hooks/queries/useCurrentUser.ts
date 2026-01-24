@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { getMe } from '@/api/users'
 import { ApiError } from '@/lib/ApiError'
+import { queryKeys } from '@/lib/queryKeys'
 import { getUser } from '@/services/supabase'
 
 export function useAuthUser() {
   return useQuery({
-    queryKey: ['authUser'],
+    queryKey: queryKeys.authUser,
     queryFn: async () => {
       const result = await getUser()
       if (!result.success || !result.user) {
@@ -21,7 +22,7 @@ export function useCurrentUser() {
   const { data: authUser } = useAuthUser()
 
   return useQuery({
-    queryKey: ['currentUser'],
+    queryKey: queryKeys.currentUser,
     queryFn: async () => {
       const response = await getMe()
       if (!response.success) {

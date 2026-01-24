@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { deleteRecording } from '@/api/recordings'
 import { ApiError } from '@/lib/ApiError'
+import { queryKeys } from '@/lib/queryKeys'
 
 export function useDeleteRecording() {
   const queryClient = useQueryClient()
@@ -15,12 +16,12 @@ export function useDeleteRecording() {
     },
     onSuccess: (_data, id) => {
       // Invalidate recordings list
-      queryClient.invalidateQueries({ queryKey: ['recordings'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.recordings })
       // Remove specific recording from cache
-      queryClient.removeQueries({ queryKey: ['recordings', id] })
+      queryClient.removeQueries({ queryKey: queryKeys.recording(id) })
       // Remove associated media from cache
-      queryClient.removeQueries({ queryKey: ['video', id] })
-      queryClient.removeQueries({ queryKey: ['thumbnail', id] })
+      queryClient.removeQueries({ queryKey: queryKeys.video(id) })
+      queryClient.removeQueries({ queryKey: queryKeys.thumbnail(id) })
     },
   })
 }

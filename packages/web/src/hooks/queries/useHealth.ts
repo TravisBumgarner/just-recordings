@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { checkHealth } from '@/api/health'
 import { ApiError } from '@/lib/ApiError'
+import { queryKeys } from '@/lib/queryKeys'
 
 export function useHealth() {
   return useQuery({
-    queryKey: ['health'],
+    queryKey: queryKeys.health,
     queryFn: async () => {
       const response = await checkHealth()
       if (!response.success) {
