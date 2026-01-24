@@ -204,4 +204,4 @@ tasks:
       - Works correctly on both web and desktop
     depends_on: [9]
     effort: 2
-    status: scoped
+    status: testing
