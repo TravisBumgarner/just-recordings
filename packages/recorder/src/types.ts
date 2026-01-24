@@ -21,4 +21,10 @@ export interface RecordingOptions {
   mimeType?: string
   videoBitsPerSecond?: number
   audioBitsPerSecond?: number
+  /** Include system/tab audio from screen share */
+  includeSystemAudio?: boolean
+  /** Include microphone input */
+  includeMicrophone?: boolean
+  /** Include webcam video */
+  includeWebcam?: boolean
 }
