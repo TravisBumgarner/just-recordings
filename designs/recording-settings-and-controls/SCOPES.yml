@@ -1,0 +1,207 @@
+project: Recording Settings and Controls
+repo: TravisBumgarner/just-recordings
+design_file: designs/recording-settings-and-controls/DESIGN.md
+scoping_date: 2026-01-24
+
+milestones:
+  - number: 1
+    title: "1. RecorderService Enhancements"
+    description: Core recording service changes - cancel recording, elapsed time tracking, multi-source media stream support
+    branch:
+      working: 192-recorder-service-enhancements
+      base: main
+
+  - number: 2
+    title: "2. Recording UI Components"
+    description: Shared UI components for recording - settings modal, countdown overlay, timer, controls modal
+    branch:
+      working: 196-recording-ui-components
+      base: 192-recorder-service-enhancements
+
+  - number: 3
+    title: "3. Recording Flow Integration"
+    description: Hook for orchestrating recording flow and integration into Home pages
+    branch:
+      working: 200-recording-flow-integration
+      base: 196-recording-ui-components
+
+tasks:
+  # Milestone 1: RecorderService Enhancements
+  - id: 1
+    github_issue: 192
+    milestone: 1
+    title: Add cancelRecording method to RecorderService
+    description: |
+      Add a `cancelRecording()` method to RecorderService that stops the current
+      recording and discards all data without saving. This enables the cancel/restart
+      functionality in the recording controls.
+    acceptance_criteria:
+      - cancelRecording() method exists on RecorderService
+      - Calling cancel while recording stops without saving
+      - Calling cancel while paused stops without saving
+      - Calling cancel while idle is a no-op
+      - State transitions to 'idle' after cancel
+      - All media tracks are properly stopped
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 2
+    github_issue: 193
+    milestone: 1
+    title: Add elapsed time tracking to RecorderService
+    description: |
+      Add elapsed time tracking so the UI can display a recording timer.
+      Must handle pause/resume correctly by tracking paused duration.
+    acceptance_criteria:
+      - getElapsedTime() method returns elapsed recording time in milliseconds
+      - Time tracking starts when recording begins
+      - Time tracking pauses when recording is paused
+      - Time tracking resumes correctly after pause
+      - Returns 0 when not recording
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 3
+    github_issue: 194
+    milestone: 1
+    title: Extend RecordingOptions with audio/video source flags
+    description: |
+      Extend the RecordingOptions type to include boolean flags for
+      includeSystemAudio, includeMicrophone, and includeWebcam.
+    acceptance_criteria:
+      - RecordingOptions includes includeSystemAudio optional boolean
+      - RecordingOptions includes includeMicrophone optional boolean
+      - RecordingOptions includes includeWebcam optional boolean
+      - All flags default to false (current behavior preserved)
+    depends_on: []
+    effort: 1
+    status: implementing
+
+  - id: 4
+    github_issue: 195
+    milestone: 1
+    title: Implement multi-source media stream composition
+    description: |
+      Modify startScreenRecording() to support capturing multiple audio sources
+      based on RecordingOptions flags. Uses AudioContext to mix system audio
+      and microphone when both are enabled.
+    acceptance_criteria:
+      - Recording with includeSystemAudio captures tab/system audio
+      - Recording with includeMicrophone captures microphone
+      - Recording with both flags mixes audio into single track
+      - Recording with neither flag captures video only (current behavior)
+      - All streams properly cleaned up on stop/cancel
+      - Handles permission denial gracefully
+    depends_on: [3]
+    effort: 3
+    status: scoped
+
+  # Milestone 2: Recording UI Components
+  - id: 5
+    github_issue: 196
+    milestone: 2
+    title: Create RecordingSettingsModal component
+    description: |
+      Modal component for configuring recording settings (audio/video sources)
+      before starting. Three checkboxes for system audio, microphone, webcam.
+    acceptance_criteria:
+      - Modal renders with three checkboxes
+      - Checkboxes are independently toggleable
+      - Start button passes settings to onStart callback
+      - Cancel button closes modal
+      - Uses existing Modal system for consistency
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 6
+    github_issue: 197
+    milestone: 2
+    title: Create CountdownOverlay component
+    description: |
+      Visual countdown overlay (3, 2, 1) that displays before recording starts.
+      Semi-transparent background with large centered numbers.
+    acceptance_criteria:
+      - Displays countdown starting from provided seconds value
+      - Each number visible for 1 second
+      - Calls onComplete callback after countdown finishes
+      - Visually prominent and centered
+      - Works on both web and desktop window sizes
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 7
+    github_issue: 198
+    milestone: 2
+    title: Create RecordingTimer component
+    description: |
+      Component that displays elapsed recording time in MM:SS format.
+      Polls RecorderService.getElapsedTime() and formats for display.
+    acceptance_criteria:
+      - Displays time in MM:SS format
+      - Updates in real-time (smooth, no jarring jumps)
+      - Handles recordings over 1 hour with HH:MM:SS
+      - Cleans up interval on unmount
+    depends_on: [2]
+    effort: 1
+    status: scoped
+
+  - id: 8
+    github_issue: 199
+    milestone: 2
+    title: Create RecordingControlsModal component
+    description: |
+      Modal with recording controls accessible during an active recording.
+      Includes timer, state indicator, and buttons for stop, pause/resume,
+      restart, and cancel.
+    acceptance_criteria:
+      - Displays elapsed recording time via RecordingTimer
+      - Shows visual recording/paused state indicator
+      - Stop, Pause/Resume, Restart, Cancel buttons present
+      - Restart and Cancel show confirmation dialog
+      - Compact enough for desktop menu bar app
+    depends_on: [1, 7]
+    effort: 2
+    status: scoped
+
+  # Milestone 3: Recording Flow Integration
+  - id: 9
+    github_issue: 200
+    milestone: 3
+    title: Create useRecordingFlow hook
+    description: |
+      React hook that orchestrates the entire recording flow:
+      settings → countdown → recording → controls. Manages flowState
+      and provides actions for all recording operations.
+    acceptance_criteria:
+      - Hook manages flowState transitions correctly
+      - Settings passed through to RecorderService
+      - Countdown triggers actual recording start
+      - Stop saves recording and enqueues for upload
+      - Cancel discards without saving
+      - Restart discards and shows countdown again
+    depends_on: [4, 5, 6, 8]
+    effort: 3
+    status: scoped
+
+  - id: 10
+    github_issue: 201
+    milestone: 3
+    title: Integrate recording flow into Home pages
+    description: |
+      Wire useRecordingFlow hook and recording components into both
+      Home.Web.tsx and Home.Desktop.tsx, replacing simple start/stop buttons.
+    acceptance_criteria:
+      - Start Recording button opens settings modal
+      - Settings → Start → Countdown → Recording flow works
+      - Recording controls accessible during recording
+      - Stop saves and shows in upload queue
+      - Cancel/Restart work correctly
+      - Desktop tray icon still updates on recording state
+      - Works correctly on both web and desktop
+    depends_on: [9]
+    effort: 2
+    status: scoped
