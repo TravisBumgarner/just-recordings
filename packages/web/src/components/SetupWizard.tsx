@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Box, Button, Typography } from '@mui/material'
+import {
+  PermissionTestResult,
+  type PermissionTestState,
+} from './PermissionTestResult'
 
 export interface SetupWizardProps {
   isSetupComplete: boolean
@@ -15,6 +19,8 @@ export function SetupWizard({
   markSetupComplete,
 }: SetupWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>('welcome')
+  const [screenRecordingTestState, setScreenRecordingTestState] =
+    useState<PermissionTestState>('idle')
 
   // Enable setup mode when wizard mounts (prevents window from hiding on blur)
   useEffect(() => {
@@ -37,6 +43,18 @@ export function SetupWizard({
 
   const handleOpenSystemPreferences = () => {
     window.api?.openSystemPreferences('screenRecording')
+  }
+
+  const handleTestScreenRecording = async () => {
+    setScreenRecordingTestState('testing')
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true })
+      // Immediately stop all tracks - we just needed to verify permission works
+      stream.getTracks().forEach((track) => track.stop())
+      setScreenRecordingTestState('success')
+    } catch {
+      setScreenRecordingTestState('failed')
+    }
   }
 
   const handleFinish = () => {
@@ -81,14 +99,22 @@ export function SetupWizard({
           <Typography variant="body1" sx={{ mb: 3 }}>
             To record your screen, you'll need to grant permission in System Preferences.
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button variant="outlined" onClick={handleOpenSystemPreferences}>
               Open System Preferences
+            </Button>
+            <Button variant="outlined" onClick={handleTestScreenRecording}>
+              Test Screen Recording
             </Button>
             <Button variant="contained" onClick={handleNext}>
               Next
             </Button>
           </Box>
+          <PermissionTestResult
+            state={screenRecordingTestState}
+            successMessage="Screen recording works!"
+            failedMessage="Permission denied - please grant access in System Preferences"
+          />
         </Box>
       )}
 

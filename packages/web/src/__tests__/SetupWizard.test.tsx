@@ -65,7 +65,7 @@ describe('SetupWizard', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
 
-      expect(screen.getByText(/screen recording/i)).toBeInTheDocument()
+      expect(screen.getByText(/screen recording permission/i)).toBeInTheDocument()
     })
 
     it('advances to Complete step when Next is clicked on Screen Recording', () => {
