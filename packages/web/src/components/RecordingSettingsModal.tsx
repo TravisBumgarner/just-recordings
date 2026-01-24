@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Box, Button, Checkbox, FormControlLabel, Typography } from '@mui/material'
-import type { RecordingOptions } from '@just-recordings/recorder'
+import type { RecordingSettings } from '../hooks/useRecordingFlow'
 
 export interface RecordingSettingsModalProps {
   open: boolean
   onClose: () => void
-  onStartRecording: (options: RecordingOptions) => void
+  onStartRecording: (settings: RecordingSettings) => void
 }
 
 export function RecordingSettingsModal({
