@@ -18,6 +18,8 @@
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",
     "db:push": "npm run db:push -w @just-recordings/api",
+    "deploy:heroku:main": "git push heroku main:main",
+    "deploy:heroku:branch": "git push heroku HEAD:main",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format .",
