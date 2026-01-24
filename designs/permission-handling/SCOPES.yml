@@ -67,7 +67,7 @@ tasks:
       - Component is compact/inline-friendly for use in settings modals
     depends_on: [1]
     effort: 1
-    status: scoped
+    status: completed
 
   - id: 3
     github_issue: 209
@@ -86,7 +86,7 @@ tasks:
       - Optional dismiss button calls onDismiss callback
     depends_on: []
     effort: 2
-    status: scoped
+    status: completed
 
   - id: 4
     github_issue: 210
@@ -104,7 +104,7 @@ tasks:
       - Modal remains functional - user can still attempt to start recording
     depends_on: [1, 2, 3]
     effort: 2
-    status: scoped
+    status: completed
 
   # Milestone 3: Permission Handling - Desktop Setup
   - id: 5
@@ -123,7 +123,7 @@ tasks:
       - Handles gracefully if called on non-macOS platform (no-op)
     depends_on: []
     effort: 1
-    status: scoped
+    status: completed
 
   - id: 6
     github_issue: 212
