@@ -66,9 +66,6 @@ jobs:
       - name: Build shared package
         run: npm run build -w @just-recordings/shared
 
-      - name: Build recorder package
-        run: npm run build -w @just-recordings/recorder
-
       - name: Build web package
         run: npm run build -w @just-recordings/web
 
