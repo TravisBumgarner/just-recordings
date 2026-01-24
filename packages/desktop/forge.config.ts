@@ -36,6 +36,7 @@ const config: ForgeConfig = {
     new MakerDeb({
       options: {
         name: 'just-recordings',
+        bin: 'just-recordings',
         productName: 'Just Recordings',
         categories: ['AudioVideo'],
       },
