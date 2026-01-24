@@ -183,6 +183,60 @@ describe('RecorderService', () => {
       expect(service.getState()).toBe('recording')
     })
   })
+
+  describe('cancelRecording', () => {
+    it('changes state to idle when recording', async () => {
+      await service.startScreenRecording()
+      expect(service.getState()).toBe('recording')
+
+      service.cancelRecording()
+
+      expect(service.getState()).toBe('idle')
+    })
+
+    it('changes state to idle when paused', async () => {
+      await service.startScreenRecording()
+      service.pauseRecording()
+      expect(service.getState()).toBe('paused')
+
+      service.cancelRecording()
+
+      expect(service.getState()).toBe('idle')
+    })
+
+    it('is a no-op when idle', () => {
+      expect(service.getState()).toBe('idle')
+
+      service.cancelRecording()
+
+      expect(service.getState()).toBe('idle')
+    })
+
+    it('stops all media tracks', async () => {
+      const mockTrackStop = vi.fn()
+      const mockStream = {
+        getTracks: () => [{ stop: mockTrackStop }, { stop: mockTrackStop }],
+      }
+      mockGetDisplayMedia.mockResolvedValue(mockStream)
+
+      await service.startScreenRecording()
+      service.cancelRecording()
+
+      expect(mockTrackStop).toHaveBeenCalledTimes(2)
+    })
+
+    it('notifies state change listeners', async () => {
+      const callback = vi.fn()
+      service.onStateChange(callback)
+
+      await service.startScreenRecording()
+      callback.mockClear() // Clear the 'recording' state change
+
+      service.cancelRecording()
+
+      expect(callback).toHaveBeenCalledWith('idle')
+    })
+  })
 })
 
 describe('RecorderService storage operations', () => {

@@ -44,7 +44,7 @@ tasks:
       - All media tracks are properly stopped
     depends_on: []
     effort: 2
-    status: scoped
+    status: completed
 
   - id: 2
     github_issue: 193

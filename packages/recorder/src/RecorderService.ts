@@ -136,6 +136,28 @@ export class RecorderService {
     }
   }
 
+  cancelRecording(): void {
+    // No-op if not recording or paused
+    if (this.state === 'idle') {
+      return
+    }
+
+    // Stop the MediaRecorder if it exists
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      this.mediaRecorder.stop()
+    }
+
+    // Stop all media tracks
+    this.mediaStream?.getTracks().forEach((track) => track.stop())
+
+    // Cleanup without saving
+    this.mediaRecorder = null
+    this.mediaStream = null
+    this.chunks = []
+
+    this.setState('idle')
+  }
+
   // Storage operations
   async saveRecording(recording: Recording): Promise<number> {
     return await this.db.recordings.add(recording)
