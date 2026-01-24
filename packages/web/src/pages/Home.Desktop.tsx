@@ -11,6 +11,8 @@ import Link from '@/sharedComponents/Link'
 import PageWrapper from '@/styles/shared/PageWrapper'
 import { generateAbsoluteUrl } from '@/utils/generateAbsoluteUrl'
 import { setRecordingState } from '../utils/electron'
+import { SetupWizard } from '../components/SetupWizard'
+import { useSetupStatus } from '../hooks/useSetupStatus'
 
 export interface HomeProps {
   recorderService: RecorderService
@@ -20,6 +22,7 @@ export interface HomeProps {
 function Home({ recorderService, uploadManager }: HomeProps) {
   const [queue, setQueue] = useState<Recording[]>([])
   const [recorderState, setRecorderState] = useState<RecorderState>('idle')
+  const { isSetupComplete, markSetupComplete } = useSetupStatus()
 
   useEffect(() => {
     // Fetch initial queue state
@@ -70,6 +73,23 @@ function Home({ recorderService, uploadManager }: HomeProps) {
       default:
         return 'default'
     }
+  }
+
+  const handleWizardComplete = useCallback(() => {
+    // Wizard completed, now showing home screen
+  }, [])
+
+  // Show SetupWizard on first launch
+  if (!isSetupComplete) {
+    return (
+      <PageWrapper width="full">
+        <SetupWizard
+          isSetupComplete={isSetupComplete}
+          onComplete={handleWizardComplete}
+          markSetupComplete={markSetupComplete}
+        />
+      </PageWrapper>
+    )
   }
 
   return (

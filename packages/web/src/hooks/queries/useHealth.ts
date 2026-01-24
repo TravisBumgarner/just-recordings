@@ -15,5 +15,6 @@ export function useHealth() {
     },
     retry: 2,
     staleTime: 1000 * 60, // 1 minute
+    initialData: { status: 'ok' }, // Assume healthy on first load
   })
 }

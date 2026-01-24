@@ -104,7 +104,7 @@ tasks:
       - Modal remains functional - user can still attempt to start recording
     depends_on: [1, 2, 3]
     effort: 2
-    status: scoped
+    status: completed
 
   # Milestone 3: Permission Handling - Desktop Setup
   - id: 5
@@ -142,7 +142,7 @@ tasks:
       - Hook/context available for managing toast state
     depends_on: []
     effort: 2
-    status: scoped
+    status: completed
 
   - id: 7
     github_issue: 213
@@ -162,7 +162,7 @@ tasks:
       - Wizard UI fits within desktop app window dimensions
     depends_on: [5]
     effort: 2
-    status: scoped
+    status: completed
 
   - id: 8
     github_issue: 214
@@ -180,4 +180,4 @@ tasks:
       - Web app is not affected (wizard only on desktop)
     depends_on: [6, 7]
     effort: 2
-    status: scoped
+    status: completed
