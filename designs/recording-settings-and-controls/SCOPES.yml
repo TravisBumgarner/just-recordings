@@ -131,7 +131,7 @@ tasks:
       - Works on both web and desktop window sizes
     depends_on: []
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 7
     github_issue: 198
