@@ -11,6 +11,8 @@ export class RecorderService {
   private mediaStream: MediaStream | null = null
   private chunks: Blob[] = []
   private startTime: number = 0
+  private pausedTime: number = 0
+  private totalPausedDuration: number = 0
   private mimeType: string = DEFAULT_MIME_TYPE
   private db: RecorderDatabase
 
@@ -134,6 +136,11 @@ export class RecorderService {
       this.mediaRecorder.resume()
       this.setState('recording')
     }
+  }
+
+  getElapsedTime(): number {
+    // Stub - returns 0 for now
+    return 0
   }
 
   cancelRecording(): void {
