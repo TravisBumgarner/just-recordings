@@ -68,13 +68,39 @@ describe('SetupWizard', () => {
       expect(screen.getByText(/screen recording permission/i)).toBeInTheDocument()
     })
 
-    it('advances to Complete step when Next is clicked on Screen Recording', () => {
+    it('advances to Microphone step when Next is clicked on Screen Recording', () => {
       renderWizard()
 
       // Go to Screen Recording step
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      expect(screen.getByText(/microphone permission/i)).toBeInTheDocument()
+    })
+
+    it('advances to Complete step when Next is clicked on Microphone', () => {
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
       // Go to Complete step
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      expect(screen.getByText(/complete|ready|all set/i)).toBeInTheDocument()
+    })
+
+    it('advances to Complete step when Skip is clicked on Microphone', () => {
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Skip microphone
+      fireEvent.click(screen.getByRole('button', { name: /skip/i }))
 
       expect(screen.getByText(/complete|ready|all set/i)).toBeInTheDocument()
     })
@@ -92,7 +118,7 @@ describe('SetupWizard', () => {
       ).toBeInTheDocument()
     })
 
-    it('calls openSystemPreferences when button is clicked', () => {
+    it('calls openSystemPreferences with screenRecording when button is clicked', () => {
       renderWizard()
 
       // Go to Screen Recording step
@@ -109,6 +135,55 @@ describe('SetupWizard', () => {
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
 
       expect(screen.getByRole('button', { name: /test.*screen.*recording/i })).toBeInTheDocument()
+    })
+  })
+
+  describe('microphone step', () => {
+    it('has a button to open System Preferences for microphone', () => {
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      expect(
+        screen.getByRole('button', { name: /open.*preferences|open.*settings/i }),
+      ).toBeInTheDocument()
+    })
+
+    it('calls openSystemPreferences with microphone when button is clicked', () => {
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /open.*preferences|open.*settings/i }))
+
+      expect(mockOpenSystemPreferences).toHaveBeenCalledWith('microphone')
+    })
+
+    it('has a Test Microphone button', () => {
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      expect(screen.getByRole('button', { name: /test.*microphone/i })).toBeInTheDocument()
+    })
+
+    it('has a Skip button', () => {
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      expect(screen.getByRole('button', { name: /skip/i })).toBeInTheDocument()
     })
   })
 
@@ -221,11 +296,122 @@ describe('SetupWizard', () => {
     })
   })
 
+  describe('microphone test', () => {
+    let mockGetUserMedia: ReturnType<typeof vi.fn>
+    let mockAudioStream: { getTracks: () => { stop: () => void }[] }
+
+    beforeEach(() => {
+      mockAudioStream = {
+        getTracks: () => [{ stop: vi.fn() }],
+      }
+      mockGetUserMedia = vi.fn()
+      Object.defineProperty(navigator, 'mediaDevices', {
+        value: { getUserMedia: mockGetUserMedia, getDisplayMedia: vi.fn() },
+        configurable: true,
+      })
+    })
+
+    it('shows testing state when Test Microphone is clicked', async () => {
+      // Make getUserMedia hang to keep testing state visible
+      mockGetUserMedia.mockReturnValue(new Promise(() => {}))
+
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*microphone/i }))
+
+      expect(screen.getByTestId('permission-test-result')).toHaveAttribute('data-state', 'testing')
+    })
+
+    it('shows success when getUserMedia succeeds', async () => {
+      mockGetUserMedia.mockResolvedValue(mockAudioStream)
+
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*microphone/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('permission-test-result')).toHaveAttribute('data-state', 'success')
+      })
+    })
+
+    it('stops all tracks after successful test', async () => {
+      const mockStop = vi.fn()
+      mockAudioStream = {
+        getTracks: () => [{ stop: mockStop }],
+      }
+      mockGetUserMedia.mockResolvedValue(mockAudioStream)
+
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*microphone/i }))
+
+      await waitFor(() => {
+        expect(mockStop).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    it('shows failed when getUserMedia is denied', async () => {
+      mockGetUserMedia.mockRejectedValue(new Error('Permission denied'))
+
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*microphone/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('permission-test-result')).toHaveAttribute('data-state', 'failed')
+      })
+    })
+
+    it('calls getUserMedia with audio: true', async () => {
+      mockGetUserMedia.mockResolvedValue(mockAudioStream)
+
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*microphone/i }))
+
+      await waitFor(() => {
+        expect(mockGetUserMedia).toHaveBeenCalledWith({ audio: true })
+      })
+    })
+  })
+
   describe('complete step', () => {
     it('has a button that calls onComplete', () => {
       renderWizard()
 
       // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
       // Go to Complete step
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
@@ -240,6 +426,8 @@ describe('SetupWizard', () => {
       renderWizard()
 
       // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
       // Go to Complete step
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
@@ -270,7 +458,8 @@ describe('SetupWizard', () => {
       // Clear the initial mount call
       mockSetSetupMode.mockClear()
 
-      // Navigate to complete step
+      // Navigate to complete step (welcome -> screenRecording -> microphone -> complete)
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
 
