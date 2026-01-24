@@ -7,9 +7,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().default('postgresql://postgres:postgres@localhost:5432/just_recordings'),
   SUPABASE_URL: z.string().default(''),
   SUPABASE_SERVICE_ROLE_KEY: z.string().default(''),
-  CLOUDINARY_CLOUD_NAME: z.string().default(''),
-  CLOUDINARY_API_KEY: z.string().default(''),
-  CLOUDINARY_API_SECRET: z.string().default(''),
+  CLOUDINARY_URL: z.string().default(''),
 })
 
 const envVars = {
@@ -18,9 +16,7 @@ const envVars = {
   DATABASE_URL: process.env.DATABASE_URL,
   SUPABASE_URL: process.env.SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
-  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
-  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+  CLOUDINARY_URL: process.env.CLOUDINARY_URL,
 }
 
 const parsed = envSchema.safeParse(envVars)
@@ -30,17 +26,22 @@ if (!parsed.success) {
   )
 }
 
-// Initialize Cloudinary if credentials are provided
-const cloudinaryConfigured =
-  parsed.data.CLOUDINARY_CLOUD_NAME &&
-  parsed.data.CLOUDINARY_API_KEY &&
-  parsed.data.CLOUDINARY_API_SECRET
+// Parse CLOUDINARY_URL: cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+function parseCloudinaryUrl(url: string): { cloudName: string; apiKey: string; apiSecret: string } | null {
+  if (!url) return null
+  const match = url.match(/^cloudinary:\/\/(\d+):([^@]+)@(.+)$/)
+  if (!match) return null
+  return { apiKey: match[1], apiSecret: match[2], cloudName: match[3] }
+}
+
+const cloudinaryCredentials = parseCloudinaryUrl(parsed.data.CLOUDINARY_URL)
+const cloudinaryConfigured = cloudinaryCredentials !== null
 
 if (cloudinaryConfigured) {
   cloudinary.config({
-    cloud_name: parsed.data.CLOUDINARY_CLOUD_NAME,
-    api_key: parsed.data.CLOUDINARY_API_KEY,
-    api_secret: parsed.data.CLOUDINARY_API_SECRET,
+    cloud_name: cloudinaryCredentials.cloudName,
+    api_key: cloudinaryCredentials.apiKey,
+    api_secret: cloudinaryCredentials.apiSecret,
   })
 }
 
@@ -53,8 +54,8 @@ const config = {
   isProduction: parsed.data.NODE_ENV === 'production',
   isDevelopment: parsed.data.NODE_ENV === 'development',
   cloudinary: {
-    cloudName: parsed.data.CLOUDINARY_CLOUD_NAME,
-    apiKey: parsed.data.CLOUDINARY_API_KEY,
+    cloudName: cloudinaryCredentials?.cloudName ?? '',
+    apiKey: cloudinaryCredentials?.apiKey ?? '',
     isConfigured: cloudinaryConfigured,
   },
 }
@@ -65,7 +66,7 @@ const config = {
 export function getCloudinary(): typeof cloudinary {
   if (!cloudinaryConfigured) {
     throw new Error(
-      'Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.',
+      'Cloudinary is not configured. Set CLOUDINARY_URL environment variable (format: cloudinary://API_KEY:API_SECRET@CLOUD_NAME).',
     )
   }
   return cloudinary

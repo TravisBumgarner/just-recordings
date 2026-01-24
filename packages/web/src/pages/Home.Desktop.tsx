@@ -22,6 +22,9 @@ function Home({ recorderService, uploadManager }: HomeProps) {
   const [recorderState, setRecorderState] = useState<RecorderState>('idle')
 
   useEffect(() => {
+    // Fetch initial queue state
+    uploadManager.getQueue().then(setQueue)
+    // Subscribe to queue changes
     const unsubscribe = uploadManager.onQueueChange(setQueue)
     return unsubscribe
   }, [uploadManager])
@@ -156,7 +159,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
                         color="error"
                         onClick={() => handleCancel(recording.id!)}
                       >
-                        Cancel
+                        {recording.uploadStatus === 'uploading' ? 'Cancel' : 'Delete'}
                       </Button>
                     </Box>
                   </Box>

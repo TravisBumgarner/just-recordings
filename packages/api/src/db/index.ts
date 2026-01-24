@@ -7,6 +7,8 @@ const { Pool } = pg
 
 const pool = new Pool({
   connectionString: config.databaseUrl,
+  // Heroku Postgres requires SSL, but uses self-signed certificates
+  ssl: config.isProduction ? { rejectUnauthorized: false } : false,
 })
 
 export const db = drizzle(pool, { schema })

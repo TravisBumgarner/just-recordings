@@ -43,6 +43,7 @@ const createMockRecorderService = () => ({
 const createMockUploadManager = () => ({
   enqueue: vi.fn(() => Promise.resolve()),
   onQueueChange: vi.fn(() => () => {}),
+  getQueue: vi.fn(() => Promise.resolve([])),
 })
 
 describe('Home - Electron IPC integration', () => {

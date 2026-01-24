@@ -38,6 +38,7 @@ vi.mock('@just-recordings/recorder', () => ({
   UploadManager: vi.fn(() => ({
     initialize: vi.fn(),
     onQueueChange: vi.fn(() => () => {}),
+    getQueue: vi.fn(() => Promise.resolve([])),
   })),
   createUploader: vi.fn(),
 }))

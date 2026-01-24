@@ -49,10 +49,16 @@ function formatDate(dateString: string): string {
 
 function RecordingCard({ recording }: { recording: ApiRecording }) {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null)
+  const [thumbnailLoading, setThumbnailLoading] = useState(true)
 
   useEffect(() => {
     if (recording.thumbnailUrl) {
-      getThumbnailUrl(recording.id).then(setThumbnailUrl)
+      setThumbnailLoading(true)
+      getThumbnailUrl(recording.id)
+        .then(setThumbnailUrl)
+        .finally(() => setThumbnailLoading(false))
+    } else {
+      setThumbnailLoading(false)
     }
   }, [recording.id, recording.thumbnailUrl])
 
@@ -64,21 +70,30 @@ function RecordingCard({ recording }: { recording: ApiRecording }) {
           to={`/recordings/${recording.id}`}
           aria-label={recording.name}
         >
-          <CardMedia
-            component="img"
-            height="180"
-            image={thumbnailUrl || ''}
-            alt={recording.name}
-            sx={{
-              bgcolor: 'grey.300',
-              objectFit: 'cover',
-            }}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement
-              target.style.display = 'none'
-            }}
-          />
-          {!recording.thumbnailUrl && (
+          {thumbnailLoading ? (
+            <Box
+              sx={{
+                height: 180,
+                bgcolor: 'grey.300',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <CircularProgress size={40} />
+            </Box>
+          ) : thumbnailUrl ? (
+            <CardMedia
+              component="img"
+              height="180"
+              image={thumbnailUrl}
+              alt={recording.name}
+              sx={{
+                bgcolor: 'grey.300',
+                objectFit: 'cover',
+              }}
+            />
+          ) : (
             <Box
               sx={{
                 height: 180,
@@ -129,6 +144,9 @@ function Home({ recorderService, uploadManager }: HomeProps) {
   }, [])
 
   useEffect(() => {
+    // Fetch initial queue state
+    uploadManager.getQueue().then(setQueue)
+    // Subscribe to queue changes
     const unsubscribe = uploadManager.onQueueChange(setQueue)
     return unsubscribe
   }, [uploadManager])
@@ -254,7 +272,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
                         color="error"
                         onClick={() => handleCancel(recording.id!)}
                       >
-                        Cancel
+                        {recording.uploadStatus === 'uploading' ? 'Cancel' : 'Delete'}
                       </Button>
                     </Box>
                   </Box>
