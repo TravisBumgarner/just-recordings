@@ -14,6 +14,9 @@ const api = {
   openExternal: (url: string) => {
     ipcRenderer.send('open-external', url)
   },
+  openSystemPreferences: (panel: 'screenRecording' | 'microphone' | 'camera') => {
+    ipcRenderer.send('open-system-preferences', panel)
+  },
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

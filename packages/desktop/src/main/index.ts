@@ -11,6 +11,7 @@ import {
   shell,
   Tray,
 } from 'electron'
+import { getSystemPreferencesUrl } from './systemPreferences'
 
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
@@ -140,6 +141,19 @@ app.whenReady().then(() => {
       console.error('Failed to open external URL:', err)
     })
   })
+
+  // Handle opening system preferences to privacy panels
+  ipcMain.on(
+    'open-system-preferences',
+    (_event, panel: 'screenRecording' | 'microphone' | 'camera') => {
+      const url = getSystemPreferencesUrl(panel)
+      if (url) {
+        shell.openExternal(url).catch((err) => {
+          console.error('Failed to open System Preferences:', err)
+        })
+      }
+    },
+  )
 
   // Set up display media request handler for screen capture
   session.defaultSession.setDisplayMediaRequestHandler(async (_request, callback) => {
