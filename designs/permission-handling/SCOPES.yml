@@ -1,0 +1,183 @@
+project: Permission Handling
+repo: TravisBumgarner/just-recordings
+design_file: designs/permission-handling/DESIGN.md
+scoping_date: 2026-01-24
+
+milestones:
+  - number: 1
+    title: "4. Permission Handling - Core"
+    description: Core permission checking service and shared types
+    branch:
+      working: 207-permission-handling-core
+      base: main
+
+  - number: 2
+    title: "5. Permission Handling - Web UI"
+    description: Web permission status display and guidance components
+    branch:
+      working: 208-permission-handling-web-ui
+      base: 207-permission-handling-core
+
+  - number: 3
+    title: "6. Permission Handling - Desktop Setup"
+    description: Desktop first-launch wizard and permission toasts
+    branch:
+      working: 211-permission-handling-desktop-setup
+      base: 208-permission-handling-web-ui
+
+tasks:
+  # Milestone 1: Permission Handling - Core
+  - id: 1
+    github_issue: 207
+    milestone: 1
+    title: Create PermissionService for checking media permissions
+    description: |
+      Create a PermissionService class in packages/recorder that provides methods
+      to check and request media permissions (screen capture, microphone, camera).
+      Uses navigator.permissions API where available, with fallback for unsupported
+      features like screen capture.
+    acceptance_criteria:
+      - PermissionService class exists with all methods defined
+      - checkMicrophone returns correct status based on Permissions API
+      - checkCamera returns correct status based on Permissions API
+      - checkScreenCapture returns 'unsupported' state (can't be pre-checked)
+      - requestMicrophone attempts getUserMedia and returns result
+      - requestCamera attempts getUserMedia and returns result
+      - Handles browsers that don't support Permissions API gracefully
+      - Export PermissionService and PermissionStatus types from package
+    depends_on: []
+    effort: 2
+    status: completed
+
+  # Milestone 2: Permission Handling - Web UI
+  - id: 2
+    github_issue: 208
+    milestone: 2
+    title: Create PermissionStatusBadge component
+    description: |
+      Create a small inline component that displays permission status with an
+      icon and label. Shows granted (green checkmark), prompt (neutral),
+      denied (red X), or unsupported states.
+    acceptance_criteria:
+      - Component renders correctly for 'granted' state with green checkmark
+      - Component renders correctly for 'prompt' state with neutral indicator
+      - Component renders correctly for 'denied' state with red X
+      - Component renders correctly for 'unsupported' state
+      - Label text is displayed alongside icon
+      - Component is compact/inline-friendly for use in settings modals
+    depends_on: [1]
+    effort: 1
+    status: scoped
+
+  - id: 3
+    github_issue: 209
+    milestone: 2
+    title: Create PermissionDeniedMessage component
+    description: |
+      Create a component that displays contextual help when a permission is
+      denied, with browser-specific instructions for re-enabling. Detects
+      Chrome, Firefox, Safari, Edge and provides tailored instructions.
+    acceptance_criteria:
+      - Component shows appropriate message for microphone permission denied
+      - Component shows appropriate message for camera permission denied
+      - Component shows appropriate message for screen recording blocked
+      - Instructions are browser-specific (Chrome, Firefox, Safari, Edge)
+      - Has fallback message for unknown browsers
+      - Optional dismiss button calls onDismiss callback
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 4
+    github_issue: 210
+    milestone: 2
+    title: Integrate permission status into RecordingSettingsModal
+    description: |
+      Enhance RecordingSettingsModal to show permission status badges next to
+      each option and display denied messages when needed. Checks permissions
+      on modal open and updates UI accordingly.
+    acceptance_criteria:
+      - Permission status badges appear next to each option checkbox
+      - Microphone permission status is checked when modal opens
+      - Camera permission status is checked when modal opens
+      - PermissionDeniedMessage shows when denied permission is toggled on
+      - Modal remains functional - user can still attempt to start recording
+    depends_on: [1, 2, 3]
+    effort: 2
+    status: scoped
+
+  # Milestone 3: Permission Handling - Desktop Setup
+  - id: 5
+    github_issue: 211
+    milestone: 3
+    title: Add desktop IPC handler to open System Preferences
+    description: |
+      Add IPC handlers in the desktop app to open macOS System Preferences
+      to specific privacy panels (Screen Recording, Microphone, Camera).
+    acceptance_criteria:
+      - IPC handler exists for opening system preferences
+      - Can open Screen Recording privacy panel on macOS
+      - Can open Microphone privacy panel on macOS
+      - Can open Camera privacy panel on macOS
+      - Function is exposed to renderer via window.electron API
+      - Handles gracefully if called on non-macOS platform (no-op)
+    depends_on: []
+    effort: 1
+    status: scoped
+
+  - id: 6
+    github_issue: 212
+    milestone: 3
+    title: Create PermissionToast component for desktop
+    description: |
+      Create a toast notification component for displaying permission-related
+      messages with an optional action button. Includes auto-dismiss and
+      manual dismiss capabilities.
+    acceptance_criteria:
+      - Toast component renders with message
+      - Toast has dismiss button that calls onDismiss
+      - Optional action button is displayed when provided
+      - Action button calls onClick when clicked
+      - Error/warning variants have appropriate styling
+      - Hook/context available for managing toast state
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 7
+    github_issue: 213
+    milestone: 3
+    title: Create desktop SetupWizard component
+    description: |
+      Create a multi-step setup wizard for first-launch experience on desktop
+      that walks users through granting permissions. Has Welcome, Screen
+      Recording Permission, and Complete steps.
+    acceptance_criteria:
+      - Wizard has 3 steps - Welcome, Screen Recording, Complete
+      - Step navigation works (Next button advances steps)
+      - Screen Recording step has button to open System Preferences
+      - Complete step has button that calls onComplete
+      - Wizard only shows on first launch (isSetupComplete check)
+      - markSetupComplete is called when wizard completes
+      - Wizard UI fits within desktop app window dimensions
+    depends_on: [5]
+    effort: 2
+    status: scoped
+
+  - id: 8
+    github_issue: 214
+    milestone: 3
+    title: Integrate SetupWizard into desktop app launch flow
+    description: |
+      Wire the SetupWizard into the desktop app so it shows on first launch,
+      and integrate permission toasts for error handling during recording.
+    acceptance_criteria:
+      - SetupWizard shows on first desktop app launch
+      - After completing wizard, normal Home screen shows
+      - Subsequent launches skip the wizard (setup flag persisted)
+      - Permission errors during recording show PermissionToast
+      - Toast action button opens relevant System Preferences
+      - Web app is not affected (wizard only on desktop)
+    depends_on: [6, 7]
+    effort: 2
+    status: scoped
