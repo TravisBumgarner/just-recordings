@@ -44,6 +44,11 @@ describe('Home.Desktop - SetupWizard integration', () => {
       setRecordingState: vi.fn(),
       setSetupMode: vi.fn(),
       getVersions: vi.fn(),
+      // Floating window IPC methods
+      showFloatingControls: vi.fn(),
+      hideFloatingControls: vi.fn(),
+      updateRecordingState: vi.fn(),
+      onFloatingControlAction: vi.fn(() => () => {}),
     }
   })
 

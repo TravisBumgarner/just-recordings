@@ -7,12 +7,25 @@ import FloatingControls, { type RecordingState } from '../pages/FloatingControls
 const mockOnRecordingStateUpdate = vi.fn()
 const mockSendFloatingControlAction = vi.fn()
 
+// Mock MediaDevices API
+const mockGetUserMedia = vi.fn()
+const mockMediaStream = {
+  getTracks: vi.fn(() => [{ stop: vi.fn() }]),
+}
+
 beforeEach(() => {
   // Set up window.api mock
   window.api = {
     onRecordingStateUpdate: mockOnRecordingStateUpdate,
     sendFloatingControlAction: mockSendFloatingControlAction,
   } as unknown as typeof window.api
+
+  // Set up MediaDevices mock
+  Object.defineProperty(navigator, 'mediaDevices', {
+    value: { getUserMedia: mockGetUserMedia },
+    configurable: true,
+  })
+  mockGetUserMedia.mockResolvedValue(mockMediaStream)
 })
 
 afterEach(() => {
@@ -67,7 +80,7 @@ describe('FloatingControls', () => {
 
       renderWithRouter(<FloatingControls initialState={state} />)
 
-      expect(screen.getByTestId('recording-status')).toHaveTextContent('Recording')
+      expect(screen.getByTestId('state-indicator')).toHaveTextContent('Recording')
     })
 
     it('displays paused status when paused', () => {
@@ -75,15 +88,16 @@ describe('FloatingControls', () => {
 
       renderWithRouter(<FloatingControls initialState={state} />)
 
-      expect(screen.getByTestId('recording-status')).toHaveTextContent('Paused')
+      expect(screen.getByTestId('state-indicator')).toHaveTextContent('Paused')
     })
 
-    it('displays elapsed time', () => {
+    it('displays elapsed time in formatted form', () => {
       const state = createRecordingState({ elapsedTimeMs: 5000 })
 
       renderWithRouter(<FloatingControls initialState={state} />)
 
-      expect(screen.getByTestId('elapsed-time')).toHaveTextContent('5000')
+      // 5000ms = 00:05
+      expect(screen.getByTestId('elapsed-time')).toHaveTextContent('00:05')
     })
   })
 
@@ -125,6 +139,52 @@ describe('FloatingControls', () => {
       unmount()
 
       expect(cleanup).toHaveBeenCalled()
+    })
+  })
+
+  describe('webcam preview', () => {
+    it('shows webcam preview when webcamEnabled is true', async () => {
+      const state = createRecordingState({ webcamEnabled: true })
+
+      renderWithRouter(<FloatingControls initialState={state} />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('webcam-preview')).toBeInTheDocument()
+      })
+    })
+
+    it('does not show webcam preview when webcamEnabled is false', () => {
+      const state = createRecordingState({ webcamEnabled: false })
+
+      renderWithRouter(<FloatingControls initialState={state} />)
+
+      expect(screen.queryByTestId('webcam-preview')).not.toBeInTheDocument()
+    })
+
+    it('requests webcam stream when webcamEnabled is true', async () => {
+      const state = createRecordingState({ webcamEnabled: true })
+
+      renderWithRouter(<FloatingControls initialState={state} />)
+
+      await waitFor(() => {
+        expect(mockGetUserMedia).toHaveBeenCalledWith({
+          video: true,
+          audio: false,
+        })
+      })
+    })
+
+    it('contains video element with correct attributes', async () => {
+      const state = createRecordingState({ webcamEnabled: true })
+
+      renderWithRouter(<FloatingControls initialState={state} />)
+
+      await waitFor(() => {
+        const video = screen.getByTestId('webcam-preview').querySelector('video')
+        expect(video).toBeInTheDocument()
+        expect(video).toHaveAttribute('autoplay')
+        expect(video).toHaveAttribute('playsinline')
+      })
     })
   })
 })

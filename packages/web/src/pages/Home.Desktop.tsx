@@ -15,6 +15,7 @@ import { useRecordingFlow } from '../hooks/useRecordingFlow'
 import { RecordingSettingsModal } from '../components/RecordingSettingsModal'
 import { CountdownOverlay } from '../components/CountdownOverlay'
 import { RecordingControlsModal } from '../components/RecordingControlsModal'
+import type { FloatingControlAction } from './FloatingControls'
 
 export interface HomeProps {
   recorderService: RecorderService
@@ -38,6 +39,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
   const {
     flowState,
     recorderState,
+    currentSettings,
     openSettings,
     closeSettings,
     startWithSettings,
@@ -56,16 +58,58 @@ function Home({ recorderService, uploadManager }: HomeProps) {
   // Track previous flowState to detect transitions
   const prevFlowStateRef = useRef(flowState)
   useEffect(() => {
-    // When transitioning to 'recording', update tray icon
+    // When transitioning to 'recording', update tray icon and show floating window
     if (prevFlowStateRef.current === 'countdown' && flowState === 'recording') {
       setRecordingState(true)
+      window.api?.showFloatingControls()
     }
-    // When cancelling (recording -> idle), update tray icon
-    if (prevFlowStateRef.current === 'recording' && flowState === 'idle') {
+    // When recording ends (recording -> idle or saving), update tray icon and hide floating window
+    if (prevFlowStateRef.current === 'recording' && (flowState === 'idle' || flowState === 'saving')) {
       setRecordingState(false)
+      window.api?.hideFloatingControls()
     }
     prevFlowStateRef.current = flowState
   }, [flowState])
+
+  // Sync recording state to floating window continuously during recording
+  useEffect(() => {
+    if (flowState !== 'recording') return
+
+    const syncState = () => {
+      window.api?.updateRecordingState({
+        status: recorderState === 'paused' ? 'paused' : 'recording',
+        elapsedTimeMs: getElapsedTime(),
+        webcamEnabled: currentSettings?.includeWebcam ?? false,
+      })
+    }
+
+    // Sync immediately and then every 100ms for smooth timer updates
+    syncState()
+    const intervalId = setInterval(syncState, 100)
+
+    return () => clearInterval(intervalId)
+  }, [flowState, recorderState, getElapsedTime, currentSettings])
+
+  // Listen for control actions from the floating window
+  useEffect(() => {
+    const cleanup = window.api?.onFloatingControlAction((action: FloatingControlAction) => {
+      switch (action) {
+        case 'stop':
+          stop()
+          break
+        case 'pause':
+          pause()
+          break
+        case 'resume':
+          resume()
+          break
+        case 'cancel':
+          cancel()
+          break
+      }
+    })
+    return () => cleanup?.()
+  }, [stop, pause, resume, cancel])
 
   useEffect(() => {
     // Fetch initial queue state

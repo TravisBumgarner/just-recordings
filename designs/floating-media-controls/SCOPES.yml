@@ -116,7 +116,7 @@ tasks:
       - Actions from floating window (stop/pause/resume/cancel) work correctly
     depends_on: [2, 4]
     effort: 2
-    status: scoped
+    status: completed
 
   # Milestone 3: Webcam Preview and Polish
   - id: 6
@@ -135,7 +135,7 @@ tasks:
       - Stream properly cleaned up when window hides or closes
     depends_on: [4]
     effort: 2
-    status: scoped
+    status: completed
 
   - id: 7
     github_issue: 242
