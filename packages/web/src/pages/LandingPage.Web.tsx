@@ -111,31 +111,38 @@ function LandingPage() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Version {APP_VERSION}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <Button
-              variant="outlined"
-              href={EXTERNAL_LINKS.windows}
-              startIcon={<FaWindows />}
-              sx={{ textTransform: 'none' }}
-            >
-              Windows
-            </Button>
-            <Button
-              variant="outlined"
-              href={EXTERNAL_LINKS.mac}
-              startIcon={<FaApple />}
-              sx={{ textTransform: 'none' }}
-            >
-              macOS
-            </Button>
-            <Button
-              variant="outlined"
-              href={EXTERNAL_LINKS.linux}
-              startIcon={<FaLinux />}
-              sx={{ textTransform: 'none' }}
-            >
-              Linux
-            </Button>
+          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+            {[
+              { name: 'Windows', icon: FaWindows, url: EXTERNAL_LINKS.windows },
+              { name: 'macOS', icon: FaApple, url: EXTERNAL_LINKS.mac },
+              { name: 'Linux', icon: FaLinux, url: EXTERNAL_LINKS.linux },
+            ].map((platform) => (
+              <Box
+                key={platform.name}
+                component="a"
+                href={platform.url}
+                sx={{
+                  p: 3,
+                  border: 1,
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  transition: 'border-color 0.2s',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                  },
+                }}
+              >
+                <platform.icon size={48} />
+                <Typography variant="body1">{platform.name}</Typography>
+              </Box>
+            ))}
           </Box>
         </Box>
       </Container>
