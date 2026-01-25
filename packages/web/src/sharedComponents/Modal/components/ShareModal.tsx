@@ -114,7 +114,7 @@ const ShareModal = ({ recordingId, recordingName }: ShareModalProps) => {
 
   return (
     <DefaultModal closeCallback={handleClose}>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} data-testid="share-modal">
         <Typography variant="h6">Share "{recordingName}"</Typography>
 
         <Typography variant="body2" color="text.secondary">
