@@ -9,6 +9,7 @@ const createMockRecorderService = () => {
   return {
     getState: vi.fn().mockReturnValue('idle'),
     onStateChange: vi.fn().mockReturnValue(() => {}),
+    onStreamEnded: vi.fn().mockReturnValue(() => {}),
     acquireScreen: vi.fn().mockResolvedValue({
       stream: { getTracks: () => [] },
       release: mockRelease,

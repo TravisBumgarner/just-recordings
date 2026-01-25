@@ -93,7 +93,7 @@ tasks:
       - Update tests to reflect the change
     github_issue: 277
     milestone: 1
-    status: scoped
+    status: implementing
     depends_on: []
 
   - id: 5
@@ -112,7 +112,7 @@ tasks:
       - Event listeners are properly cleaned up on recording stop/cancel
     github_issue: 278
     milestone: 1
-    status: scoped
+    status: implementing
     depends_on: []
 
   - id: 6
@@ -132,5 +132,5 @@ tasks:
       - Setting continues to persist to localStorage
     github_issue: 279
     milestone: 1
-    status: scoped
+    status: implementing
     depends_on: []

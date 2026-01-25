@@ -17,7 +17,7 @@ export function RecordingSettingsModal({
   const [includeSystemAudio, setIncludeSystemAudio] = useState(false)
   const [includeMicrophone, setIncludeMicrophone] = useState(false)
   const [includeWebcam, setIncludeWebcam] = useState(false)
-  const { autoUploadEnabled, setAutoUploadEnabled } = useAutoUploadSetting()
+  const { autoUploadEnabled } = useAutoUploadSetting()
 
   if (!open) return null
 
@@ -67,18 +67,6 @@ export function RecordingSettingsModal({
             />
           }
           label="Include webcam"
-        />
-      </Box>
-
-      <Box sx={{ my: 2 }}>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={autoUploadEnabled}
-              onChange={(e) => setAutoUploadEnabled(e.target.checked)}
-            />
-          }
-          label="Auto-upload after recording"
         />
       </Box>
 

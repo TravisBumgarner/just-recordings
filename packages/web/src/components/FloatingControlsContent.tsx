@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Box, Button, Typography } from '@mui/material'
 import type { RecordingState, FloatingControlAction } from '../pages/FloatingControls'
 import { formatTime } from './RecordingTimer'
@@ -19,8 +18,6 @@ export function FloatingControlsContent({
   recordingState,
   onAction,
 }: FloatingControlsContentProps) {
-  const [showConfirmation, setShowConfirmation] = useState(false)
-
   const isPaused = recordingState.status === 'paused'
 
   const handlePauseResume = () => {
@@ -31,17 +28,8 @@ export function FloatingControlsContent({
     onAction('stop')
   }
 
-  const handleCancelClick = () => {
-    setShowConfirmation(true)
-  }
-
-  const handleConfirmCancel = () => {
+  const handleCancel = () => {
     onAction('cancel')
-    setShowConfirmation(false)
-  }
-
-  const handleGoBack = () => {
-    setShowConfirmation(false)
   }
 
   return (
@@ -83,37 +71,10 @@ export function FloatingControlsContent({
         <Button variant="outlined" size="small" onClick={handlePauseResume}>
           {isPaused ? 'Resume' : 'Pause'}
         </Button>
-        <Button variant="outlined" size="small" onClick={handleCancelClick}>
+        <Button variant="outlined" size="small" onClick={handleCancel}>
           Cancel
         </Button>
       </Box>
-
-      {/* Confirmation dialog for cancel */}
-      {showConfirmation && (
-        <Box
-          data-testid="confirmation-dialog"
-          sx={{
-            mt: 1,
-            p: 1,
-            border: 1,
-            borderColor: 'divider',
-            borderRadius: 1,
-            mx: 1,
-          }}
-        >
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            Discard this recording?
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button variant="outlined" size="small" onClick={handleGoBack}>
-              Go back
-            </Button>
-            <Button variant="contained" color="warning" size="small" onClick={handleConfirmCancel}>
-              Confirm
-            </Button>
-          </Box>
-        </Box>
-      )}
     </Box>
   )
 }

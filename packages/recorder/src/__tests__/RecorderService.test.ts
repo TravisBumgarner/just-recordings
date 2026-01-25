@@ -52,7 +52,10 @@ class MockMediaRecorder {
 // Mock MediaStream
 class MockMediaStream {
   getTracks() {
-    return [{ stop: vi.fn() }]
+    return [{ stop: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() }]
+  }
+  getVideoTracks() {
+    return [{ stop: vi.fn(), readyState: 'live', addEventListener: vi.fn(), removeEventListener: vi.fn() }]
   }
 }
 
@@ -323,9 +326,9 @@ describe('RecorderService', () => {
       const micTrackStop = vi.fn()
 
       const mockDisplayStream = {
-        getTracks: () => [{ stop: displayTrackStop, kind: 'video' }],
+        getTracks: () => [{ stop: displayTrackStop, kind: 'video', addEventListener: vi.fn(), removeEventListener: vi.fn() }],
         getAudioTracks: () => [],
-        getVideoTracks: () => [{ stop: displayTrackStop, kind: 'video' }],
+        getVideoTracks: () => [{ stop: displayTrackStop, kind: 'video', readyState: 'live', addEventListener: vi.fn(), removeEventListener: vi.fn() }],
       }
       const mockMicStream = {
         getTracks: () => [{ stop: micTrackStop, kind: 'audio' }],
@@ -347,9 +350,9 @@ describe('RecorderService', () => {
       const micTrackStop = vi.fn()
 
       const mockDisplayStream = {
-        getTracks: () => [{ stop: displayTrackStop, kind: 'video' }],
+        getTracks: () => [{ stop: displayTrackStop, kind: 'video', addEventListener: vi.fn(), removeEventListener: vi.fn() }],
         getAudioTracks: () => [],
-        getVideoTracks: () => [{ stop: displayTrackStop, kind: 'video' }],
+        getVideoTracks: () => [{ stop: displayTrackStop, kind: 'video', readyState: 'live', addEventListener: vi.fn(), removeEventListener: vi.fn() }],
       }
       const mockMicStream = {
         getTracks: () => [{ stop: micTrackStop, kind: 'audio' }],
@@ -507,7 +510,8 @@ describe('RecorderService', () => {
     it('stops all media tracks', async () => {
       const mockTrackStop = vi.fn()
       const mockStream = {
-        getTracks: () => [{ stop: mockTrackStop }, { stop: mockTrackStop }],
+        getTracks: () => [{ stop: mockTrackStop, addEventListener: vi.fn(), removeEventListener: vi.fn() }, { stop: mockTrackStop, addEventListener: vi.fn(), removeEventListener: vi.fn() }],
+        getVideoTracks: () => [{ stop: mockTrackStop, readyState: 'live', addEventListener: vi.fn(), removeEventListener: vi.fn() }],
       }
       mockGetDisplayMedia.mockResolvedValue(mockStream)
 

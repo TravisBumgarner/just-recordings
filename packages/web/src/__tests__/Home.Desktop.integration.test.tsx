@@ -23,6 +23,7 @@ const createMockRecorderService = () => ({
     }),
   ),
   onStateChange: vi.fn(() => () => {}),
+  onStreamEnded: vi.fn(() => () => {}),
   getState: vi.fn(() => 'idle'),
 })
 

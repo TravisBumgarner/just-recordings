@@ -68,6 +68,18 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
     return unsubscribe
   }, [])
 
+  // Store stop function in ref for use in stream ended handler
+  const stopRef = useRef<() => Promise<void>>(() => Promise.resolve())
+
+  // Subscribe to stream ended events (e.g., Chrome's native "Stop sharing" button)
+  useEffect(() => {
+    const unsubscribe = recorderServiceRef.current.onStreamEnded(() => {
+      // Auto-stop recording when stream ends externally
+      stopRef.current()
+    })
+    return unsubscribe
+  }, [])
+
   const openSettings = useCallback(() => {
     setFlowState('settings')
   }, [])
@@ -147,6 +159,11 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
     setCurrentSettings(null)
     setFlowState('idle')
   }, [currentSettings])
+
+  // Keep stopRef up to date so stream ended handler uses current stop function
+  useEffect(() => {
+    stopRef.current = stop
+  }, [stop])
 
   const cancel = useCallback(() => {
     // Release any acquired screen stream that hasn't been used
