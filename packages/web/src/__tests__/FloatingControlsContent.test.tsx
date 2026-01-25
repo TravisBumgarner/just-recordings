@@ -36,29 +36,14 @@ describe('FloatingControlsContent', () => {
     })
   })
 
-  describe('elapsed time display', () => {
-    it('displays elapsed time in MM:SS format', () => {
-      const state = createRecordingState({ elapsedTimeMs: 65000 }) // 1:05
+  describe('elapsed time element', () => {
+    it('renders elapsed time element (hidden)', () => {
+      const state = createRecordingState({ elapsedTimeMs: 65000 })
 
       render(<FloatingControlsContent {...defaultProps} recordingState={state} />)
 
-      expect(screen.getByTestId('elapsed-time')).toHaveTextContent('01:05')
-    })
-
-    it('displays zero time as 00:00', () => {
-      const state = createRecordingState({ elapsedTimeMs: 0 })
-
-      render(<FloatingControlsContent {...defaultProps} recordingState={state} />)
-
-      expect(screen.getByTestId('elapsed-time')).toHaveTextContent('00:00')
-    })
-
-    it('displays hours when elapsed time exceeds 60 minutes', () => {
-      const state = createRecordingState({ elapsedTimeMs: 3665000 }) // 1:01:05
-
-      render(<FloatingControlsContent {...defaultProps} recordingState={state} />)
-
-      expect(screen.getByTestId('elapsed-time')).toHaveTextContent('01:01:05')
+      // Elapsed time element exists but is hidden in compact icon view
+      expect(screen.getByTestId('elapsed-time')).toBeInTheDocument()
     })
   })
 
