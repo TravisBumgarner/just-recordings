@@ -97,21 +97,22 @@ function LandingPage() {
         </Typography>
 
         {/* Get the app section */}
-        <Box sx={{ mt: 8 }}>
+        <Box sx={{ mt: 10 }}>
           <Typography
-            variant="h5"
+            variant="h3"
             component="h2"
             sx={{
-              fontWeight: 400,
+              fontWeight: 300,
+              fontSize: { xs: '2rem', md: '2.5rem' },
               mb: 1,
             }}
           >
             Get the app
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
             Version {APP_VERSION}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {[
               { name: 'Windows', icon: FaWindows, url: EXTERNAL_LINKS.windows },
               { name: 'macOS', icon: FaApple, url: EXTERNAL_LINKS.mac },
@@ -122,25 +123,27 @@ function LandingPage() {
                 component="a"
                 href={platform.url}
                 sx={{
-                  p: 3,
-                  border: 1,
+                  p: 4,
+                  border: 2,
                   borderColor: 'divider',
-                  borderRadius: 2,
+                  borderRadius: 3,
                   textAlign: 'center',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: 1.5,
+                  gap: 2,
                   textDecoration: 'none',
                   color: 'inherit',
-                  transition: 'border-color 0.2s',
+                  transition: 'all 0.2s',
                   '&:hover': {
                     borderColor: 'primary.main',
+                    transform: 'translateY(-4px)',
+                    boxShadow: 4,
                   },
                 }}
               >
-                <platform.icon size={48} />
-                <Typography variant="body1">{platform.name}</Typography>
+                <platform.icon size={80} />
+                <Typography variant="h6" fontWeight={500}>{platform.name}</Typography>
               </Box>
             ))}
           </Box>
