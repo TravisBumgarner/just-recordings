@@ -117,48 +117,20 @@ describe('FloatingControlsContent', () => {
     })
   })
 
-  describe('cancel button with confirmation', () => {
+  describe('cancel button', () => {
     it('renders cancel button', () => {
       render(<FloatingControlsContent {...defaultProps} />)
 
       expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
     })
 
-    it('shows confirmation dialog when cancel button clicked', () => {
-      render(<FloatingControlsContent {...defaultProps} />)
-
-      fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-
-      expect(screen.getByTestId('confirmation-dialog')).toBeInTheDocument()
-    })
-
-    it('calls onAction with cancel when cancel is confirmed', () => {
+    it('calls onAction with cancel immediately when clicked (no confirmation)', () => {
       const onAction = vi.fn()
 
       render(<FloatingControlsContent {...defaultProps} onAction={onAction} />)
       fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-      fireEvent.click(screen.getByRole('button', { name: /confirm/i }))
 
       expect(onAction).toHaveBeenCalledWith('cancel')
-    })
-
-    it('does not call onAction when cancel confirmation is dismissed', () => {
-      const onAction = vi.fn()
-
-      render(<FloatingControlsContent {...defaultProps} onAction={onAction} />)
-      fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-      fireEvent.click(screen.getByRole('button', { name: /go back/i }))
-
-      expect(onAction).not.toHaveBeenCalled()
-    })
-
-    it('hides confirmation dialog when dismissed', () => {
-      render(<FloatingControlsContent {...defaultProps} />)
-
-      fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-      fireEvent.click(screen.getByRole('button', { name: /go back/i }))
-
-      expect(screen.queryByTestId('confirmation-dialog')).not.toBeInTheDocument()
     })
   })
 

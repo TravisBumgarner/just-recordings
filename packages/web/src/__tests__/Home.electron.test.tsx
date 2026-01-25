@@ -54,6 +54,7 @@ const createMockRecorderService = () => {
         stateCallbacks.delete(callback)
       }
     }),
+    onStreamEnded: vi.fn(() => () => {}),
     getState: vi.fn(() => 'idle'),
     _triggerStateChange: (state: string) => {
       for (const callback of stateCallbacks) {

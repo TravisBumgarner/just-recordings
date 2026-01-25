@@ -68,6 +68,18 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
     return unsubscribe
   }, [])
 
+  // Store stop function in ref for use in stream ended handler
+  const stopRef = useRef<() => Promise<void>>(() => Promise.resolve())
+
+  // Subscribe to stream ended events (e.g., Chrome's native "Stop sharing" button)
+  useEffect(() => {
+    const unsubscribe = recorderServiceRef.current.onStreamEnded(() => {
+      // Auto-stop recording when stream ends externally
+      stopRef.current()
+    })
+    return unsubscribe
+  }, [])
+
   const openSettings = useCallback(() => {
     setFlowState('settings')
   }, [])
@@ -97,16 +109,37 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
     if (!currentSettings) return
 
     // Use the pre-acquired screen stream
-    const screenStream = acquiredScreenRef.current?.stream
+    const acquiredScreen = acquiredScreenRef.current
     acquiredScreenRef.current = null // Clear ref since stream is now owned by recorder
 
-    await recorderServiceRef.current.startScreenRecording({
-      includeSystemAudio: currentSettings.includeSystemAudio,
-      includeMicrophone: currentSettings.includeMicrophone,
-      includeWebcam: currentSettings.includeWebcam,
-      screenStream,
-    })
-    setFlowState('recording')
+    // Verify the stream exists and is still valid (has active tracks)
+    const screenStream = acquiredScreen?.stream
+    // Check if stream has getVideoTracks method (real MediaStream) and if tracks are live
+    const hasActiveVideoTrack =
+      typeof screenStream?.getVideoTracks === 'function'
+        ? screenStream.getVideoTracks().some((track) => track.readyState === 'live')
+        : !!screenStream // For mocked streams, just check existence
+
+    if (!screenStream || !hasActiveVideoTrack) {
+      // Stream became invalid - release and return to settings
+      acquiredScreen?.release()
+      setFlowState('settings')
+      return
+    }
+
+    try {
+      await recorderServiceRef.current.startScreenRecording({
+        includeSystemAudio: currentSettings.includeSystemAudio,
+        includeMicrophone: currentSettings.includeMicrophone,
+        includeWebcam: currentSettings.includeWebcam,
+        screenStream,
+      })
+      setFlowState('recording')
+    } catch {
+      // If recording fails, release the stream and return to settings
+      acquiredScreen?.release()
+      setFlowState('settings')
+    }
   }, [currentSettings])
 
   const pause = useCallback(() => {
@@ -126,6 +159,11 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
     setCurrentSettings(null)
     setFlowState('idle')
   }, [currentSettings])
+
+  // Keep stopRef up to date so stream ended handler uses current stop function
+  useEffect(() => {
+    stopRef.current = stop
+  }, [stop])
 
   const cancel = useCallback(() => {
     // Release any acquired screen stream that hasn't been used

@@ -7,6 +7,7 @@ const TIMESLICE_MS = 1000
 export class RecorderService {
   private state: RecorderState = 'idle'
   private listeners: Set<(state: RecorderState) => void> = new Set()
+  private streamEndedListeners: Set<() => void> = new Set()
   private mediaRecorder: MediaRecorder | null = null
   private mediaStream: MediaStream | null = null
   private microphoneStream: MediaStream | null = null
@@ -16,6 +17,7 @@ export class RecorderService {
   private totalPausedDuration: number = 0
   private mimeType: string = DEFAULT_MIME_TYPE
   private db: RecorderDatabase
+  private trackEndedHandler: (() => void) | null = null
 
   constructor(db?: RecorderDatabase) {
     this.db = db || new RecorderDatabase()
@@ -30,6 +32,21 @@ export class RecorderService {
     return () => {
       this.listeners.delete(callback)
     }
+  }
+
+  /**
+   * Register a callback to be called when the media stream ends externally
+   * (e.g., user clicks Chrome's native "Stop sharing" button).
+   */
+  onStreamEnded(callback: () => void): () => void {
+    this.streamEndedListeners.add(callback)
+    return () => {
+      this.streamEndedListeners.delete(callback)
+    }
+  }
+
+  private notifyStreamEnded(): void {
+    this.streamEndedListeners.forEach((callback) => callback())
   }
 
   private setState(newState: RecorderState): void {
@@ -79,8 +96,20 @@ export class RecorderService {
     }
 
     // Use pre-acquired screen stream or get a new one
-    if (options?.screenStream) {
-      this.mediaStream = options.screenStream
+    // Verify the passed stream is still valid (has active video track)
+    const passedStream = options?.screenStream
+    // Check if stream has getVideoTracks method (real MediaStream) and if tracks are live
+    const hasValidPassedStream = passedStream
+      ? typeof passedStream.getVideoTracks === 'function'
+        ? passedStream.getVideoTracks().some((track) => track.readyState === 'live')
+        : true // For mocked streams, assume valid
+      : false
+
+    if (hasValidPassedStream) {
+      this.mediaStream = passedStream
+    } else if (passedStream) {
+      // Stream was passed but is invalid - throw error instead of showing picker
+      throw new Error('Screen stream is no longer valid')
     } else {
       // Get display media stream with optional system audio (backward compatibility)
       const includeSystemAudio = options?.includeSystemAudio ?? false
@@ -141,6 +170,18 @@ export class RecorderService {
     this.totalPausedDuration = 0
     this.pausedTime = 0
 
+    // Listen for external stream stop (e.g., Chrome's native "Stop sharing" button)
+    this.trackEndedHandler = () => {
+      // Only notify if we're still recording or paused
+      if (this.state === 'recording' || this.state === 'paused') {
+        this.notifyStreamEnded()
+      }
+    }
+    // Add listener to video tracks
+    this.mediaStream.getVideoTracks().forEach((track) => {
+      track.addEventListener('ended', this.trackEndedHandler!)
+    })
+
     // Start recording with timeslice for periodic data
     this.mediaRecorder.start(TIMESLICE_MS)
     this.startTime = Date.now()
@@ -165,6 +206,14 @@ export class RecorderService {
       this.mediaRecorder.onstop = () => {
         const duration = Date.now() - this.startTime
         const blob = new Blob(this.chunks, { type: this.mimeType })
+
+        // Remove track ended listeners before stopping tracks
+        if (this.trackEndedHandler) {
+          this.mediaStream?.getVideoTracks().forEach((track) => {
+            track.removeEventListener('ended', this.trackEndedHandler!)
+          })
+          this.trackEndedHandler = null
+        }
 
         // Stop all tracks from all streams
         this.mediaStream?.getTracks().forEach((track) => track.stop())
@@ -241,6 +290,14 @@ export class RecorderService {
     // Stop the MediaRecorder if it exists
     if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
       this.mediaRecorder.stop()
+    }
+
+    // Remove track ended listeners before stopping tracks
+    if (this.trackEndedHandler) {
+      this.mediaStream?.getVideoTracks().forEach((track) => {
+        track.removeEventListener('ended', this.trackEndedHandler!)
+      })
+      this.trackEndedHandler = null
     }
 
     // Stop all media tracks from all streams

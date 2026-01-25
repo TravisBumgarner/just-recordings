@@ -17,9 +17,10 @@ export const FLOATING_WINDOW_CHANNELS = {
  * Recording state sent from main window to floating window
  */
 export interface RecordingState {
-  status: 'recording' | 'paused'
+  status: 'recording' | 'paused' | 'countdown'
   elapsedTimeMs: number
   webcamEnabled: boolean
+  countdownSeconds?: number
 }
 
 /**

@@ -15,6 +15,7 @@ import { useRecordingFlow } from '../hooks/useRecordingFlow'
 import { RecordingSettingsModal } from '../components/RecordingSettingsModal'
 import { CountdownOverlay } from '../components/CountdownOverlay'
 import { RecordingControlsModal } from '../components/RecordingControlsModal'
+import { Settings } from '../components/Settings'
 import type { FloatingControlAction } from './FloatingControls'
 
 export interface HomeProps {
@@ -24,6 +25,7 @@ export interface HomeProps {
 
 function Home({ recorderService, uploadManager }: HomeProps) {
   const [queue, setQueue] = useState<Recording[]>([])
+  const [showSettings, setShowSettings] = useState(false)
   const { isSetupComplete, markSetupComplete } = useSetupStatus()
 
   // Handle recording saved - enqueue for upload and update tray icon
@@ -189,24 +191,48 @@ function Home({ recorderService, uploadManager }: HomeProps) {
         onCancel={cancel}
       />
 
-      <Box sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          {flowState === 'idle' && (
-            <Button
-              fullWidth
-              variant="contained"
-              color="primary"
-              size="large"
-              onClick={openSettings}
-            >
-              Start Recording
-            </Button>
-          )}
-        </Box>
+      {/* Settings View */}
+      {showSettings && (
+        <Settings onClose={() => setShowSettings(false)} />
+      )}
 
-        <Link href={generateAbsoluteUrl('home')} target="_blank">
-          View Recordings
-        </Link>
+      {/* Main View */}
+      {!showSettings && (
+        <Box sx={{ py: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            {flowState === 'idle' && (
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                size="large"
+                onClick={openSettings}
+              >
+                Start Recording
+              </Button>
+            )}
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Link href={generateAbsoluteUrl('home')} target="_blank">
+              View Recordings
+            </Link>
+            <Typography
+              component="button"
+              onClick={() => setShowSettings(true)}
+              sx={{
+                background: 'none',
+                border: 'none',
+                color: 'primary.main',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                p: 0,
+                fontSize: 'inherit',
+              }}
+            >
+              Settings
+            </Typography>
+          </Box>
 
         {queue.length > 0 && (
           <Box sx={{ mb: 4 }}>
@@ -280,7 +306,8 @@ function Home({ recorderService, uploadManager }: HomeProps) {
             </List>
           </Box>
         )}
-      </Box>
+        </Box>
+      )}
     </PageWrapper>
   )
 }

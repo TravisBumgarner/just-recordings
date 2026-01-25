@@ -33,6 +33,7 @@ vi.mock('@just-recordings/recorder', () => ({
     startScreenRecording: vi.fn(),
     stopRecording: vi.fn(),
     onStateChange: vi.fn(() => () => {}),
+    onStreamEnded: vi.fn(() => () => {}),
     getState: vi.fn(() => 'idle'),
   })),
   UploadManager: vi.fn(() => ({

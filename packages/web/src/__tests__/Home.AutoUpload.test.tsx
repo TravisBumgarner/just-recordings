@@ -53,6 +53,7 @@ const createMockRecorderService = () => {
         stateCallbacks.delete(callback)
       }
     }),
+    onStreamEnded: vi.fn(() => () => {}),
     getState: vi.fn(() => 'idle'),
   }
 }
@@ -104,13 +105,11 @@ describe('Home - Auto-Upload Integration', () => {
 
   describe('auto-upload enabled (default)', () => {
     it('enqueues recording for upload when auto-upload is enabled', async () => {
+      // Default: auto-upload is enabled (no localStorage value means true)
       renderHome()
 
       // Open settings, start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
-
-      // Auto-upload should be checked by default
-      expect(screen.getByRole('checkbox', { name: /auto-upload after recording/i })).toBeChecked()
 
       // Start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
@@ -137,16 +136,13 @@ describe('Home - Auto-Upload Integration', () => {
 
   describe('auto-upload disabled', () => {
     it('does not enqueue recording for upload when auto-upload is disabled', async () => {
+      // Disable auto-upload via localStorage (as it would be set from Settings page)
+      localStorage.setItem('just-recordings-auto-upload', 'false')
+
       renderHome()
 
       // Open settings
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
-
-      // Disable auto-upload
-      fireEvent.click(screen.getByRole('checkbox', { name: /auto-upload after recording/i }))
-      expect(
-        screen.getByRole('checkbox', { name: /auto-upload after recording/i }),
-      ).not.toBeChecked()
 
       // Start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
@@ -172,21 +168,35 @@ describe('Home - Auto-Upload Integration', () => {
       expect(mockUploadManager.enqueue).not.toHaveBeenCalled()
     })
 
-    it('persists disabled auto-upload setting across modal reopens', async () => {
+    it('reads auto-upload setting from localStorage', async () => {
+      // Set auto-upload to false via localStorage
+      localStorage.setItem('just-recordings-auto-upload', 'false')
+
       renderHome()
 
-      // Open settings and disable auto-upload
+      // Open settings and start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
-      fireEvent.click(screen.getByRole('checkbox', { name: /auto-upload after recording/i }))
-
-      // Close settings
-      fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-
-      // Reopen settings - should still be disabled
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
-      expect(
-        screen.getByRole('checkbox', { name: /auto-upload after recording/i }),
-      ).not.toBeChecked()
+
+      // Wait for recording to start
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('recording-controls-modal')).toBeInTheDocument()
+        },
+        { timeout: 5000 },
+      )
+
+      // Stop recording
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /stop/i }))
+      })
+
+      await waitFor(() => {
+        expect(mockRecorderService.stopRecording).toHaveBeenCalled()
+      })
+
+      // Should NOT enqueue since auto-upload is disabled in localStorage
+      expect(mockUploadManager.enqueue).not.toHaveBeenCalled()
     })
   })
 })

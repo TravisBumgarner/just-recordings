@@ -1,0 +1,136 @@
+project: Recording Flow Bug Fixes
+repo: TravisBumgarner/just-recordings
+scoping_date: 2026-01-25
+
+milestones:
+  - id: 1
+    title: Recording Flow Bug Fixes
+    description: Bug fixes and improvements for recording flow - double window picker, countdown visibility, webcam flicker, cancel confirmation, external stop handling, settings page
+    base_branch: main
+    github_milestone: 41
+
+tasks:
+  - id: 1
+    title: Fix double window picker prompt in browser recording
+    description: |
+      When starting a recording in the browser, user selects a window, countdown begins,
+      then after countdown they are prompted to pick a window AGAIN. Cancelling keeps
+      reopening the picker.
+
+      Root cause: In useRecordingFlow.ts, after countdown completes, startScreenRecording()
+      triggers another getDisplayMedia() call instead of using the already-acquired stream.
+
+      Fix: Ensure the acquired screen stream from acquireScreen() is passed to
+      startScreenRecording() so it doesn't request a new stream.
+    acceptance_criteria:
+      - Screen picker only appears ONCE when user clicks Start in settings
+      - Acquired screen stream is reused when recording starts after countdown
+      - Cancelling screen picker returns to settings modal (not stuck state)
+      - Flow works correctly on both web and desktop
+    github_issue: 273
+    milestone: 1
+    status: implementing
+    depends_on: []
+
+  - id: 2
+    title: Fix desktop countdown not visible - show countdown on floating window
+    description: |
+      When starting a recording in the desktop app, the main window hides but the
+      countdown is not visible anywhere. User cannot see 3, 2, 1 countdown.
+
+      Root cause: In index.ts, countdown:start IPC hides the main window, but the
+      countdown overlay is rendered in React inside that hidden window. The floating
+      controls window exists but doesn't display the countdown.
+
+      Fix: Send countdown state to floating window and display countdown there,
+      or keep main window visible during countdown and only hide when recording starts.
+    acceptance_criteria:
+      - Countdown is visible to user when recording starts on desktop
+      - Floating controls window shows countdown (3, 2, 1) during countdown phase
+      - After countdown completes, floating window shows recording controls
+      - Works correctly on both macOS and Windows
+    github_issue: 274
+    milestone: 1
+    status: implementing
+    depends_on: []
+
+  - id: 3
+    title: Fix webcam preview flickering in floating controls
+    description: |
+      When webcam is enabled and showing in the floating controls window, the video
+      feed flickers continuously.
+
+      Root cause: In FloatingControls.tsx, the useEffect for webcam stream has
+      webcamStream in its dependency array. This causes a render loop:
+      1. Effect runs when webcamEnabled becomes true
+      2. Effect requests stream and calls setWebcamStream(stream)
+      3. Because webcamStream is in deps, effect runs again
+      4. Continuous re-renders cause flicker
+
+      Fix: Remove webcamStream from the dependency array and use a ref to track
+      whether stream has been requested, or restructure the effect logic.
+    acceptance_criteria:
+      - Webcam preview displays without flickering
+      - Webcam stream is only requested once when enabled
+      - Stream is properly cleaned up when disabled or window closes
+      - No render loops or excessive re-renders
+    github_issue: 275
+    milestone: 1
+    status: implementing
+    depends_on: []
+
+  - id: 4
+    title: Remove cancel confirmation on desktop floating controls
+    description: |
+      On desktop, the cancel button in the floating controls window shows a confirmation
+      dialog. This extra step is unnecessary - users should be able to quickly cancel.
+
+      The confirmation exists in FloatingControlsContent.tsx with state `showConfirmation`.
+      Remove the confirmation flow so cancel immediately calls `onAction('cancel')`.
+    acceptance_criteria:
+      - Cancel button in FloatingControlsContent immediately cancels without confirmation
+      - Remove confirmation dialog state and UI from FloatingControlsContent
+      - Update tests to reflect the change
+    github_issue: 277
+    milestone: 1
+    status: implementing
+    depends_on: []
+
+  - id: 5
+    title: Handle external stream stop (Chrome UI stop button)
+    description: |
+      When a user stops screen sharing via Chrome's native UI (the "Stop sharing" button),
+      the app UI doesn't update. The MediaStream is stopped but the app still shows
+      recording controls.
+
+      Need to add event listeners on MediaStream tracks for the 'ended' event to detect
+      when the stream is stopped externally, then automatically stop and save the recording.
+    acceptance_criteria:
+      - RecorderService listens for 'ended' event on video tracks
+      - When stream ends externally, recording is automatically stopped and saved
+      - UI updates to reflect recording has stopped
+      - Event listeners are properly cleaned up on recording stop/cancel
+    github_issue: 278
+    milestone: 1
+    status: implementing
+    depends_on: []
+
+  - id: 6
+    title: Create settings page with auto-upload toggle
+    description: |
+      Move the auto-upload setting from the recording start modal to a dedicated settings
+      page accessible from both web and desktop apps.
+
+      Current: Auto-upload toggle is in RecordingSettingsModal
+      Desired: Dedicated Settings component with auto-upload toggle, accessible via
+      settings icon or link from the main app.
+    acceptance_criteria:
+      - Create Settings component with auto-upload toggle
+      - Add route/navigation to Settings from main app
+      - Remove auto-upload checkbox from RecordingSettingsModal
+      - Settings page works on both web and desktop
+      - Setting continues to persist to localStorage
+    github_issue: 279
+    milestone: 1
+    status: completed
+    depends_on: []
