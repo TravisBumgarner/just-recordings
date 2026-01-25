@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('../utils/electron', () => ({
   setRecordingState: vi.fn(),
   isElectron: vi.fn(() => false),
+  isElectronCheck: vi.fn(() => false),
   countdownStart: vi.fn(),
   countdownTick: vi.fn(),
   countdownEnd: vi.fn(),
@@ -79,6 +80,7 @@ describe('Home - Recording Flow Integration', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.clearAllMocks()
+    localStorage.clear()
     mockRecorderService = createMockRecorderService()
     mockUploadManager = createMockUploadManager()
   })
@@ -86,6 +88,7 @@ describe('Home - Recording Flow Integration', () => {
   afterEach(() => {
     vi.useRealTimers()
     vi.clearAllMocks()
+    localStorage.clear()
   })
 
   const createTestQueryClient = () =>
@@ -164,9 +167,8 @@ describe('Home - Recording Flow Integration', () => {
       // Open settings
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
 
-      // Select options
-      fireEvent.click(screen.getByRole('checkbox', { name: /system audio/i }))
-      fireEvent.click(screen.getByRole('checkbox', { name: /microphone/i }))
+      // All settings default to true now, toggle webcam OFF to test mixed state
+      fireEvent.click(screen.getByTestId('webcam-toggle'))
 
       // Start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))

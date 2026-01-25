@@ -183,5 +183,5 @@ tasks:
       - Selected devices are used when recording starts
     github_issue: null
     milestone: 1
-    status: scoped
+    status: completed
     depends_on: []
