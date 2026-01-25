@@ -11,7 +11,7 @@ export interface SetupWizardProps {
   markSetupComplete: () => void
 }
 
-type WizardStep = 'welcome' | 'screenRecording' | 'microphone' | 'complete'
+type WizardStep = 'welcome' | 'screenRecording' | 'microphone' | 'camera' | 'complete'
 
 export function SetupWizard({
   isSetupComplete,
@@ -22,6 +22,8 @@ export function SetupWizard({
   const [screenRecordingTestState, setScreenRecordingTestState] =
     useState<PermissionTestState>('idle')
   const [microphoneTestState, setMicrophoneTestState] =
+    useState<PermissionTestState>('idle')
+  const [cameraTestState, setCameraTestState] =
     useState<PermissionTestState>('idle')
 
   // Enable setup mode when wizard mounts (prevents window from hiding on blur)
@@ -41,6 +43,8 @@ export function SetupWizard({
     } else if (currentStep === 'screenRecording') {
       setCurrentStep('microphone')
     } else if (currentStep === 'microphone') {
+      setCurrentStep('camera')
+    } else if (currentStep === 'camera') {
       setCurrentStep('complete')
     }
   }
@@ -78,6 +82,26 @@ export function SetupWizard({
   }
 
   const handleSkipMicrophone = () => {
+    setCurrentStep('camera')
+  }
+
+  const handleOpenCameraPreferences = () => {
+    window.api?.openSystemPreferences('camera')
+  }
+
+  const handleTestCamera = async () => {
+    setCameraTestState('testing')
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      // Immediately stop all tracks - we just needed to verify permission works
+      stream.getTracks().forEach((track) => track.stop())
+      setCameraTestState('success')
+    } catch {
+      setCameraTestState('failed')
+    }
+  }
+
+  const handleSkipCamera = () => {
     setCurrentStep('complete')
   }
 
@@ -168,6 +192,37 @@ export function SetupWizard({
           <PermissionTestResult
             state={microphoneTestState}
             successMessage="Microphone works!"
+            failedMessage="Permission denied - please grant access in System Preferences"
+          />
+        </Box>
+      )}
+
+      {currentStep === 'camera' && (
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" gutterBottom>
+            Camera Permission
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 3 }}>
+            To record your webcam, grant camera access in System Preferences.
+            This is optional - you can skip if you only want to record your screen.
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Button variant="outlined" onClick={handleOpenCameraPreferences}>
+              Open System Preferences
+            </Button>
+            <Button variant="outlined" onClick={handleTestCamera}>
+              Test Camera
+            </Button>
+            <Button variant="text" onClick={handleSkipCamera}>
+              Skip
+            </Button>
+            <Button variant="contained" onClick={handleNext}>
+              Next
+            </Button>
+          </Box>
+          <PermissionTestResult
+            state={cameraTestState}
+            successMessage="Camera works!"
             failedMessage="Permission denied - please grant access in System Preferences"
           />
         </Box>
