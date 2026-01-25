@@ -1,0 +1,155 @@
+project: Stable Download Links & Version 0.0.2
+repo: TravisBumgarner/just-recordings
+scoping_date: 2026-01-25
+
+milestones:
+  - id: 1
+    title: Stable Download Links & Version 0.0.2
+    description: Setup stable download links for Electron releases, add download links to marketing page and navigation, bump version to 0.0.2
+    base_branch: main
+    github_milestone: 43
+
+tasks:
+  - id: 1
+    title: Add download routes and external links constants to ROUTES
+    description: |
+      Add download-related routes and external link constants to the ROUTES configuration
+      in `consts.ts`. This provides a centralized location for all download URLs.
+
+      Add to `packages/web/src/consts.ts`:
+      - `downloads` route for the downloads page (`/downloads`)
+      - `EXTERNAL_LINKS` constant with GitHub release URLs for each platform
+
+      The external links should use GitHub's stable "latest" release URL pattern:
+      `https://github.com/TravisBumgarner/just-recordings/releases/latest/download/{filename}`
+
+      File names from electron-forge config:
+      - Windows: `Just-Recordings-win32-x64-setup.exe`
+      - macOS: `Just-Recordings-darwin.dmg`
+      - Linux: `just-recordings_0.0.2_amd64.deb`
+
+      Files to modify:
+      - packages/web/src/consts.ts
+    acceptance_criteria:
+      - ROUTES.downloads added with key, href, and label
+      - EXTERNAL_LINKS constant exported with windows, mac, and linux URLs
+      - URLs use GitHub's stable "latest" release pattern
+    github_issue: 291
+    milestone: 1
+    status: scoped
+    depends_on: []
+
+  - id: 2
+    title: Create Downloads page with platform-specific download buttons
+    description: |
+      Create a new Downloads page that displays download buttons for Windows, macOS,
+      and Linux. The page should use the `EXTERNAL_LINKS` constants (not hardcoded URLs).
+
+      Create `packages/web/src/pages/Downloads.tsx`:
+      - Display heading and brief description
+      - Show three download buttons/cards for each platform with icons
+      - Each button links to the corresponding EXTERNAL_LINKS URL
+      - Include version number
+      - Style consistently with other pages
+
+      Add route to `packages/web/src/components/Router.tsx`:
+      - Import Downloads page (lazy loaded)
+      - Add route using `ROUTES.downloads.href()`
+
+      Files to create/modify:
+      - packages/web/src/pages/Downloads.tsx (new)
+      - packages/web/src/components/Router.tsx
+    acceptance_criteria:
+      - Downloads page created at /downloads route
+      - Three download buttons for Windows, macOS, Linux
+      - Buttons use EXTERNAL_LINKS constants (not hardcoded)
+      - Page displays current version number
+      - Route added to Router.tsx using ROUTES constant
+      - Page is lazy-loaded
+    github_issue: 292
+    milestone: 1
+    status: scoped
+    depends_on: [1]
+
+  - id: 3
+    title: Add Downloads section to Footer component
+    description: |
+      Add a "Downloads" section to the Footer component that links to the downloads
+      page using the ROUTES constant.
+
+      Update `packages/web/src/components/Footer.tsx`:
+      - Add a new Section for "Downloads" with the downloads route
+      - Position alongside existing sections
+
+      Files to modify:
+      - packages/web/src/components/Footer.tsx
+    acceptance_criteria:
+      - Footer includes Downloads section with link to downloads page
+      - Link uses ROUTES.downloads constant
+      - Section styled consistently with existing footer sections
+    github_issue: 293
+    milestone: 1
+    status: scoped
+    depends_on: [1]
+
+  - id: 4
+    title: Add Downloads link to Navigation dropdown menu
+    description: |
+      Add a Downloads link to the navigation dropdown menu for both authenticated
+      and anonymous users.
+
+      Update `packages/web/src/components/Navigation.tsx`:
+      - Add 'downloads' to both USER_ROUTES and ANON_ROUTES arrays
+      - Position after 'home'
+
+      Files to modify:
+      - packages/web/src/components/Navigation.tsx
+    acceptance_criteria:
+      - Downloads link appears in dropdown for logged-in users
+      - Downloads link appears in dropdown for anonymous users
+      - Link uses ROUTES constant (handled by existing DropdownLinks)
+    github_issue: 294
+    milestone: 1
+    status: scoped
+    depends_on: [1]
+
+  - id: 5
+    title: Add Download Desktop App button to marketing landing page
+    description: |
+      Add a secondary CTA on the landing page linking to the Downloads page,
+      giving users an alternative to web app signup.
+
+      Update `packages/web/src/pages/LandingPage.Web.tsx`:
+      - Add "Download Desktop App" button/link near existing "Get started free"
+      - Use ROUTES.downloads for the link
+      - Style as secondary/outlined button
+
+      Files to modify:
+      - packages/web/src/pages/LandingPage.Web.tsx
+    acceptance_criteria:
+      - Download Desktop App link/button added to landing page
+      - Link uses ROUTES.downloads constant
+      - Styled as secondary action (not competing with primary CTA)
+    github_issue: 295
+    milestone: 1
+    status: scoped
+    depends_on: [1]
+
+  - id: 6
+    title: Bump version to 0.0.2 across all packages
+    description: |
+      Bump the version number from 0.0.1 to 0.0.2 across all package.json files.
+
+      Update version to "0.0.2" in:
+      - /package.json (root)
+      - /packages/desktop/package.json
+      - /packages/web/package.json
+      - /packages/api/package.json
+      - /packages/recorder/package.json
+      - /packages/shared/package.json
+    acceptance_criteria:
+      - All 6 package.json files updated to version 0.0.2
+    github_issue: 296
+    milestone: 1
+    status: scoped
+    depends_on: []
