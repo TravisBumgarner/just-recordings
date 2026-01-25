@@ -74,7 +74,6 @@ const Footer = () => {
         backgroundColor: subtleBackground(theme.palette.mode),
       }}
     >
-      <Section direction="column" links={['downloads']} header={'Downloads'} />
       <Section direction="column" links={['feedback']} header={'Feedback'} />
       <Section direction="column" links={['releaseNotes', 'privacy', 'tos']} header={'Site Info'} />
     </Box>

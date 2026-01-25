@@ -1,9 +1,4 @@
 export const ROUTES = {
-  downloads: {
-    key: 'downloads',
-    href: () => '/downloads',
-    label: 'Downloads',
-  },
   privacy: {
     key: 'privacy',
     href: () => '/privacy',
