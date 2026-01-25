@@ -62,7 +62,7 @@ tasks:
       - Preload script exposes necessary API methods
     depends_on: [1]
     effort: 2
-    status: implementing
+    status: completed
 
   # Milestone 2: Floating Controls UI
   - id: 3
