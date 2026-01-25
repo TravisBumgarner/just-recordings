@@ -6,9 +6,10 @@ import { FloatingControlsContent } from '../components/FloatingControlsContent'
  * Recording state received from the main window via IPC
  */
 export interface RecordingState {
-  status: 'recording' | 'paused'
+  status: 'recording' | 'paused' | 'countdown'
   elapsedTimeMs: number
   webcamEnabled: boolean
+  countdownSeconds?: number
 }
 
 /**
@@ -48,18 +49,28 @@ function FloatingControls({ initialState }: FloatingControlsProps) {
     }
   }, [])
 
+  // Track if we're currently requesting webcam to avoid duplicate requests
+  const isRequestingWebcamRef = useRef(false)
+
   // Request webcam stream when webcamEnabled is true
   useEffect(() => {
+    // Clean up existing stream when webcam is disabled
     if (!recordingState?.webcamEnabled) {
-      // Clean up existing stream when webcam is disabled
       if (webcamStream) {
         webcamStream.getTracks().forEach((track) => track.stop())
         setWebcamStream(null)
       }
+      isRequestingWebcamRef.current = false
+      return
+    }
+
+    // Skip if we already have a stream or are currently requesting one
+    if (webcamStream || isRequestingWebcamRef.current) {
       return
     }
 
     let mounted = true
+    isRequestingWebcamRef.current = true
 
     const requestWebcam = async () => {
       try {
@@ -75,6 +86,10 @@ function FloatingControls({ initialState }: FloatingControlsProps) {
         }
       } catch (error) {
         console.error('Failed to get webcam stream:', error)
+      } finally {
+        if (mounted) {
+          isRequestingWebcamRef.current = false
+        }
       }
     }
 
@@ -114,13 +129,41 @@ function FloatingControls({ initialState }: FloatingControlsProps) {
     )
   }
 
+  // Show countdown overlay when in countdown state
+  if (recordingState.status === 'countdown' && recordingState.countdownSeconds !== undefined) {
+    return (
+      <Box
+        data-testid="floating-controls-countdown"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: 150,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        }}
+      >
+        <Typography
+          variant="h1"
+          sx={{
+            fontSize: '6rem',
+            fontWeight: 'bold',
+            color: 'white',
+            textShadow: '0 0 20px rgba(255, 255, 255, 0.5)',
+          }}
+        >
+          {recordingState.countdownSeconds}
+        </Typography>
+      </Box>
+    )
+  }
+
   return (
     <Box data-testid="floating-controls">
       <FloatingControlsContent
         recordingState={recordingState}
         onAction={sendControlAction}
       />
-      {recordingState.webcamEnabled && (
+      {recordingState.webcamEnabled && recordingState.status !== 'countdown' && (
         <Box
           data-testid="webcam-preview"
           sx={{

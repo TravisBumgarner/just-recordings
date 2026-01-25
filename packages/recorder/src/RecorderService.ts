@@ -79,8 +79,20 @@ export class RecorderService {
     }
 
     // Use pre-acquired screen stream or get a new one
-    if (options?.screenStream) {
-      this.mediaStream = options.screenStream
+    // Verify the passed stream is still valid (has active video track)
+    const passedStream = options?.screenStream
+    // Check if stream has getVideoTracks method (real MediaStream) and if tracks are live
+    const hasValidPassedStream = passedStream
+      ? typeof passedStream.getVideoTracks === 'function'
+        ? passedStream.getVideoTracks().some((track) => track.readyState === 'live')
+        : true // For mocked streams, assume valid
+      : false
+
+    if (hasValidPassedStream) {
+      this.mediaStream = passedStream
+    } else if (passedStream) {
+      // Stream was passed but is invalid - throw error instead of showing picker
+      throw new Error('Screen stream is no longer valid')
     } else {
       // Get display media stream with optional system audio (backward compatibility)
       const includeSystemAudio = options?.includeSystemAudio ?? false

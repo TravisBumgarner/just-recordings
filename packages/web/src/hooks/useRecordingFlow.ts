@@ -97,16 +97,37 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
     if (!currentSettings) return
 
     // Use the pre-acquired screen stream
-    const screenStream = acquiredScreenRef.current?.stream
+    const acquiredScreen = acquiredScreenRef.current
     acquiredScreenRef.current = null // Clear ref since stream is now owned by recorder
 
-    await recorderServiceRef.current.startScreenRecording({
-      includeSystemAudio: currentSettings.includeSystemAudio,
-      includeMicrophone: currentSettings.includeMicrophone,
-      includeWebcam: currentSettings.includeWebcam,
-      screenStream,
-    })
-    setFlowState('recording')
+    // Verify the stream exists and is still valid (has active tracks)
+    const screenStream = acquiredScreen?.stream
+    // Check if stream has getVideoTracks method (real MediaStream) and if tracks are live
+    const hasActiveVideoTrack =
+      typeof screenStream?.getVideoTracks === 'function'
+        ? screenStream.getVideoTracks().some((track) => track.readyState === 'live')
+        : !!screenStream // For mocked streams, just check existence
+
+    if (!screenStream || !hasActiveVideoTrack) {
+      // Stream became invalid - release and return to settings
+      acquiredScreen?.release()
+      setFlowState('settings')
+      return
+    }
+
+    try {
+      await recorderServiceRef.current.startScreenRecording({
+        includeSystemAudio: currentSettings.includeSystemAudio,
+        includeMicrophone: currentSettings.includeMicrophone,
+        includeWebcam: currentSettings.includeWebcam,
+        screenStream,
+      })
+      setFlowState('recording')
+    } catch {
+      // If recording fails, release the stream and return to settings
+      acquiredScreen?.release()
+      setFlowState('settings')
+    }
   }, [currentSettings])
 
   const pause = useCallback(() => {

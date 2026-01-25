@@ -267,20 +267,46 @@ app.whenReady().then(() => {
 
   // Countdown IPC handlers
   // Show countdown progress in taskbar (Windows) or dock badge (macOS)
-  // Hide window during countdown so only taskbar/dock shows progress
+  // Show floating window with countdown and hide main window
   ipcMain.on(COUNTDOWN_CHANNELS.START, (_event, state: CountdownState) => {
     hideWindowForCountdown(mainWindow)
     showCountdownProgress(state, mainWindow)
+    // Show floating window and send countdown state
+    showFloatingControls()
+    if (floatingControlsWindow) {
+      floatingControlsWindow.webContents.send(
+        FLOATING_WINDOW_CHANNELS.UPDATE_RECORDING_STATE,
+        {
+          status: 'countdown',
+          elapsedTimeMs: 0,
+          webcamEnabled: false,
+          countdownSeconds: state.secondsRemaining,
+        },
+      )
+    }
   })
 
   ipcMain.on(COUNTDOWN_CHANNELS.TICK, (_event, state: CountdownState) => {
     updateCountdownProgress(state, mainWindow)
+    // Update floating window with countdown tick
+    if (floatingControlsWindow) {
+      floatingControlsWindow.webContents.send(
+        FLOATING_WINDOW_CHANNELS.UPDATE_RECORDING_STATE,
+        {
+          status: 'countdown',
+          elapsedTimeMs: 0,
+          webcamEnabled: false,
+          countdownSeconds: state.secondsRemaining,
+        },
+      )
+    }
   })
 
   ipcMain.on(COUNTDOWN_CHANNELS.END, () => {
     clearCountdownProgress(mainWindow)
     // Note: Window is NOT shown here - it remains hidden during recording
     // Window will be shown when recording stops via 'recording-state-changed' handler
+    // Floating window will transition to recording controls when it receives recording state
   })
 
   // Set up display media request handler for screen capture

@@ -1,0 +1,80 @@
+project: Recording Flow Bug Fixes
+repo: TravisBumgarner/just-recordings
+scoping_date: 2026-01-25
+
+milestones:
+  - id: 1
+    title: Recording Flow Bug Fixes
+    description: Bug fixes for recording flow issues - double window picker, desktop countdown visibility, webcam flicker
+    base_branch: main
+    github_milestone: 41
+
+tasks:
+  - id: 1
+    title: Fix double window picker prompt in browser recording
+    description: |
+      When starting a recording in the browser, user selects a window, countdown begins,
+      then after countdown they are prompted to pick a window AGAIN. Cancelling keeps
+      reopening the picker.
+
+      Root cause: In useRecordingFlow.ts, after countdown completes, startScreenRecording()
+      triggers another getDisplayMedia() call instead of using the already-acquired stream.
+
+      Fix: Ensure the acquired screen stream from acquireScreen() is passed to
+      startScreenRecording() so it doesn't request a new stream.
+    acceptance_criteria:
+      - Screen picker only appears ONCE when user clicks Start in settings
+      - Acquired screen stream is reused when recording starts after countdown
+      - Cancelling screen picker returns to settings modal (not stuck state)
+      - Flow works correctly on both web and desktop
+    github_issue: 273
+    milestone: 1
+    status: implementing
+    depends_on: []
+
+  - id: 2
+    title: Fix desktop countdown not visible - show countdown on floating window
+    description: |
+      When starting a recording in the desktop app, the main window hides but the
+      countdown is not visible anywhere. User cannot see 3, 2, 1 countdown.
+
+      Root cause: In index.ts, countdown:start IPC hides the main window, but the
+      countdown overlay is rendered in React inside that hidden window. The floating
+      controls window exists but doesn't display the countdown.
+
+      Fix: Send countdown state to floating window and display countdown there,
+      or keep main window visible during countdown and only hide when recording starts.
+    acceptance_criteria:
+      - Countdown is visible to user when recording starts on desktop
+      - Floating controls window shows countdown (3, 2, 1) during countdown phase
+      - After countdown completes, floating window shows recording controls
+      - Works correctly on both macOS and Windows
+    github_issue: 274
+    milestone: 1
+    status: implementing
+    depends_on: []
+
+  - id: 3
+    title: Fix webcam preview flickering in floating controls
+    description: |
+      When webcam is enabled and showing in the floating controls window, the video
+      feed flickers continuously.
+
+      Root cause: In FloatingControls.tsx, the useEffect for webcam stream has
+      webcamStream in its dependency array. This causes a render loop:
+      1. Effect runs when webcamEnabled becomes true
+      2. Effect requests stream and calls setWebcamStream(stream)
+      3. Because webcamStream is in deps, effect runs again
+      4. Continuous re-renders cause flicker
+
+      Fix: Remove webcamStream from the dependency array and use a ref to track
+      whether stream has been requested, or restructure the effect logic.
+    acceptance_criteria:
+      - Webcam preview displays without flickering
+      - Webcam stream is only requested once when enabled
+      - Stream is properly cleaned up when disabled or window closes
+      - No render loops or excessive re-renders
+    github_issue: 275
+    milestone: 1
+    status: implementing
+    depends_on: []

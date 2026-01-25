@@ -43,6 +43,7 @@ function createRecordingState(overrides: Partial<RecordingState> = {}): Recordin
     status: 'recording',
     elapsedTimeMs: 0,
     webcamEnabled: false,
+    countdownSeconds: undefined,
     ...overrides,
   }
 }
@@ -139,6 +140,42 @@ describe('FloatingControls', () => {
       unmount()
 
       expect(cleanup).toHaveBeenCalled()
+    })
+  })
+
+  describe('countdown display', () => {
+    it('shows countdown when status is countdown', () => {
+      const state = createRecordingState({
+        status: 'countdown',
+        countdownSeconds: 3,
+      })
+
+      renderWithRouter(<FloatingControls initialState={state} />)
+
+      expect(screen.getByTestId('floating-controls-countdown')).toBeInTheDocument()
+      expect(screen.getByText('3')).toBeInTheDocument()
+    })
+
+    it('displays countdown number prominently', () => {
+      const state = createRecordingState({
+        status: 'countdown',
+        countdownSeconds: 2,
+      })
+
+      renderWithRouter(<FloatingControls initialState={state} />)
+
+      expect(screen.getByText('2')).toBeInTheDocument()
+    })
+
+    it('does not show regular controls during countdown', () => {
+      const state = createRecordingState({
+        status: 'countdown',
+        countdownSeconds: 1,
+      })
+
+      renderWithRouter(<FloatingControls initialState={state} />)
+
+      expect(screen.queryByTestId('floating-controls')).not.toBeInTheDocument()
     })
   })
 
