@@ -1,4 +1,4 @@
-const DEFAULT_CHUNK_SIZE = 1024 * 1024 // 1MB
+const DEFAULT_CHUNK_SIZE = 6 * 1024 * 1024 // 6MB - Cloudinary requires chunks >= 5MB
 
 export function chunkBlob(blob: Blob, chunkSize: number = DEFAULT_CHUNK_SIZE): Blob[] {
   if (blob.size === 0) {
