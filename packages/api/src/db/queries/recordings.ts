@@ -73,6 +73,13 @@ export async function deleteRecording(id: string): Promise<boolean> {
 }
 
 export async function updateRecordingName(id: string, name: string): Promise<Recording | null> {
-  // Stub: will be implemented in ralph-code phase
-  return null
+  const result = await db
+    .update(recordings)
+    .set({ name })
+    .where(eq(recordings.id, id))
+    .returning()
+  if (result.length === 0) {
+    return null
+  }
+  return toRecording(result[0])
 }
