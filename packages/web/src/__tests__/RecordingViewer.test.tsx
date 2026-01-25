@@ -10,13 +10,15 @@ vi.mock('../api/recordings', () => ({
   getRecording: vi.fn(),
   getVideoUrl: vi.fn(),
   deleteRecording: vi.fn(),
+  updateRecording: vi.fn(),
 }))
 
-import { deleteRecording, getRecording, getVideoUrl } from '../api/recordings'
+import { deleteRecording, getRecording, getVideoUrl, updateRecording } from '../api/recordings'
 
 const mockGetRecording = vi.mocked(getRecording)
 const mockGetVideoUrl = vi.mocked(getVideoUrl)
 const mockDeleteRecording = vi.mocked(deleteRecording)
+const mockUpdateRecording = vi.mocked(updateRecording)
 
 // Helper to create mock recording
 function createMockRecording(overrides: Partial<Recording> = {}): Recording {
@@ -64,6 +66,7 @@ describe('RecordingViewerPage', () => {
     mockGetRecording.mockReset()
     mockDeleteRecording.mockReset()
     mockGetVideoUrl.mockReset()
+    mockUpdateRecording.mockReset()
     // Default video URL mock
     mockGetVideoUrl.mockImplementation((id: string) =>
       Promise.resolve({ success: true, data: `/api/recordings/${id}/video` })
@@ -284,6 +287,166 @@ describe('RecordingViewerPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Home')).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('rename functionality', () => {
+    it('has edit button next to recording title', async () => {
+      mockGetRecording.mockResolvedValue({ success: true, data: createMockRecording() })
+
+      renderAtPath(<RecordingViewerPage />, '/recordings/:id', ['/recordings/test-id'])
+
+      await waitFor(() => {
+        expect(screen.getByTestId('edit-name-button')).toBeInTheDocument()
+      })
+    })
+
+    it('shows inline text input when edit button clicked', async () => {
+      mockGetRecording.mockResolvedValue({
+        success: true,
+        data: createMockRecording({ name: 'Original Name' }),
+      })
+
+      renderAtPath(<RecordingViewerPage />, '/recordings/:id', ['/recordings/test-id'])
+
+      await waitFor(() => {
+        expect(screen.getByTestId('edit-name-button')).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByTestId('edit-name-button'))
+
+      await waitFor(() => {
+        const input = screen.getByTestId('name-input')
+        expect(input).toBeInTheDocument()
+        expect(input).toHaveValue('Original Name')
+      })
+    })
+
+    it('saves new name when Enter key is pressed', async () => {
+      mockGetRecording.mockResolvedValue({
+        success: true,
+        data: createMockRecording({ id: 'rename-test', name: 'Original Name' }),
+      })
+      mockUpdateRecording.mockResolvedValue({
+        success: true,
+        data: createMockRecording({ id: 'rename-test', name: 'New Name' }),
+      })
+
+      renderAtPath(<RecordingViewerPage />, '/recordings/:id', ['/recordings/rename-test'])
+
+      await waitFor(() => {
+        expect(screen.getByTestId('edit-name-button')).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByTestId('edit-name-button'))
+
+      const input = await screen.findByTestId('name-input')
+      fireEvent.change(input, { target: { value: 'New Name' } })
+      fireEvent.keyDown(input, { key: 'Enter' })
+
+      await waitFor(() => {
+        expect(mockUpdateRecording).toHaveBeenCalledWith('rename-test', { name: 'New Name' })
+      })
+    })
+
+    it('reverts to original name when Escape key is pressed', async () => {
+      mockGetRecording.mockResolvedValue({
+        success: true,
+        data: createMockRecording({ name: 'Original Name' }),
+      })
+
+      renderAtPath(<RecordingViewerPage />, '/recordings/:id', ['/recordings/test-id'])
+
+      await waitFor(() => {
+        expect(screen.getByTestId('edit-name-button')).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByTestId('edit-name-button'))
+
+      const input = await screen.findByTestId('name-input')
+      fireEvent.change(input, { target: { value: 'Changed Name' } })
+      fireEvent.keyDown(input, { key: 'Escape' })
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('name-input')).not.toBeInTheDocument()
+        expect(screen.getByText('Original Name')).toBeInTheDocument()
+      })
+    })
+
+    it('saves new name when save button is clicked', async () => {
+      mockGetRecording.mockResolvedValue({
+        success: true,
+        data: createMockRecording({ id: 'save-test', name: 'Original Name' }),
+      })
+      mockUpdateRecording.mockResolvedValue({
+        success: true,
+        data: createMockRecording({ id: 'save-test', name: 'New Name' }),
+      })
+
+      renderAtPath(<RecordingViewerPage />, '/recordings/:id', ['/recordings/save-test'])
+
+      await waitFor(() => {
+        expect(screen.getByTestId('edit-name-button')).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByTestId('edit-name-button'))
+
+      const input = await screen.findByTestId('name-input')
+      fireEvent.change(input, { target: { value: 'New Name' } })
+      fireEvent.click(screen.getByTestId('save-name-button'))
+
+      await waitFor(() => {
+        expect(mockUpdateRecording).toHaveBeenCalledWith('save-test', { name: 'New Name' })
+      })
+    })
+
+    it('cancels editing when cancel button is clicked', async () => {
+      mockGetRecording.mockResolvedValue({
+        success: true,
+        data: createMockRecording({ name: 'Original Name' }),
+      })
+
+      renderAtPath(<RecordingViewerPage />, '/recordings/:id', ['/recordings/test-id'])
+
+      await waitFor(() => {
+        expect(screen.getByTestId('edit-name-button')).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByTestId('edit-name-button'))
+
+      const input = await screen.findByTestId('name-input')
+      fireEvent.change(input, { target: { value: 'Changed Name' } })
+      fireEvent.click(screen.getByTestId('cancel-name-button'))
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('name-input')).not.toBeInTheDocument()
+        expect(screen.getByText('Original Name')).toBeInTheDocument()
+      })
+    })
+
+    it('shows loading state during save', async () => {
+      mockGetRecording.mockResolvedValue({
+        success: true,
+        data: createMockRecording({ id: 'loading-test', name: 'Original Name' }),
+      })
+      // Make updateRecording hang to keep loading state visible
+      mockUpdateRecording.mockImplementation(() => new Promise(() => {}))
+
+      renderAtPath(<RecordingViewerPage />, '/recordings/:id', ['/recordings/loading-test'])
+
+      await waitFor(() => {
+        expect(screen.getByTestId('edit-name-button')).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByTestId('edit-name-button'))
+
+      const input = await screen.findByTestId('name-input')
+      fireEvent.change(input, { target: { value: 'New Name' } })
+      fireEvent.click(screen.getByTestId('save-name-button'))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('name-save-loading')).toBeInTheDocument()
       })
     })
   })

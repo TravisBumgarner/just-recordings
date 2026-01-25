@@ -115,7 +115,7 @@ tasks:
       - React Query cache updated optimistically
     github_issue: 283
     milestone: 1
-    status: scoped
+    status: testing
     depends_on: [3]
 
   - id: 5

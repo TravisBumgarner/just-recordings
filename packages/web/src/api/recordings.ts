@@ -151,3 +151,11 @@ export const deleteRecording = async (id: string): Promise<ApiResponse<{ deleted
     return { success: false, errorCode: 'INTERNAL_ERROR' }
   }
 }
+
+export const updateRecording = async (
+  id: string,
+  data: { name: string }
+): Promise<ApiResponse<Recording>> => {
+  // Stub: will be implemented in ralph-code phase
+  return { success: false, errorCode: 'INTERNAL_ERROR' }
+}
