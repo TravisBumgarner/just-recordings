@@ -18,28 +18,28 @@ describe('Settings', () => {
       expect(screen.getByText('Settings')).toBeInTheDocument()
     })
 
-    it('renders auto-upload toggle with label', () => {
+    it('renders upload toggle with label', () => {
       render(<Settings />)
 
       expect(
-        screen.getByRole('checkbox', { name: /auto-upload after recording/i }),
+        screen.getByRole('checkbox', { name: /upload while recording/i }),
       ).toBeInTheDocument()
     })
 
-    it('renders description text for auto-upload', () => {
+    it('renders description text for upload setting', () => {
       render(<Settings />)
 
       expect(
-        screen.getByText(/when enabled, recordings are automatically uploaded/i),
+        screen.getByText(/when enabled, recordings are uploaded automatically/i),
       ).toBeInTheDocument()
     })
   })
 
-  describe('auto-upload toggle behavior', () => {
+  describe('upload toggle behavior', () => {
     it('is checked by default when localStorage is empty', () => {
       render(<Settings />)
 
-      expect(screen.getByRole('checkbox', { name: /auto-upload/i })).toBeChecked()
+      expect(screen.getByRole('checkbox', { name: /upload while recording/i })).toBeChecked()
     })
 
     it('is unchecked when localStorage has false', () => {
@@ -47,7 +47,7 @@ describe('Settings', () => {
 
       render(<Settings />)
 
-      expect(screen.getByRole('checkbox', { name: /auto-upload/i })).not.toBeChecked()
+      expect(screen.getByRole('checkbox', { name: /upload while recording/i })).not.toBeChecked()
     })
 
     it('is checked when localStorage has true', () => {
@@ -55,13 +55,13 @@ describe('Settings', () => {
 
       render(<Settings />)
 
-      expect(screen.getByRole('checkbox', { name: /auto-upload/i })).toBeChecked()
+      expect(screen.getByRole('checkbox', { name: /upload while recording/i })).toBeChecked()
     })
 
     it('toggles off when clicked while checked', () => {
       render(<Settings />)
 
-      const toggle = screen.getByRole('checkbox', { name: /auto-upload/i })
+      const toggle = screen.getByRole('checkbox', { name: /upload while recording/i })
       expect(toggle).toBeChecked()
 
       fireEvent.click(toggle)
@@ -73,7 +73,7 @@ describe('Settings', () => {
       localStorage.setItem('just-recordings-auto-upload', 'false')
       render(<Settings />)
 
-      const toggle = screen.getByRole('checkbox', { name: /auto-upload/i })
+      const toggle = screen.getByRole('checkbox', { name: /upload while recording/i })
       expect(toggle).not.toBeChecked()
 
       fireEvent.click(toggle)
@@ -84,7 +84,7 @@ describe('Settings', () => {
     it('persists setting to localStorage when toggled', () => {
       render(<Settings />)
 
-      const toggle = screen.getByRole('checkbox', { name: /auto-upload/i })
+      const toggle = screen.getByRole('checkbox', { name: /upload while recording/i })
 
       fireEvent.click(toggle)
       expect(localStorage.getItem('just-recordings-auto-upload')).toBe('false')

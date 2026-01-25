@@ -28,10 +28,10 @@ export function Settings({ onClose }: SettingsProps) {
               data-testid="auto-upload-toggle"
             />
           }
-          label="Auto-upload after recording"
+          label="Upload while recording"
         />
         <Typography variant="body2" color="text.secondary" sx={{ ml: 4.5 }}>
-          When enabled, recordings are automatically uploaded after they complete.
+          When enabled, recordings are uploaded automatically as you record.
         </Typography>
       </Box>
 
