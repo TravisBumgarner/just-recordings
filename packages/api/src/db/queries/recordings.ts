@@ -71,3 +71,8 @@ export async function deleteRecording(id: string): Promise<boolean> {
     .returning({ id: recordings.id })
   return result.length > 0
 }
+
+export async function updateRecordingName(id: string, name: string): Promise<Recording | null> {
+  // Stub: will be implemented in ralph-code phase
+  return null
+}
