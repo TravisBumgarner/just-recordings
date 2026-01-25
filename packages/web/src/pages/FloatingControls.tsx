@@ -52,7 +52,7 @@ function FloatingControls({ initialState }: FloatingControlsProps) {
   // Track if we're currently requesting webcam to avoid duplicate requests
   const isRequestingWebcamRef = useRef(false)
 
-  // Request webcam stream when webcamEnabled is true
+  // Request webcam stream when webcamEnabled is true (including during countdown)
   useEffect(() => {
     // Clean up existing stream when webcam is disabled
     if (!recordingState?.webcamEnabled) {
@@ -100,6 +100,9 @@ function FloatingControls({ initialState }: FloatingControlsProps) {
     }
   }, [recordingState?.webcamEnabled, webcamStream])
 
+  // Check if we should show webcam (during countdown or recording)
+  const showWebcam = recordingState?.webcamEnabled && webcamStream
+
   // Attach stream to video element
   useEffect(() => {
     if (videoRef.current && webcamStream) {
@@ -129,30 +132,65 @@ function FloatingControls({ initialState }: FloatingControlsProps) {
     )
   }
 
-  // Show countdown overlay when in countdown state
+  // Show countdown with webcam overlay when in countdown state
   if (recordingState.status === 'countdown' && recordingState.countdownSeconds !== undefined) {
     return (
       <Box
         data-testid="floating-controls-countdown"
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: 150,
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          position: 'relative',
+          minHeight: showWebcam ? 'auto' : 150,
+          backgroundColor: showWebcam ? 'transparent' : 'rgba(0, 0, 0, 0.8)',
         }}
       >
-        <Typography
-          variant="h1"
+        {/* Webcam during countdown */}
+        {showWebcam && (
+          <Box
+            data-testid="webcam-preview"
+            sx={{
+              overflow: 'hidden',
+              borderRadius: 1,
+            }}
+          >
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              style={{
+                width: '100%',
+                display: 'block',
+                objectFit: 'cover',
+              }}
+            />
+          </Box>
+        )}
+        {/* Countdown overlay */}
+        <Box
           sx={{
-            fontSize: '6rem',
-            fontWeight: 'bold',
-            color: 'white',
-            textShadow: '0 0 20px rgba(255, 255, 255, 0.5)',
+            position: showWebcam ? 'absolute' : 'relative',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: showWebcam ? 'auto' : 150,
           }}
         >
-          {recordingState.countdownSeconds}
-        </Typography>
+          <Typography
+            variant="h1"
+            sx={{
+              fontSize: '6rem',
+              fontWeight: 'bold',
+              color: 'white',
+              textShadow: '0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.5)',
+            }}
+          >
+            {recordingState.countdownSeconds}
+          </Typography>
+        </Box>
       </Box>
     )
   }
@@ -163,7 +201,7 @@ function FloatingControls({ initialState }: FloatingControlsProps) {
         recordingState={recordingState}
         onAction={sendControlAction}
       />
-      {recordingState.webcamEnabled && recordingState.status !== 'countdown' && (
+      {showWebcam && (
         <Box
           data-testid="webcam-preview"
           sx={{

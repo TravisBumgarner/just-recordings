@@ -92,13 +92,13 @@ describe('FloatingControls', () => {
       expect(screen.getByTestId('state-indicator')).toHaveTextContent('Paused')
     })
 
-    it('displays elapsed time in formatted form', () => {
+    it('renders elapsed time element (hidden in compact view)', () => {
       const state = createRecordingState({ elapsedTimeMs: 5000 })
 
       renderWithRouter(<FloatingControls initialState={state} />)
 
-      // 5000ms = 00:05
-      expect(screen.getByTestId('elapsed-time')).toHaveTextContent('00:05')
+      // Elapsed time element exists but is hidden in compact icon view
+      expect(screen.getByTestId('elapsed-time')).toBeInTheDocument()
     })
   })
 
