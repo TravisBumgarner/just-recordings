@@ -1,7 +1,7 @@
 {
   "name": "@just-recordings/desktop",
   "productName": "Just Recordings",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Just Recordings Desktop App",
   "main": ".vite/build/index.js",
   "author": {
