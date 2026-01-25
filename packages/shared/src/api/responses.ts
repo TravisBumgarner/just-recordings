@@ -10,6 +10,12 @@ export const ErrorCode = {
   FILE_NOT_FOUND: 'FILE_NOT_FOUND',
   THUMBNAIL_NOT_FOUND: 'THUMBNAIL_NOT_FOUND',
 
+  // Share errors
+  SHARE_NOT_FOUND: 'SHARE_NOT_FOUND',
+  SHARE_EXPIRED: 'SHARE_EXPIRED',
+  SHARE_REVOKED: 'SHARE_REVOKED',
+  SHARE_VIEW_LIMIT_REACHED: 'SHARE_VIEW_LIMIT_REACHED',
+
   // Validation errors
   INVALID_UUID: 'INVALID_UUID',
   INVALID_INPUT: 'INVALID_INPUT',
@@ -47,6 +53,12 @@ export const errorMessages: Record<ErrorCode, string> = {
   RECORDING_NOT_FOUND: 'Recording not found',
   FILE_NOT_FOUND: 'Video file not found',
   THUMBNAIL_NOT_FOUND: 'Thumbnail not found',
+
+  // Share errors
+  SHARE_NOT_FOUND: 'This share link does not exist or has been deleted',
+  SHARE_EXPIRED: 'This share link has expired',
+  SHARE_REVOKED: 'This share link has been revoked',
+  SHARE_VIEW_LIMIT_REACHED: 'This share link has reached its view limit',
 
   // Validation errors
   INVALID_UUID: 'Invalid identifier format',

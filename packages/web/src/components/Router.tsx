@@ -28,6 +28,7 @@ import {
 import { useMemo } from 'react'
 import FloatingControls from '../pages/FloatingControls'
 import RecordingViewer from '../pages/RecordingViewer'
+import SharedRecordingViewer from '../pages/SharedRecordingViewer'
 import UploadQueue from '../pages/UploadQueue'
 import { createTokenGetter } from '../utils/createTokenGetter'
 
@@ -97,6 +98,7 @@ const Router = ({ isElectron }: { isElectron: boolean }) => {
           element={<UploadQueue uploadManager={uploadManager} />}
         />
         <Route path={ROUTES.floatingControls.href()} element={<FloatingControls />} />
+        <Route path={ROUTES.sharedRecording.href()} element={<SharedRecordingViewer />} />
 
         <Route path={ROUTES.tos.href()} element={<TermsOfService />} />
         <Route path={ROUTES.privacy.href()} element={<PrivacyPolicy />} />
