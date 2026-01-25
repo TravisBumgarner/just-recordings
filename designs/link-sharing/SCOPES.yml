@@ -1,0 +1,196 @@
+project: Link Sharing
+repo: TravisBumgarner/just-recordings
+design_file: designs/link-sharing/DESIGN.md
+scoping_date: 2026-01-24
+
+milestones:
+  - number: 1
+    title: "1. Database & Types"
+    description: Set up the database schema and shared types for recording shares
+    branch:
+      working: link-sharing-database
+      base: main
+
+  - number: 2
+    title: "2. API Layer"
+    description: Implement authenticated and public API endpoints for managing and accessing shares
+    branch:
+      working: link-sharing-api
+      base: main
+
+  - number: 3
+    title: "3. Web Client"
+    description: Add client-side API functions and UI components for sharing
+    branch:
+      working: link-sharing-web
+      base: main
+
+tasks:
+  # Milestone 1: Database & Types
+  - id: 1
+    github_issue: 249
+    milestone: 1
+    title: Add recording_shares database table and migration
+    description: |
+      Create the database schema for storing recording share links. The table tracks
+      share tokens, types (link vs single_view), view counts, and revocation status.
+    acceptance_criteria:
+      - Drizzle schema for recordingShares table exists in packages/shared/src/db/schema.ts
+      - Migration file created for the recording_shares table
+      - Table has all required columns (id, recordingId, shareToken, shareType, viewCount, maxViews, createdAt, expiresAt, revokedAt)
+      - Foreign key to recordings table with ON DELETE CASCADE
+      - Unique index on shareToken
+      - Index on recordingId
+    depends_on: []
+    effort: 2
+    status: pending
+
+  - id: 2
+    github_issue: 250
+    milestone: 1
+    title: Add shared types for recording shares
+    description: |
+      Define TypeScript types and Zod schemas for recording shares that will be
+      shared between API and web client packages.
+    acceptance_criteria:
+      - ShareType enum ('link' | 'single_view') defined
+      - RecordingShare interface with all fields defined
+      - CreateShareRequest/Response types defined
+      - ShareValidationError enum defined (SHARE_NOT_FOUND, SHARE_EXPIRED, SHARE_REVOKED, SHARE_VIEW_LIMIT_REACHED)
+      - PublicRecordingInfo type defined (subset of recording info safe for public access)
+      - Zod schemas for API request/response validation
+    depends_on: [1]
+    effort: 1
+    status: pending
+
+  - id: 3
+    github_issue: 251
+    milestone: 1
+    title: Add database queries for recording shares
+    description: |
+      Implement database query functions for CRUD operations on recording shares
+      including creation, retrieval, validation, and revocation.
+    acceptance_criteria:
+      - createShare() function creates a new share record
+      - getShareByToken() function retrieves share by token
+      - getSharesByRecordingId() function lists all shares for a recording
+      - revokeShare() function soft-deletes by setting revokedAt
+      - incrementViewCount() atomically increments view count
+      - validateShare() checks token validity (exists, not revoked, not expired, view limit)
+      - generateShareToken() creates cryptographically secure URL-safe tokens
+    depends_on: [1]
+    effort: 2
+    status: pending
+
+  # Milestone 2: API Layer
+  - id: 4
+    github_issue: 252
+    milestone: 2
+    title: Add authenticated API endpoints for managing shares
+    description: |
+      Create API endpoints that allow recording owners to create, list, and
+      revoke share links for their recordings.
+    acceptance_criteria:
+      - POST /api/recordings/:id/shares creates a new share link
+      - GET /api/recordings/:id/shares lists all shares for a recording
+      - DELETE /api/recordings/:id/shares/:shareId revokes a share
+      - All endpoints require authentication
+      - All endpoints verify recording ownership
+      - Responses include full share info including shareUrl
+    depends_on: [2, 3]
+    effort: 2
+    status: pending
+
+  - id: 5
+    github_issue: 253
+    milestone: 2
+    title: Add public API endpoints for accessing shared recordings
+    description: |
+      Create public API endpoints that allow anyone with a valid share token
+      to access recording metadata and stream video.
+    acceptance_criteria:
+      - GET /api/share/:token returns recording metadata if share is valid
+      - GET /api/share/:token/video streams the video file
+      - GET /api/share/:token/thumbnail returns thumbnail if available
+      - Video endpoint increments view count
+      - Single-view shares marked as consumed after video access
+      - Appropriate error responses for invalid/expired/revoked shares
+      - Rate limiting on public endpoints
+    depends_on: [2, 3]
+    effort: 3
+    status: pending
+
+  # Milestone 3: Web Client
+  - id: 6
+    github_issue: 254
+    milestone: 3
+    title: Add web client API functions for shares
+    description: |
+      Implement client-side API functions for interacting with the share endpoints.
+    acceptance_criteria:
+      - createShare(recordingId, shareType) function
+      - getShares(recordingId) function
+      - revokeShare(recordingId, shareId) function
+      - getPublicRecording(token) function
+      - Functions handle errors appropriately
+      - Functions return typed responses
+    depends_on: [4, 5]
+    effort: 1
+    status: pending
+
+  - id: 7
+    github_issue: 255
+    milestone: 3
+    title: Create ShareModal component
+    description: |
+      Create the modal component that allows users to manage sharing settings
+      for a recording, including creating new shares and revoking existing ones.
+    acceptance_criteria:
+      - Modal displays recording name in title
+      - Radio buttons for access level (Just me, Anybody with link, Single view)
+      - Share link input field with copy button when sharing is enabled
+      - List of active shares with view counts
+      - Revoke button for each active share
+      - Loading states during API calls
+      - Toast notifications for copy success and share actions
+    depends_on: [6]
+    effort: 3
+    status: pending
+
+  - id: 8
+    github_issue: 256
+    milestone: 3
+    title: Create SharedRecordingViewer page
+    description: |
+      Create the public page at /share/:token that displays shared recordings
+      without requiring authentication.
+    acceptance_criteria:
+      - /share/:token route exists in the router (no auth required)
+      - SharedRecordingViewer.tsx page component created
+      - Page fetches recording metadata via GET /api/share/:token
+      - Page displays recording name and video player
+      - Video loads from GET /api/share/:token/video endpoint
+      - Error states displayed for invalid/expired/revoked/view-limit-reached shares
+      - Minimal UI with no navigation or auth requirements
+      - Loading state while fetching recording metadata
+    depends_on: [5, 6]
+    effort: 2
+    status: pending
+
+  - id: 9
+    github_issue: 257
+    milestone: 3
+    title: Integrate ShareModal into RecordingViewer
+    description: |
+      Add the ability to share recordings from the RecordingViewer page by
+      integrating the ShareModal component.
+    acceptance_criteria:
+      - Share button added to RecordingViewer page
+      - Clicking Share button opens the ShareModal
+      - ShareModal receives the current recording's ID
+      - After creating/revoking shares, UI updates to reflect changes
+      - Share functionality works correctly end-to-end
+      - Share button has appropriate icon
+    depends_on: [7, 8]
+    effort: 1
+    status: pending
