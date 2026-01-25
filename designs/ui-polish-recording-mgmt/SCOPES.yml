@@ -88,7 +88,7 @@ tasks:
       - Shared types exported for request/response
     github_issue: 283
     milestone: 1
-    status: scoped
+    status: completed
     depends_on: []
 
   - id: 4

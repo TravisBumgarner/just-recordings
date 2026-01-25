@@ -71,3 +71,15 @@ export async function deleteRecording(id: string): Promise<boolean> {
     .returning({ id: recordings.id })
   return result.length > 0
 }
+
+export async function updateRecordingName(id: string, name: string): Promise<Recording | null> {
+  const result = await db
+    .update(recordings)
+    .set({ name })
+    .where(eq(recordings.id, id))
+    .returning()
+  if (result.length === 0) {
+    return null
+  }
+  return toRecording(result[0])
+}

@@ -75,3 +75,29 @@ export const deleteRecordingResultSchema = z.discriminatedUnion('success', [
 ])
 
 export type DeleteRecordingResult = z.infer<typeof deleteRecordingResultSchema>
+
+// PATCH /api/recordings/:id - Update recording name
+export const updateRecordingRequestSchema = z.object({
+  name: z.string().min(1),
+})
+
+export type UpdateRecordingRequest = z.infer<typeof updateRecordingRequestSchema>
+
+// PATCH /api/recordings/:id - Server response
+export const updateRecordingResponseSchema = recordingSchema
+
+export type UpdateRecordingResponse = z.infer<typeof updateRecordingResponseSchema>
+
+// PATCH /api/recordings/:id - Client wrapper
+export const updateRecordingResultSchema = z.discriminatedUnion('success', [
+  z.object({
+    success: z.literal(true),
+    recording: recordingSchema,
+  }),
+  z.object({
+    success: z.literal(false),
+    message: z.string(),
+  }),
+])
+
+export type UpdateRecordingResult = z.infer<typeof updateRecordingResultSchema>

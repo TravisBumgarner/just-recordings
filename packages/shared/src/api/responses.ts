@@ -19,6 +19,7 @@ export const ErrorCode = {
   // Validation errors
   INVALID_UUID: 'INVALID_UUID',
   INVALID_INPUT: 'INVALID_INPUT',
+  INVALID_REQUEST: 'INVALID_REQUEST',
   INVALID_CHUNK_INDEX: 'INVALID_CHUNK_INDEX',
   MISSING_CHUNKS: 'MISSING_CHUNKS',
 
@@ -63,6 +64,7 @@ export const errorMessages: Record<ErrorCode, string> = {
   // Validation errors
   INVALID_UUID: 'Invalid identifier format',
   INVALID_INPUT: 'Invalid input provided',
+  INVALID_REQUEST: 'Invalid request body',
   INVALID_CHUNK_INDEX: 'Invalid chunk index',
   MISSING_CHUNKS: 'Missing or invalid upload chunks',
 
