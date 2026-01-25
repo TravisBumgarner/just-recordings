@@ -151,3 +151,33 @@ export const deleteRecording = async (id: string): Promise<ApiResponse<{ deleted
     return { success: false, errorCode: 'INTERNAL_ERROR' }
   }
 }
+
+export const updateRecording = async (
+  id: string,
+  data: { name: string }
+): Promise<ApiResponse<Recording>> => {
+  try {
+    const tokenResponse = await getToken()
+    if (!tokenResponse.success || !tokenResponse.token) {
+      return { success: false, errorCode: 'UNAUTHORIZED' }
+    }
+
+    const response = await fetch(`${config.apiBaseUrl}/recordings/${id}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${tokenResponse.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      return parseErrorResponse(response, 'RECORDING_NOT_FOUND')
+    }
+
+    const json = await response.json()
+    return { success: true, data: json.data }
+  } catch {
+    return { success: false, errorCode: 'INTERNAL_ERROR' }
+  }
+}

@@ -1,3 +1,4 @@
+import { FaCheck, FaPencilAlt, FaTimes } from 'react-icons/fa'
 import { IoMdShare } from 'react-icons/io'
 import {
   Box,
@@ -10,12 +11,14 @@ import {
   DialogContentText,
   DialogTitle,
   IconButton,
+  TextField,
   Typography,
 } from '@mui/material'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorAlert } from '@/components/ErrorAlert'
 import { useDeleteRecording } from '@/hooks/mutations/useDeleteRecording'
+import { useUpdateRecording } from '@/hooks/mutations/useUpdateRecording'
 import { useVideoUrl } from '@/hooks/queries/useRecordingMedia'
 import { useRecording } from '@/hooks/queries/useRecordings'
 import { ApiError } from '@/lib/ApiError'
@@ -55,10 +58,13 @@ function RecordingViewerPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [errorOpen, setErrorOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedName, setEditedName] = useState('')
 
   const { data: recording, isLoading, isError } = useRecording(id)
   const { data: videoUrl } = useVideoUrl(id)
   const deleteRecording = useDeleteRecording()
+  const updateRecording = useUpdateRecording()
 
   const handleShareClick = () => {
     if (recording) {
@@ -102,6 +108,47 @@ function RecordingViewerPage() {
     setErrorMessage(null)
   }
 
+  const handleEditClick = () => {
+    if (recording) {
+      setEditedName(recording.name)
+      setIsEditing(true)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditedName('')
+  }
+
+  const handleSaveEdit = () => {
+    if (recording && editedName.trim()) {
+      updateRecording.mutate(
+        { id: recording.id, name: editedName.trim() },
+        {
+          onSuccess: () => {
+            setIsEditing(false)
+          },
+          onError: (error) => {
+            if (error instanceof ApiError) {
+              setErrorMessage(errorMessages[error.errorCode])
+            } else {
+              setErrorMessage('An unexpected error occurred')
+            }
+            setErrorOpen(true)
+          },
+        }
+      )
+    }
+  }
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      handleSaveEdit()
+    } else if (event.key === 'Escape') {
+      handleCancelEdit()
+    }
+  }
+
   if (isLoading) {
     return (
       <Container maxWidth="lg">
@@ -142,16 +189,62 @@ function RecordingViewerPage() {
         </Button>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <Typography variant="h4" component="h1">
-            {recording.name}
-          </Typography>
-          <IconButton
-            onClick={handleShareClick}
-            title="Share recording"
-            data-testid="share-button"
-          >
-            <IoMdShare size={24} />
-          </IconButton>
+          {isEditing ? (
+            <>
+              <TextField
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                onKeyDown={handleKeyDown}
+                size="small"
+                autoFocus
+                disabled={updateRecording.isPending}
+                inputProps={{ 'data-testid': 'name-input' }}
+                sx={{ minWidth: 200 }}
+              />
+              {updateRecording.isPending ? (
+                <CircularProgress size={24} data-testid="name-save-loading" />
+              ) : (
+                <>
+                  <IconButton
+                    onClick={handleSaveEdit}
+                    color="primary"
+                    size="small"
+                    data-testid="save-name-button"
+                  >
+                    <FaCheck size={16} />
+                  </IconButton>
+                  <IconButton
+                    onClick={handleCancelEdit}
+                    size="small"
+                    data-testid="cancel-name-button"
+                  >
+                    <FaTimes size={16} />
+                  </IconButton>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              <Typography variant="h4" component="h1">
+                {recording.name}
+              </Typography>
+              <IconButton
+                onClick={handleEditClick}
+                title="Edit name"
+                size="small"
+                data-testid="edit-name-button"
+              >
+                <FaPencilAlt size={16} />
+              </IconButton>
+              <IconButton
+                onClick={handleShareClick}
+                title="Share recording"
+                data-testid="share-button"
+              >
+                <IoMdShare size={24} />
+              </IconButton>
+            </>
+          )}
         </Box>
 
         {/* Video Player */}
