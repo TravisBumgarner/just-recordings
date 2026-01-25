@@ -1,6 +1,7 @@
 import { act, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CountdownOverlay } from '../components/CountdownOverlay'
+import * as electronUtils from '../utils/electron'
 
 describe('CountdownOverlay', () => {
   beforeEach(() => {
@@ -99,6 +100,62 @@ describe('CountdownOverlay', () => {
 
       expect(clearIntervalSpy).toHaveBeenCalled()
       clearIntervalSpy.mockRestore()
+    })
+  })
+
+  describe('Electron IPC', () => {
+    let countdownStartSpy: ReturnType<typeof vi.spyOn>
+    let countdownTickSpy: ReturnType<typeof vi.spyOn>
+    let countdownEndSpy: ReturnType<typeof vi.spyOn>
+
+    beforeEach(() => {
+      countdownStartSpy = vi.spyOn(electronUtils, 'countdownStart')
+      countdownTickSpy = vi.spyOn(electronUtils, 'countdownTick')
+      countdownEndSpy = vi.spyOn(electronUtils, 'countdownEnd')
+    })
+
+    afterEach(() => {
+      countdownStartSpy.mockRestore()
+      countdownTickSpy.mockRestore()
+      countdownEndSpy.mockRestore()
+    })
+
+    it('sends countdownStart when countdown begins', () => {
+      const onComplete = vi.fn()
+
+      render(<CountdownOverlay seconds={3} onComplete={onComplete} />)
+
+      expect(countdownStartSpy).toHaveBeenCalledWith({
+        totalSeconds: 3,
+        secondsRemaining: 3,
+      })
+    })
+
+    it('sends countdownTick on each tick', () => {
+      const onComplete = vi.fn()
+
+      render(<CountdownOverlay seconds={3} onComplete={onComplete} />)
+
+      act(() => {
+        vi.advanceTimersByTime(1000)
+      })
+
+      expect(countdownTickSpy).toHaveBeenCalledWith({
+        totalSeconds: 3,
+        secondsRemaining: 2,
+      })
+    })
+
+    it('sends countdownEnd when countdown completes', () => {
+      const onComplete = vi.fn()
+
+      render(<CountdownOverlay seconds={3} onComplete={onComplete} />)
+
+      act(() => {
+        vi.advanceTimersByTime(3000)
+      })
+
+      expect(countdownEndSpy).toHaveBeenCalled()
     })
   })
 })

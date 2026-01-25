@@ -2,6 +2,8 @@
  * Utilities for detecting and interacting with Electron environment.
  */
 
+import type { CountdownState } from '../types/electron'
+
 /**
  * Check if the app is running inside Electron.
  * Returns true if window.api is available (exposed by Electron's preload script).
@@ -33,4 +35,28 @@ export function setSetupMode(enabled: boolean): void {
  */
 export function openExternal(url: string): void {
   window.api?.openExternal(url)
+}
+
+/**
+ * Notify Electron's main process that countdown has started.
+ * No-op when not running in Electron.
+ */
+export function countdownStart(state: CountdownState): void {
+  window.api?.countdownStart(state)
+}
+
+/**
+ * Notify Electron's main process of countdown tick.
+ * No-op when not running in Electron.
+ */
+export function countdownTick(state: CountdownState): void {
+  window.api?.countdownTick(state)
+}
+
+/**
+ * Notify Electron's main process that countdown has ended.
+ * No-op when not running in Electron.
+ */
+export function countdownEnd(): void {
+  window.api?.countdownEnd()
 }

@@ -1,5 +1,6 @@
 import { Box, Typography } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
+import { countdownEnd, countdownStart, countdownTick } from '../utils/electron'
 
 export interface CountdownOverlayProps {
   /** Starting countdown value in seconds */
@@ -11,25 +12,41 @@ export interface CountdownOverlayProps {
 /**
  * Visual countdown overlay that displays before recording starts.
  * Shows large centered numbers counting down from the provided seconds value.
+ * Sends IPC messages to Electron main process for taskbar/dock progress display.
  */
 export function CountdownOverlay({ seconds, onComplete }: CountdownOverlayProps) {
   const [count, setCount] = useState(seconds)
   const onCompleteRef = useRef(onComplete)
+  const totalSecondsRef = useRef(seconds)
 
   // Keep the callback ref up to date
   useEffect(() => {
     onCompleteRef.current = onComplete
   }, [onComplete])
 
+  // Send countdownStart when component mounts
+  useEffect(() => {
+    countdownStart({
+      totalSeconds: totalSecondsRef.current,
+      secondsRemaining: totalSecondsRef.current,
+    })
+  }, [])
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       setCount((prev) => {
         if (prev <= 1) {
           clearInterval(intervalId)
+          countdownEnd()
           onCompleteRef.current()
           return 0
         }
-        return prev - 1
+        const newCount = prev - 1
+        countdownTick({
+          totalSeconds: totalSecondsRef.current,
+          secondsRemaining: newCount,
+        })
+        return newCount
       })
     }, 1000)
 
