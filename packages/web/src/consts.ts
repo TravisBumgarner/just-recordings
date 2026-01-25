@@ -69,6 +69,11 @@ export const ROUTES = {
     href: () => '/uploads',
     label: 'Upload Queue',
   },
+  floatingControls: {
+    key: 'floatingControls',
+    href: () => '/floating-controls',
+    label: 'Floating Controls',
+  },
 }
 
 export const PAGINATION_SIZE = 10
