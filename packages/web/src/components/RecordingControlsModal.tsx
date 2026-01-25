@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Box, Button, Typography } from '@mui/material'
+import { Box, Button, IconButton, Tooltip, Typography } from '@mui/material'
+import { FaStop, FaPause, FaPlay, FaTimes, FaRedo, FaCircle } from 'react-icons/fa'
 import type { RecorderState } from '@just-recordings/recorder'
 import { RecordingTimer } from './RecordingTimer'
 
@@ -26,7 +27,7 @@ type ConfirmationType = 'restart' | 'cancel' | null
 
 /**
  * Modal with recording controls accessible during an active recording.
- * Includes timer, state indicator, and buttons for stop, pause/resume,
+ * Includes timer, state indicator, and icon buttons for stop, pause/resume,
  * restart, and cancel.
  */
 export function RecordingControlsModal({
@@ -71,37 +72,79 @@ export function RecordingControlsModal({
       {/* Timer and State Indicator */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
         <RecordingTimer getElapsedTime={getElapsedTime} />
-        <Typography
-          data-testid="state-indicator"
-          sx={{
-            color: isPaused ? 'warning.main' : 'error.main',
-            fontWeight: 'bold',
-          }}
-        >
-          {isPaused ? 'Paused' : 'Recording'}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box
+            sx={{
+              color: isPaused ? 'warning.main' : 'error.main',
+              display: 'flex',
+              alignItems: 'center',
+              animation: isPaused ? 'none' : 'pulse 1.5s ease-in-out infinite',
+              '@keyframes pulse': {
+                '0%, 100%': { opacity: 1 },
+                '50%': { opacity: 0.5 },
+              },
+            }}
+          >
+            <FaCircle size={12} />
+          </Box>
+          <Typography
+            data-testid="state-indicator"
+            sx={{
+              color: isPaused ? 'warning.main' : 'error.main',
+              fontWeight: 'bold',
+            }}
+          >
+            {isPaused ? 'Paused' : 'Recording'}
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Control Buttons */}
-      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-        <Button variant="contained" color="error" onClick={onStop}>
-          Stop
-        </Button>
-        {isPaused ? (
-          <Button variant="outlined" onClick={onResume}>
-            Resume
-          </Button>
-        ) : (
-          <Button variant="outlined" onClick={onPause}>
-            Pause
-          </Button>
-        )}
-        <Button variant="outlined" onClick={handleRestartClick}>
-          Restart
-        </Button>
-        <Button variant="outlined" onClick={handleCancelClick}>
-          Cancel
-        </Button>
+      {/* Control Buttons with Icons */}
+      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+        <Tooltip title="Stop">
+          <IconButton
+            onClick={onStop}
+            size="small"
+            color="error"
+            aria-label="stop"
+            sx={{ bgcolor: 'error.main', color: 'white', '&:hover': { bgcolor: 'error.dark' } }}
+          >
+            <FaStop size={14} />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title={isPaused ? 'Resume' : 'Pause'}>
+          <IconButton
+            onClick={isPaused ? onResume : onPause}
+            size="small"
+            aria-label={isPaused ? 'resume' : 'pause'}
+            sx={{ border: 1, borderColor: 'divider' }}
+          >
+            {isPaused ? <FaPlay size={14} /> : <FaPause size={14} />}
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Restart">
+          <IconButton
+            onClick={handleRestartClick}
+            size="small"
+            aria-label="restart"
+            sx={{ border: 1, borderColor: 'divider' }}
+          >
+            <FaRedo size={14} />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Cancel">
+          <IconButton
+            onClick={handleCancelClick}
+            size="small"
+            aria-label="cancel"
+            sx={{ border: 1, borderColor: 'divider' }}
+          >
+            <FaTimes size={14} />
+          </IconButton>
+        </Tooltip>
       </Box>
 
       {/* Confirmation Dialog */}

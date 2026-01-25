@@ -15,7 +15,7 @@ export interface RecordingState {
 /**
  * Control actions that can be sent to the main window
  */
-export type FloatingControlAction = 'stop' | 'pause' | 'resume' | 'cancel'
+export type FloatingControlAction = 'stop' | 'pause' | 'resume' | 'cancel' | 'restart'
 
 /**
  * Props for the FloatingControls component

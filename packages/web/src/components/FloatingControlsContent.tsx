@@ -1,5 +1,6 @@
-import { Box, IconButton, Tooltip } from '@mui/material'
-import { FaStop, FaPause, FaPlay, FaTimes, FaCircle } from 'react-icons/fa'
+import { useState } from 'react'
+import { Box, Button, IconButton, Tooltip, Typography } from '@mui/material'
+import { FaStop, FaPause, FaPlay, FaTimes, FaCircle, FaRedo } from 'react-icons/fa'
 import type { RecordingState, FloatingControlAction } from '../pages/FloatingControls'
 
 export interface FloatingControlsContentProps {
@@ -18,6 +19,7 @@ export function FloatingControlsContent({
   recordingState,
   onAction,
 }: FloatingControlsContentProps) {
+  const [showRestartConfirmation, setShowRestartConfirmation] = useState(false)
   const isPaused = recordingState.status === 'paused'
 
   const handlePauseResume = () => {
@@ -26,6 +28,19 @@ export function FloatingControlsContent({
 
   const handleStop = () => {
     onAction('stop')
+  }
+
+  const handleRestartClick = () => {
+    setShowRestartConfirmation(true)
+  }
+
+  const handleRestartConfirm = () => {
+    onAction('restart')
+    setShowRestartConfirmation(false)
+  }
+
+  const handleGoBack = () => {
+    setShowRestartConfirmation(false)
   }
 
   const handleCancel = () => {
@@ -60,6 +75,34 @@ export function FloatingControlsContent({
       <Box data-testid="elapsed-time" sx={{ display: 'none' }} aria-hidden="true">
         00:00
       </Box>
+
+      {/* Confirmation Dialog for Restart */}
+      {showRestartConfirmation && (
+        <Box
+          data-testid="confirmation-dialog"
+          sx={{
+            mx: 1,
+            mb: 1,
+            p: 1.5,
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: 1,
+            bgcolor: 'background.paper',
+          }}
+        >
+          <Typography variant="body2" sx={{ mb: 1.5 }}>
+            This will discard your current recording. Are you sure?
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button variant="outlined" size="small" onClick={handleGoBack}>
+              Go back
+            </Button>
+            <Button variant="contained" color="warning" size="small" onClick={handleRestartConfirm}>
+              Confirm
+            </Button>
+          </Box>
+        </Box>
+      )}
 
       {/* Control buttons with icons */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1, pb: 1 }}>
@@ -99,6 +142,17 @@ export function FloatingControlsContent({
             sx={{ border: 1, borderColor: 'divider' }}
           >
             {isPaused ? <FaPlay size={14} /> : <FaPause size={14} />}
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Restart">
+          <IconButton
+            onClick={handleRestartClick}
+            size="small"
+            aria-label="restart"
+            sx={{ border: 1, borderColor: 'divider' }}
+          >
+            <FaRedo size={14} />
           </IconButton>
         </Tooltip>
 

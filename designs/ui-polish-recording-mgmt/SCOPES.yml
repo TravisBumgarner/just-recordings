@@ -37,7 +37,7 @@ tasks:
       - Confirmation dialogs for Restart and Cancel work on both platforms
     github_issue: 281
     milestone: 1
-    status: testing
+    status: implementing
     depends_on: []
 
   - id: 2
