@@ -1,3 +1,4 @@
+import { log } from '@just-recordings/shared'
 import { Router } from 'express'
 import { getOrCreateUserByAuth } from '../db/queries/users.js'
 import { type AuthenticatedRequest, requireAuth } from '../middleware/auth.js'
@@ -27,7 +28,7 @@ router.get('/me', requireAuth, async (req, res) => {
       createdAt: user.createdAt.toISOString(),
     })
   } catch (error) {
-    console.error('Error fetching user:', error)
+    log.error(error instanceof Error ? error : String(error), { context: 'Error fetching user' })
     sendInternalError(res)
   }
 })

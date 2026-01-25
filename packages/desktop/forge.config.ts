@@ -75,6 +75,7 @@ const config: ForgeConfig = {
       if (fs.existsSync(webDistPath)) {
         fs.mkdirSync(rendererPath, { recursive: true })
         fs.cpSync(webDistPath, rendererPath, { recursive: true })
+        // biome-ignore lint/suspicious/noConsole: Build script output
         console.log('Copied web dist to', rendererPath)
       } else {
         throw new Error(

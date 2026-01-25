@@ -16,7 +16,9 @@ const rendererOutPath = join(__dirname, '../out/renderer')
 
 // Check if web dist exists
 if (!existsSync(webDistPath)) {
+  // biome-ignore lint/suspicious/noConsole: Build script output
   console.error('Error: Web dist not found at', webDistPath)
+  // biome-ignore lint/suspicious/noConsole: Build script output
   console.error('Run "npm run build -w @just-recordings/web" first')
   process.exit(1)
 }
@@ -30,4 +32,5 @@ mkdirSync(rendererOutPath, { recursive: true })
 // Copy web dist to renderer output
 cpSync(webDistPath, rendererOutPath, { recursive: true })
 
+// biome-ignore lint/suspicious/noConsole: Build script output
 console.log('Copied web dist to desktop renderer output')

@@ -104,6 +104,7 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {
+    // biome-ignore lint/suspicious/noConsole: Preload context fallback
     console.error(error)
   }
 } else {
