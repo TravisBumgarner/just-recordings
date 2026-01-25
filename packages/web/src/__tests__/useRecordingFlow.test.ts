@@ -315,7 +315,7 @@ describe('useRecordingFlow', () => {
       expect(mockService.stopRecording).toHaveBeenCalled()
     })
 
-    it('calls onRecordingSaved callback with the recording', async () => {
+    it('calls onRecordingSaved callback with the recording and settings', async () => {
       const mockService = createMockRecorderService()
       const onRecordingSaved = vi.fn()
       const { result } = renderHook(() =>
@@ -342,6 +342,7 @@ describe('useRecordingFlow', () => {
           name: 'Test Recording',
           uploadStatus: 'pending',
         }),
+        defaultSettings,
       )
     })
   })

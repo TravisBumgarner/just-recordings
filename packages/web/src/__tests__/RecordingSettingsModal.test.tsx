@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { RecordingSettingsModal } from '../components/RecordingSettingsModal'
 import { PermissionService } from '@just-recordings/recorder'
 
@@ -22,6 +22,7 @@ describe('RecordingSettingsModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    localStorage.clear()
     mockPermissionService = {
       checkMicrophone: vi.fn().mockResolvedValue({
         granted: false,
@@ -37,6 +38,10 @@ describe('RecordingSettingsModal', () => {
     ;(PermissionService as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       () => mockPermissionService,
     )
+  })
+
+  afterEach(() => {
+    localStorage.clear()
   })
 
   describe('checkbox rendering', () => {
@@ -131,6 +136,7 @@ describe('RecordingSettingsModal', () => {
         includeSystemAudio: true,
         includeMicrophone: true,
         includeWebcam: false,
+        autoUpload: true,
       })
     })
   })
@@ -174,6 +180,132 @@ describe('RecordingSettingsModal', () => {
       )
 
       expect(screen.getByTestId('recording-settings-modal')).toBeInTheDocument()
+    })
+  })
+
+  describe('auto-upload toggle', () => {
+    it('renders auto-upload checkbox with label "Auto-upload after recording"', () => {
+      render(
+        <RecordingSettingsModal
+          open={true}
+          onClose={mockOnClose}
+          onStartRecording={mockOnStartRecording}
+        />,
+      )
+
+      expect(
+        screen.getByRole('checkbox', { name: /auto-upload after recording/i }),
+      ).toBeInTheDocument()
+    })
+
+    it('auto-upload checkbox is checked by default', () => {
+      render(
+        <RecordingSettingsModal
+          open={true}
+          onClose={mockOnClose}
+          onStartRecording={mockOnStartRecording}
+        />,
+      )
+
+      expect(screen.getByRole('checkbox', { name: /auto-upload after recording/i })).toBeChecked()
+    })
+
+    it('auto-upload checkbox is unchecked when localStorage has false', () => {
+      localStorage.setItem('just-recordings-auto-upload', 'false')
+
+      render(
+        <RecordingSettingsModal
+          open={true}
+          onClose={mockOnClose}
+          onStartRecording={mockOnStartRecording}
+        />,
+      )
+
+      expect(
+        screen.getByRole('checkbox', { name: /auto-upload after recording/i }),
+      ).not.toBeChecked()
+    })
+
+    it('auto-upload checkbox is toggleable', () => {
+      render(
+        <RecordingSettingsModal
+          open={true}
+          onClose={mockOnClose}
+          onStartRecording={mockOnStartRecording}
+        />,
+      )
+
+      const autoUploadCheckbox = screen.getByRole('checkbox', {
+        name: /auto-upload after recording/i,
+      })
+      expect(autoUploadCheckbox).toBeChecked()
+
+      fireEvent.click(autoUploadCheckbox)
+      expect(autoUploadCheckbox).not.toBeChecked()
+
+      fireEvent.click(autoUploadCheckbox)
+      expect(autoUploadCheckbox).toBeChecked()
+    })
+
+    it('persists auto-upload setting to localStorage when toggled', () => {
+      render(
+        <RecordingSettingsModal
+          open={true}
+          onClose={mockOnClose}
+          onStartRecording={mockOnStartRecording}
+        />,
+      )
+
+      const autoUploadCheckbox = screen.getByRole('checkbox', {
+        name: /auto-upload after recording/i,
+      })
+
+      // Toggle off
+      fireEvent.click(autoUploadCheckbox)
+      expect(localStorage.getItem('just-recordings-auto-upload')).toBe('false')
+
+      // Toggle on
+      fireEvent.click(autoUploadCheckbox)
+      expect(localStorage.getItem('just-recordings-auto-upload')).toBe('true')
+    })
+
+    it('includes autoUpload in settings when starting recording with auto-upload enabled', () => {
+      render(
+        <RecordingSettingsModal
+          open={true}
+          onClose={mockOnClose}
+          onStartRecording={mockOnStartRecording}
+        />,
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
+
+      expect(mockOnStartRecording).toHaveBeenCalledWith(
+        expect.objectContaining({
+          autoUpload: true,
+        }),
+      )
+    })
+
+    it('includes autoUpload: false in settings when auto-upload is disabled', () => {
+      render(
+        <RecordingSettingsModal
+          open={true}
+          onClose={mockOnClose}
+          onStartRecording={mockOnStartRecording}
+        />,
+      )
+
+      // Disable auto-upload
+      fireEvent.click(screen.getByRole('checkbox', { name: /auto-upload after recording/i }))
+
+      fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
+
+      expect(mockOnStartRecording).toHaveBeenCalledWith(
+        expect.objectContaining({
+          autoUpload: false,
+        }),
+      )
     })
   })
 })
