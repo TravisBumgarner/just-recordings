@@ -144,3 +144,44 @@ tasks:
     milestone: 1
     status: scoped
     depends_on: [4]
+
+  - id: 6
+    title: Improve recording settings modal with icons and device preview
+    description: |
+      Redesign the RecordingSettingsModal to use icon-based toggles instead of text checkboxes,
+      and add device preview/selection capabilities.
+
+      Current UI:
+      - Text checkboxes: "Include system audio", "Include microphone", "Include webcam"
+
+      New UI:
+      - Replace checkboxes with clickable icon buttons (toggle on/off with visual state)
+        - FaMicrophone for microphone
+        - FaVolumeUp for system audio
+        - FaVideo for webcam
+      - Add tooltips explaining each icon
+      - Add device selection dropdowns for microphone and webcam
+      - Desktop only: Show live webcam preview when webcam is enabled
+      - Desktop only: Show audio level meter (volume bar) for microphone input
+
+      Implementation notes:
+      - Use navigator.mediaDevices.enumerateDevices() for device lists
+      - Use MediaStream for webcam preview and audio level visualization
+      - Audio level meter can use Web Audio API's AnalyserNode
+      - Device selection should update which device is used for recording
+
+      Files to modify:
+      - packages/web/src/components/RecordingSettingsModal.tsx
+      - packages/web/src/hooks/useRecordingFlow.ts (add selected device IDs to settings)
+      - packages/recorder/src/RecorderService.ts (use selected device IDs)
+    acceptance_criteria:
+      - Recording options shown as icon buttons (microphone, speaker, camera) with toggle states
+      - Tooltips appear on hover explaining each option
+      - Dropdown menus allow selecting specific microphone and webcam devices
+      - On desktop, live webcam preview shown when webcam toggle is enabled
+      - On desktop, audio level meter shows microphone input volume
+      - Selected devices are used when recording starts
+    github_issue: null
+    milestone: 1
+    status: scoped
+    depends_on: []
