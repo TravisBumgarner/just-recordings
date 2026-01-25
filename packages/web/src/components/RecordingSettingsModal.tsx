@@ -3,6 +3,9 @@ import { FaMicrophone, FaVideo, FaVolumeUp } from 'react-icons/fa'
 import {
   Box,
   Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   FormControl,
   IconButton,
   InputLabel,
@@ -27,22 +30,70 @@ interface MediaDevice {
   label: string
 }
 
+const STORAGE_KEY = 'just-recordings-settings'
+
+interface StoredSettings {
+  includeSystemAudio: boolean
+  includeMicrophone: boolean
+  includeWebcam: boolean
+  microphoneDeviceId?: string
+  webcamDeviceId?: string
+}
+
+function loadStoredSettings(): StoredSettings {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  // Default all to true
+  return {
+    includeSystemAudio: true,
+    includeMicrophone: true,
+    includeWebcam: true,
+  }
+}
+
+function saveSettings(settings: StoredSettings): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 export function RecordingSettingsModal({
   open,
   onClose,
   onStartRecording,
 }: RecordingSettingsModalProps) {
-  const [includeSystemAudio, setIncludeSystemAudio] = useState(false)
-  const [includeMicrophone, setIncludeMicrophone] = useState(false)
-  const [includeWebcam, setIncludeWebcam] = useState(false)
-  const [microphoneDeviceId, setMicrophoneDeviceId] = useState('')
-  const [webcamDeviceId, setWebcamDeviceId] = useState('')
+  // Load initial values from localStorage (defaults to true for all)
+  const storedSettings = loadStoredSettings()
+  const [includeSystemAudio, setIncludeSystemAudio] = useState(storedSettings.includeSystemAudio)
+  const [includeMicrophone, setIncludeMicrophone] = useState(storedSettings.includeMicrophone)
+  const [includeWebcam, setIncludeWebcam] = useState(storedSettings.includeWebcam)
+  const [microphoneDeviceId, setMicrophoneDeviceId] = useState(storedSettings.microphoneDeviceId || '')
+  const [webcamDeviceId, setWebcamDeviceId] = useState(storedSettings.webcamDeviceId || '')
   const [microphoneDevices, setMicrophoneDevices] = useState<MediaDevice[]>([])
   const [webcamDevices, setWebcamDevices] = useState<MediaDevice[]>([])
   const [audioLevel, setAudioLevel] = useState(0)
   const { autoUploadEnabled } = useAutoUploadSetting()
 
   const isDesktop = isElectronCheck()
+
+  // Save settings to localStorage whenever they change
+  useEffect(() => {
+    saveSettings({
+      includeSystemAudio,
+      includeMicrophone,
+      includeWebcam,
+      microphoneDeviceId: microphoneDeviceId || undefined,
+      webcamDeviceId: webcamDeviceId || undefined,
+    })
+  }, [includeSystemAudio, includeMicrophone, includeWebcam, microphoneDeviceId, webcamDeviceId])
 
   // Refs for media streams
   const webcamStreamRef = useRef<MediaStream | null>(null)
@@ -214,8 +265,6 @@ export function RecordingSettingsModal({
     }
   }, [open])
 
-  if (!open) return null
-
   const handleStartRecording = () => {
     // Clean up preview streams before starting recording
     if (webcamStreamRef.current) {
@@ -241,10 +290,8 @@ export function RecordingSettingsModal({
     })
   }
 
-  return (
+  const modalContent = (
     <Box data-testid="recording-settings-modal">
-      <Typography variant="h6">Recording Settings</Typography>
-
       {/* Icon Button Row */}
       <Box sx={{ display: 'flex', gap: 2, my: 3, justifyContent: 'center' }}>
         <Tooltip title="Include system audio">
@@ -392,12 +439,35 @@ export function RecordingSettingsModal({
         </Box>
       )}
 
-      <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+      <Box sx={{ display: 'flex', gap: 1, mt: 2, justifyContent: 'flex-end' }}>
         <Button onClick={onClose}>Cancel</Button>
         <Button variant="contained" onClick={handleStartRecording}>
           Start Recording
         </Button>
       </Box>
     </Box>
+  )
+
+  // On desktop, render inline (app window is already modal-like)
+  // On web, wrap in a Dialog for proper modal experience
+  if (isDesktop) {
+    if (!open) return null
+    return modalContent
+  }
+
+  // Web: use MUI Dialog
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 2 },
+      }}
+    >
+      <DialogTitle>Recording Settings</DialogTitle>
+      <DialogContent>{modalContent}</DialogContent>
+    </Dialog>
   )
 }

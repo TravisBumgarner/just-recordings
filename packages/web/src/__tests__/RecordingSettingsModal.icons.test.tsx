@@ -154,13 +154,14 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
       })
 
       const micButton = screen.getByTestId('microphone-toggle')
-      expect(micButton).toHaveAttribute('aria-pressed', 'false')
-
-      fireEvent.click(micButton)
+      // Default is now true
       expect(micButton).toHaveAttribute('aria-pressed', 'true')
 
       fireEvent.click(micButton)
       expect(micButton).toHaveAttribute('aria-pressed', 'false')
+
+      fireEvent.click(micButton)
+      expect(micButton).toHaveAttribute('aria-pressed', 'true')
     })
 
     it('system audio icon button toggles on/off with visual state', async () => {
@@ -177,10 +178,11 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
       })
 
       const audioButton = screen.getByTestId('system-audio-toggle')
-      expect(audioButton).toHaveAttribute('aria-pressed', 'false')
+      // Default is now true
+      expect(audioButton).toHaveAttribute('aria-pressed', 'true')
 
       fireEvent.click(audioButton)
-      expect(audioButton).toHaveAttribute('aria-pressed', 'true')
+      expect(audioButton).toHaveAttribute('aria-pressed', 'false')
     })
 
     it('webcam icon button toggles on/off with visual state', async () => {
@@ -197,15 +199,16 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
       })
 
       const webcamButton = screen.getByTestId('webcam-toggle')
-      expect(webcamButton).toHaveAttribute('aria-pressed', 'false')
+      // Default is now true
+      expect(webcamButton).toHaveAttribute('aria-pressed', 'true')
 
       fireEvent.click(webcamButton)
-      expect(webcamButton).toHaveAttribute('aria-pressed', 'true')
+      expect(webcamButton).toHaveAttribute('aria-pressed', 'false')
     })
   })
 
   describe('device selection dropdowns', () => {
-    it('shows microphone device dropdown when microphone is enabled', async () => {
+    it('shows microphone device dropdown when microphone is enabled (default)', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -214,19 +217,13 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
         />,
       )
 
-      await waitFor(() => {
-        expect(screen.getByTestId('microphone-toggle')).toBeInTheDocument()
-      })
-
-      // Enable microphone
-      fireEvent.click(screen.getByTestId('microphone-toggle'))
-
+      // Microphone is enabled by default, dropdown should appear
       await waitFor(() => {
         expect(screen.getByTestId('microphone-device-select')).toBeInTheDocument()
       })
     })
 
-    it('shows webcam device dropdown when webcam is enabled', async () => {
+    it('shows webcam device dropdown when webcam is enabled (default)', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -235,13 +232,7 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
         />,
       )
 
-      await waitFor(() => {
-        expect(screen.getByTestId('webcam-toggle')).toBeInTheDocument()
-      })
-
-      // Enable webcam
-      fireEvent.click(screen.getByTestId('webcam-toggle'))
-
+      // Webcam is enabled by default, dropdown should appear
       await waitFor(() => {
         expect(screen.getByTestId('webcam-device-select')).toBeInTheDocument()
       })
@@ -256,13 +247,7 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
         />,
       )
 
-      await waitFor(() => {
-        expect(screen.getByTestId('microphone-toggle')).toBeInTheDocument()
-      })
-
-      // Enable microphone
-      fireEvent.click(screen.getByTestId('microphone-toggle'))
-
+      // Microphone is enabled by default
       await waitFor(() => {
         expect(screen.getByTestId('microphone-device-select')).toBeInTheDocument()
       })
@@ -272,10 +257,8 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
         expect(screen.getByText('Built-in Microphone')).toBeInTheDocument()
       })
     })
-  })
 
-  describe('settings include device IDs', () => {
-    it('includes selected microphone device ID in settings', async () => {
+    it('hides microphone dropdown when microphone is disabled', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -285,12 +268,29 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
       )
 
       await waitFor(() => {
-        expect(screen.getByTestId('microphone-toggle')).toBeInTheDocument()
+        expect(screen.getByTestId('microphone-device-select')).toBeInTheDocument()
       })
 
-      // Enable microphone
+      // Disable microphone
       fireEvent.click(screen.getByTestId('microphone-toggle'))
 
+      await waitFor(() => {
+        expect(screen.queryByTestId('microphone-device-select')).not.toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('settings include device IDs', () => {
+    it('includes selected microphone device ID in settings (enabled by default)', async () => {
+      render(
+        <RecordingSettingsModal
+          open={true}
+          onClose={mockOnClose}
+          onStartRecording={mockOnStartRecording}
+        />,
+      )
+
+      // Microphone is enabled by default
       await waitFor(() => {
         expect(screen.getByTestId('microphone-device-select')).toBeInTheDocument()
       })
@@ -308,7 +308,7 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
       })
     })
 
-    it('includes selected webcam device ID in settings', async () => {
+    it('includes selected webcam device ID in settings (enabled by default)', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -317,13 +317,7 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
         />,
       )
 
-      await waitFor(() => {
-        expect(screen.getByTestId('webcam-toggle')).toBeInTheDocument()
-      })
-
-      // Enable webcam
-      fireEvent.click(screen.getByTestId('webcam-toggle'))
-
+      // Webcam is enabled by default
       await waitFor(() => {
         expect(screen.getByTestId('webcam-device-select')).toBeInTheDocument()
       })
@@ -347,7 +341,7 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
       mockIsElectronCheck.mockReturnValue(true)
     })
 
-    it('shows webcam preview on desktop when webcam is enabled', async () => {
+    it('shows webcam preview on desktop when webcam is enabled (default)', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -356,19 +350,13 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
         />,
       )
 
-      await waitFor(() => {
-        expect(screen.getByTestId('webcam-toggle')).toBeInTheDocument()
-      })
-
-      // Enable webcam
-      fireEvent.click(screen.getByTestId('webcam-toggle'))
-
+      // Webcam is enabled by default, preview should appear on desktop
       await waitFor(() => {
         expect(screen.getByTestId('webcam-preview')).toBeInTheDocument()
       })
     })
 
-    it('shows audio level meter on desktop when microphone is enabled', async () => {
+    it('shows audio level meter on desktop when microphone is enabled (default)', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -377,13 +365,7 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
         />,
       )
 
-      await waitFor(() => {
-        expect(screen.getByTestId('microphone-toggle')).toBeInTheDocument()
-      })
-
-      // Enable microphone
-      fireEvent.click(screen.getByTestId('microphone-toggle'))
-
+      // Microphone is enabled by default, audio meter should appear on desktop
       await waitFor(() => {
         expect(screen.getByTestId('audio-level-meter')).toBeInTheDocument()
       })
@@ -400,16 +382,12 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
         />,
       )
 
+      // Webcam is enabled by default but preview shouldn't show on web
       await waitFor(() => {
-        expect(screen.getByTestId('webcam-toggle')).toBeInTheDocument()
+        expect(screen.getByTestId('webcam-device-select')).toBeInTheDocument()
       })
 
-      // Enable webcam
-      fireEvent.click(screen.getByTestId('webcam-toggle'))
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('webcam-preview')).not.toBeInTheDocument()
-      })
+      expect(screen.queryByTestId('webcam-preview')).not.toBeInTheDocument()
     })
 
     it('does not show audio level meter on web (non-desktop)', async () => {
@@ -423,16 +401,12 @@ describe('RecordingSettingsModal - Icons and Device Selection', () => {
         />,
       )
 
+      // Microphone is enabled by default but meter shouldn't show on web
       await waitFor(() => {
-        expect(screen.getByTestId('microphone-toggle')).toBeInTheDocument()
+        expect(screen.getByTestId('microphone-device-select')).toBeInTheDocument()
       })
 
-      // Enable microphone
-      fireEvent.click(screen.getByTestId('microphone-toggle'))
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('audio-level-meter')).not.toBeInTheDocument()
-      })
+      expect(screen.queryByTestId('audio-level-meter')).not.toBeInTheDocument()
     })
   })
 })

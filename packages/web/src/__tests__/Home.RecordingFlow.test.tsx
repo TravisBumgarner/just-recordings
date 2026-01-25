@@ -80,6 +80,7 @@ describe('Home - Recording Flow Integration', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.clearAllMocks()
+    localStorage.clear()
     mockRecorderService = createMockRecorderService()
     mockUploadManager = createMockUploadManager()
   })
@@ -87,6 +88,7 @@ describe('Home - Recording Flow Integration', () => {
   afterEach(() => {
     vi.useRealTimers()
     vi.clearAllMocks()
+    localStorage.clear()
   })
 
   const createTestQueryClient = () =>
@@ -165,9 +167,8 @@ describe('Home - Recording Flow Integration', () => {
       // Open settings
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
 
-      // Select options (icon buttons)
-      fireEvent.click(screen.getByTestId('system-audio-toggle'))
-      fireEvent.click(screen.getByTestId('microphone-toggle'))
+      // All settings default to true now, toggle webcam OFF to test mixed state
+      fireEvent.click(screen.getByTestId('webcam-toggle'))
 
       // Start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))

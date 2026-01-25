@@ -104,13 +104,14 @@ describe('RecordingSettingsModal', () => {
       })
 
       const systemAudioButton = screen.getByTestId('system-audio-toggle')
-      expect(systemAudioButton).toHaveAttribute('aria-pressed', 'false')
-
-      fireEvent.click(systemAudioButton)
+      // Default is now true
       expect(systemAudioButton).toHaveAttribute('aria-pressed', 'true')
 
       fireEvent.click(systemAudioButton)
       expect(systemAudioButton).toHaveAttribute('aria-pressed', 'false')
+
+      fireEvent.click(systemAudioButton)
+      expect(systemAudioButton).toHaveAttribute('aria-pressed', 'true')
     })
 
     it('microphone icon button is independently toggleable', async () => {
@@ -127,10 +128,11 @@ describe('RecordingSettingsModal', () => {
       })
 
       const microphoneButton = screen.getByTestId('microphone-toggle')
-      expect(microphoneButton).toHaveAttribute('aria-pressed', 'false')
+      // Default is now true
+      expect(microphoneButton).toHaveAttribute('aria-pressed', 'true')
 
       fireEvent.click(microphoneButton)
-      expect(microphoneButton).toHaveAttribute('aria-pressed', 'true')
+      expect(microphoneButton).toHaveAttribute('aria-pressed', 'false')
     })
 
     it('webcam icon button is independently toggleable', async () => {
@@ -147,10 +149,11 @@ describe('RecordingSettingsModal', () => {
       })
 
       const webcamButton = screen.getByTestId('webcam-toggle')
-      expect(webcamButton).toHaveAttribute('aria-pressed', 'false')
+      // Default is now true
+      expect(webcamButton).toHaveAttribute('aria-pressed', 'true')
 
       fireEvent.click(webcamButton)
-      expect(webcamButton).toHaveAttribute('aria-pressed', 'true')
+      expect(webcamButton).toHaveAttribute('aria-pressed', 'false')
     })
   })
 
@@ -168,9 +171,8 @@ describe('RecordingSettingsModal', () => {
         expect(screen.getByTestId('system-audio-toggle')).toBeInTheDocument()
       })
 
-      // Toggle on system audio and microphone
-      fireEvent.click(screen.getByTestId('system-audio-toggle'))
-      fireEvent.click(screen.getByTestId('microphone-toggle'))
+      // All settings default to true now, toggle webcam OFF to test mixed states
+      fireEvent.click(screen.getByTestId('webcam-toggle'))
 
       // Click start
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
