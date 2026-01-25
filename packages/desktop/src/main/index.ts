@@ -28,6 +28,11 @@ import {
   showCountdownProgress,
   updateCountdownProgress,
 } from './taskbarProgress'
+import {
+  hideWindowForCountdown,
+  isWindowHiddenForRecording,
+  showWindowAfterRecording,
+} from './windowVisibility'
 
 let mainWindow: BrowserWindow | null = null
 let floatingControlsWindow: BrowserWindow | null = null
@@ -194,6 +199,10 @@ app.whenReady().then(() => {
   // Handle recording state changes from renderer
   ipcMain.on('recording-state-changed', (_event, isRecording: boolean) => {
     updateTrayIcon(isRecording)
+    // Show window when recording stops (if it was hidden for recording)
+    if (!isRecording && isWindowHiddenForRecording()) {
+      showWindowAfterRecording(mainWindow)
+    }
   })
 
   // Handle setup mode changes from renderer
@@ -258,7 +267,9 @@ app.whenReady().then(() => {
 
   // Countdown IPC handlers
   // Show countdown progress in taskbar (Windows) or dock badge (macOS)
+  // Hide window during countdown so only taskbar/dock shows progress
   ipcMain.on(COUNTDOWN_CHANNELS.START, (_event, state: CountdownState) => {
+    hideWindowForCountdown(mainWindow)
     showCountdownProgress(state, mainWindow)
   })
 
@@ -268,6 +279,8 @@ app.whenReady().then(() => {
 
   ipcMain.on(COUNTDOWN_CHANNELS.END, () => {
     clearCountdownProgress(mainWindow)
+    // Note: Window is NOT shown here - it remains hidden during recording
+    // Window will be shown when recording stops via 'recording-state-changed' handler
   })
 
   // Set up display media request handler for screen capture

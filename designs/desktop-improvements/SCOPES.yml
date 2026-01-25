@@ -99,7 +99,7 @@ tasks:
       - Works correctly on both macOS and Windows
     github_issue: 263
     milestone: 1
-    status: pending
+    status: completed
     depends_on: [3]
 
   - id: 6
