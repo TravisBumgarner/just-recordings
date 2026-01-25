@@ -134,3 +134,59 @@ tasks:
     milestone: 1
     status: completed
     depends_on: []
+
+  - id: 4
+    title: Remove cancel confirmation on desktop floating controls
+    description: |
+      On desktop, the cancel button in the floating controls window shows a confirmation
+      dialog. This extra step is unnecessary - users should be able to quickly cancel.
+
+      The confirmation exists in FloatingControlsContent.tsx with state `showConfirmation`.
+      Remove the confirmation flow so cancel immediately calls `onAction('cancel')`.
+    acceptance_criteria:
+      - Cancel button in FloatingControlsContent immediately cancels without confirmation
+      - Remove confirmation dialog state and UI from FloatingControlsContent
+      - Update tests to reflect the change
+    github_issue: 277
+    milestone: 1
+    status: scoped
+    depends_on: []
+
+  - id: 5
+    title: Handle external stream stop (Chrome UI stop button)
+    description: |
+      When a user stops screen sharing via Chrome's native UI (the "Stop sharing" button),
+      the app UI doesn't update. The MediaStream is stopped but the app still shows
+      recording controls.
+
+      Need to add event listeners on MediaStream tracks for the 'ended' event to detect
+      when the stream is stopped externally, then automatically stop and save the recording.
+    acceptance_criteria:
+      - RecorderService listens for 'ended' event on video tracks
+      - When stream ends externally, recording is automatically stopped and saved
+      - UI updates to reflect recording has stopped
+      - Event listeners are properly cleaned up on recording stop/cancel
+    github_issue: 278
+    milestone: 1
+    status: scoped
+    depends_on: []
+
+  - id: 6
+    title: Create settings page with auto-upload toggle
+    description: |
+      Move the auto-upload setting from the recording start modal to a dedicated settings
+      page accessible from both web and desktop apps.
+
+      Current: Auto-upload toggle is in RecordingSettingsModal
+      Desired: Dedicated Settings component with auto-upload toggle, accessible via
+      settings icon or link from the main app.
+    acceptance_criteria:
+      - Create Settings component with auto-upload toggle
+      - Add route/navigation to Settings from main app
+      - Remove auto-upload checkbox from RecordingSettingsModal
+      - Settings page works on both web and desktop
+      - Setting continues to persist to localStorage
+    github_issue: 279
+    milestone: 1
+    status: scoped
+    depends_on: []
