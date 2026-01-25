@@ -38,7 +38,7 @@ tasks:
       - Step shows appropriate status (granted/denied/unknown)
     github_issue: 259
     milestone: 1
-    status: testing
+    status: implementing
     depends_on: []
 
   # Feature 2: Upload Toggle Setting

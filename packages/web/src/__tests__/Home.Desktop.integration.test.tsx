@@ -93,7 +93,8 @@ describe('Home.Desktop - SetupWizard integration', () => {
     it('shows normal Home screen after completing wizard', async () => {
       renderHome()
 
-      // Complete the wizard (welcome -> screenRecording -> microphone -> complete)
+      // Complete the wizard (welcome -> screenRecording -> microphone -> camera -> complete)
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
