@@ -79,12 +79,27 @@ describe('SetupWizard', () => {
       expect(screen.getByText(/microphone permission/i)).toBeInTheDocument()
     })
 
-    it('advances to Complete step when Next is clicked on Microphone', () => {
+    it('advances to Camera step when Next is clicked on Microphone', () => {
       renderWizard()
 
       // Go to Screen Recording step
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
       // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Camera step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      expect(screen.getByText(/camera permission/i)).toBeInTheDocument()
+    })
+
+    it('advances to Complete step when Next is clicked on Camera', () => {
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Camera step
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
       // Go to Complete step
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
@@ -92,7 +107,7 @@ describe('SetupWizard', () => {
       expect(screen.getByText(/complete|ready|all set/i)).toBeInTheDocument()
     })
 
-    it('advances to Complete step when Skip is clicked on Microphone', () => {
+    it('advances to Camera step when Skip is clicked on Microphone', () => {
       renderWizard()
 
       // Go to Screen Recording step
@@ -100,6 +115,21 @@ describe('SetupWizard', () => {
       // Go to Microphone step
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
       // Skip microphone
+      fireEvent.click(screen.getByRole('button', { name: /skip/i }))
+
+      expect(screen.getByText(/camera permission/i)).toBeInTheDocument()
+    })
+
+    it('advances to Complete step when Skip is clicked on Camera', () => {
+      renderWizard()
+
+      // Go to Screen Recording step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Microphone step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Go to Camera step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      // Skip camera
       fireEvent.click(screen.getByRole('button', { name: /skip/i }))
 
       expect(screen.getByText(/complete|ready|all set/i)).toBeInTheDocument()
@@ -405,15 +435,172 @@ describe('SetupWizard', () => {
     })
   })
 
+  describe('camera step', () => {
+    it('has a button to open System Preferences for camera', () => {
+      renderWizard()
+
+      // Navigate to Camera step (welcome -> screenRecording -> microphone -> camera)
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      expect(
+        screen.getByRole('button', { name: /open.*preferences|open.*settings/i }),
+      ).toBeInTheDocument()
+    })
+
+    it('calls openSystemPreferences with camera when button is clicked', () => {
+      renderWizard()
+
+      // Navigate to Camera step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /open.*preferences|open.*settings/i }))
+
+      expect(mockOpenSystemPreferences).toHaveBeenCalledWith('camera')
+    })
+
+    it('has a Test Camera button', () => {
+      renderWizard()
+
+      // Navigate to Camera step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      expect(screen.getByRole('button', { name: /test.*camera/i })).toBeInTheDocument()
+    })
+
+    it('has a Skip button', () => {
+      renderWizard()
+
+      // Navigate to Camera step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      expect(screen.getByRole('button', { name: /skip/i })).toBeInTheDocument()
+    })
+  })
+
+  describe('camera test', () => {
+    let mockGetUserMedia: ReturnType<typeof vi.fn>
+    let mockVideoStream: { getTracks: () => { stop: () => void }[] }
+
+    beforeEach(() => {
+      mockVideoStream = {
+        getTracks: () => [{ stop: vi.fn() }],
+      }
+      mockGetUserMedia = vi.fn()
+      Object.defineProperty(navigator, 'mediaDevices', {
+        value: { getUserMedia: mockGetUserMedia, getDisplayMedia: vi.fn() },
+        configurable: true,
+      })
+    })
+
+    it('shows testing state when Test Camera is clicked', async () => {
+      // Make getUserMedia hang to keep testing state visible
+      mockGetUserMedia.mockReturnValue(new Promise(() => {}))
+
+      renderWizard()
+
+      // Navigate to Camera step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*camera/i }))
+
+      expect(screen.getByTestId('permission-test-result')).toHaveAttribute('data-state', 'testing')
+    })
+
+    it('shows success when getUserMedia succeeds', async () => {
+      mockGetUserMedia.mockResolvedValue(mockVideoStream)
+
+      renderWizard()
+
+      // Navigate to Camera step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*camera/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('permission-test-result')).toHaveAttribute('data-state', 'success')
+      })
+    })
+
+    it('stops all tracks after successful test', async () => {
+      const mockStop = vi.fn()
+      mockVideoStream = {
+        getTracks: () => [{ stop: mockStop }],
+      }
+      mockGetUserMedia.mockResolvedValue(mockVideoStream)
+
+      renderWizard()
+
+      // Navigate to Camera step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*camera/i }))
+
+      await waitFor(() => {
+        expect(mockStop).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    it('shows failed when getUserMedia is denied', async () => {
+      mockGetUserMedia.mockRejectedValue(new Error('Permission denied'))
+
+      renderWizard()
+
+      // Navigate to Camera step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*camera/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('permission-test-result')).toHaveAttribute('data-state', 'failed')
+      })
+    })
+
+    it('calls getUserMedia with video: true', async () => {
+      mockGetUserMedia.mockResolvedValue(mockVideoStream)
+
+      renderWizard()
+
+      // Navigate to Camera step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
+
+      // Click test button
+      fireEvent.click(screen.getByRole('button', { name: /test.*camera/i }))
+
+      await waitFor(() => {
+        expect(mockGetUserMedia).toHaveBeenCalledWith({ video: true })
+      })
+    })
+  })
+
   describe('complete step', () => {
     it('has a button that calls onComplete', () => {
       renderWizard()
 
-      // Go to Screen Recording step
+      // Navigate to Complete step (welcome -> screenRecording -> microphone -> camera -> complete)
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
-      // Go to Microphone step
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
-      // Go to Complete step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
 
       const finishButton = screen.getByRole('button', { name: /finish|get started|done/i })
@@ -425,11 +612,10 @@ describe('SetupWizard', () => {
     it('calls markSetupComplete when completing wizard', () => {
       renderWizard()
 
-      // Go to Screen Recording step
+      // Navigate to Complete step (welcome -> screenRecording -> microphone -> camera -> complete)
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
-      // Go to Microphone step
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
-      // Go to Complete step
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
 
       const finishButton = screen.getByRole('button', { name: /finish|get started|done/i })
@@ -458,7 +644,8 @@ describe('SetupWizard', () => {
       // Clear the initial mount call
       mockSetSetupMode.mockClear()
 
-      // Navigate to complete step (welcome -> screenRecording -> microphone -> complete)
+      // Navigate to complete step (welcome -> screenRecording -> microphone -> camera -> complete)
+      fireEvent.click(screen.getByRole('button', { name: /next/i }))
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
       fireEvent.click(screen.getByRole('button', { name: /next/i }))
