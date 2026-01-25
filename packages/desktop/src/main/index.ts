@@ -1,4 +1,5 @@
 import { join } from 'node:path'
+import { log } from '@just-recordings/shared'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import {
   app,
@@ -22,6 +23,7 @@ import {
   type FloatingControlAction,
   type RecordingState,
 } from './floatingWindowIpc'
+import { initSentry } from './sentry'
 import { getSystemPreferencesUrl } from './systemPreferences'
 import {
   clearCountdownProgress,
@@ -33,6 +35,9 @@ import {
   isWindowHiddenForRecording,
   showWindowAfterRecording,
 } from './windowVisibility'
+
+// Initialize Sentry and logging early
+initSentry()
 
 let mainWindow: BrowserWindow | null = null
 let floatingControlsWindow: BrowserWindow | null = null
@@ -214,7 +219,7 @@ app.whenReady().then(() => {
   // Handle external URL opening
   ipcMain.on('open-external', (_event, url: string) => {
     shell.openExternal(url).catch((err) => {
-      console.error('Failed to open external URL:', err)
+      log.error(err, { context: 'Failed to open external URL', url })
     })
   })
 
@@ -225,7 +230,7 @@ app.whenReady().then(() => {
       const url = getSystemPreferencesUrl(panel)
       if (url) {
         shell.openExternal(url).catch((err) => {
-          console.error('Failed to open System Preferences:', err)
+          log.error(err, { context: 'Failed to open System Preferences', panel })
         })
       }
     },

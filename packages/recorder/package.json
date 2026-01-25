@@ -9,7 +9,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@just-recordings/shared": "^0.0.1",
+    "@just-recordings/shared": "^0.0.2",
     "dexie": "^4.0.10"
   },
   "devDependencies": {

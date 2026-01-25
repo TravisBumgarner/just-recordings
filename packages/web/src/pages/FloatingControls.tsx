@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { log } from '@just-recordings/shared'
 import { Box, Typography } from '@mui/material'
 import { FloatingControlsContent } from '../components/FloatingControlsContent'
 
@@ -85,7 +86,9 @@ function FloatingControls({ initialState }: FloatingControlsProps) {
           stream.getTracks().forEach((track) => track.stop())
         }
       } catch (error) {
-        console.error('Failed to get webcam stream:', error)
+        log.error(error instanceof Error ? error : String(error), {
+          context: 'Failed to get webcam stream',
+        })
       } finally {
         if (mounted) {
           isRequestingWebcamRef.current = false

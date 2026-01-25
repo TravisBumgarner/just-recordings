@@ -1,0 +1,176 @@
+project: Sentry Logging Infrastructure
+repo: TravisBumgarner/just-recordings
+scoping_date: 2026-01-25
+
+milestones:
+  - id: 1
+    title: Sentry Logging Infrastructure
+    description: Setup centralized logging with Sentry across React, Electron, and API. Production-only logging with log.info and log.error utilities.
+    base_branch: main
+    github_milestone: 44
+
+tasks:
+  - id: 1
+    title: Create shared logging utility package
+    description: |
+      Create a shared logging utility in packages/shared that provides log.info and log.error
+      functions. This centralizes logging logic so all packages use the same interface.
+
+      The utility should:
+      - Export `log.info(message: string)` and `log.error(error: Error | string, context?: object)`
+      - Accept an initialization function to configure the transport (Sentry vs console)
+      - In production: use Sentry captureMessage/captureException
+      - In development: use console.log/console.error
+      - Support context/metadata for errors
+
+      Files to create:
+      - packages/shared/src/logging/index.ts
+      - packages/shared/src/logging/types.ts
+
+      Note: The existing packages/web/src/services/logging.ts will be refactored to use this
+      shared utility in a later task.
+    acceptance_criteria:
+      - log.info(message) function exported from shared package
+      - log.error(error, context?) function exported from shared package
+      - initLogging(config) function to configure transport
+      - TypeScript types for logging configuration
+      - Works in both browser and Node.js environments
+    github_issue: 298
+    milestone: 1
+    status: pending
+    depends_on: []
+
+  - id: 2
+    title: Setup Sentry in React web app
+    description: |
+      Configure Sentry SDK initialization in the React web app with placeholder DSN.
+
+      Implementation:
+      - Add @sentry/react to web package (may already exist)
+      - Create Sentry initialization in packages/web/src/sentry.ts
+      - Add VITE_SENTRY_DSN placeholder to .env.example
+      - Initialize Sentry in main.tsx before app renders
+      - Only initialize in production mode
+      - Use shared logging utility from Task 1
+
+      Files to create/modify:
+      - packages/web/src/sentry.ts (new)
+      - packages/web/src/main.tsx
+      - packages/web/.env.example (add VITE_SENTRY_DSN placeholder)
+      - packages/web/src/config.ts (add Sentry DSN)
+    acceptance_criteria:
+      - Sentry initialized only in production
+      - VITE_SENTRY_DSN environment variable placeholder documented
+      - Existing logging.ts refactored to use shared utility
+      - Error boundary captures React errors
+    github_issue: 299
+    milestone: 1
+    status: pending
+    depends_on: [1]
+
+  - id: 3
+    title: Setup Sentry in Electron main process
+    description: |
+      Configure Sentry SDK for the Electron main process with placeholder DSN.
+
+      Implementation:
+      - Add @sentry/electron to desktop package
+      - Create Sentry initialization in packages/desktop/src/main/sentry.ts
+      - Initialize early in main/index.ts
+      - Only initialize in production mode (check app.isPackaged or NODE_ENV)
+      - Use shared logging utility from Task 1
+
+      Files to create/modify:
+      - packages/desktop/src/main/sentry.ts (new)
+      - packages/desktop/src/main/index.ts
+      - packages/desktop/.env.example (add SENTRY_DSN placeholder)
+    acceptance_criteria:
+      - Sentry initialized only in production/packaged builds
+      - SENTRY_DSN environment variable placeholder documented
+      - Main process errors captured
+      - Uses shared logging utility
+    github_issue: 300
+    milestone: 1
+    status: pending
+    depends_on: [1]
+
+  - id: 4
+    title: Setup Sentry in API server
+    description: |
+      Configure Sentry SDK for the Express API server with placeholder DSN.
+
+      Implementation:
+      - Add @sentry/node to api package
+      - Create Sentry initialization in packages/api/src/sentry.ts
+      - Initialize early in index.ts before Express app
+      - Add Sentry request/error handlers to Express middleware
+      - Only initialize in production mode
+      - Use shared logging utility from Task 1
+
+      Files to create/modify:
+      - packages/api/src/sentry.ts (new)
+      - packages/api/src/index.ts
+      - packages/api/src/app.ts (add Sentry middleware)
+      - packages/api/.env.example (add SENTRY_DSN placeholder)
+    acceptance_criteria:
+      - Sentry initialized only in production
+      - SENTRY_DSN environment variable placeholder documented
+      - Express request handler middleware added
+      - Express error handler middleware added
+      - Uses shared logging utility
+    github_issue: 301
+    milestone: 1
+    status: pending
+    depends_on: [1]
+
+  - id: 5
+    title: Configure Biome to error on console.log
+    description: |
+      Add Biome linter rule to flag console.log usage as an error, encouraging
+      use of the log utility instead.
+
+      Implementation:
+      - Add noConsoleLog or noConsole rule to biome.json suspicious rules
+      - Set severity to "error"
+      - Add override for test files to allow console in tests
+
+      Files to modify:
+      - biome.json
+    acceptance_criteria:
+      - console.log flagged as linting error
+      - console.error flagged as linting error
+      - Test files exempt from this rule
+      - Build fails if console.log used in production code
+    github_issue: 302
+    milestone: 1
+    status: pending
+    depends_on: []
+
+  - id: 6
+    title: Replace console calls with log utility across codebase
+    description: |
+      Find and replace all console.log and console.error calls with the log utility.
+
+      Key locations to update:
+      - packages/web/src/components/RecordingSettingsModal.tsx - console.error calls
+      - packages/web/src/pages/FloatingControls.tsx - console.error on webcam failures
+      - packages/desktop/src/main/index.ts - console.error calls
+      - packages/desktop/src/preload/preload.ts - console.error call
+      - packages/api/src/index.ts - console.log startup message
+      - packages/api/src/routes/users.ts - console.error on user fetch error
+      - Any other locations found by running biome lint
+
+      For each replacement:
+      - Import log from appropriate location
+      - Replace console.log with log.info
+      - Replace console.error with log.error
+      - Add context object where helpful for debugging
+    acceptance_criteria:
+      - No console.log or console.error in production code
+      - All error logging uses log.error with appropriate context
+      - Informational logging uses log.info
+      - Biome lint passes with no console violations
+    github_issue: 303
+    milestone: 1
+    status: pending
+    depends_on: [2, 3, 4, 5]

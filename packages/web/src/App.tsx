@@ -7,7 +7,7 @@ import Router from './components/Router'
 import ScrollToTop from './components/ScrollToTop'
 import useHealthCheck from './hooks/useHealthCheck'
 import useLoadUserIntoState from './hooks/useLoadUserIntoState'
-import { logger } from './services/logging'
+import { log } from '@just-recordings/shared'
 import Loading from './sharedComponents/Loading'
 import Message from './sharedComponents/Message'
 import RenderModal from './sharedComponents/Modal'
@@ -35,7 +35,7 @@ function App() {
   const loadingUser = useGlobalStore((state) => state.loadingUser)
 
   if (!isHealthy) {
-    logger.error('Backend is unhealthy')
+    log.error('Backend is unhealthy')
 
     return (
       <Message

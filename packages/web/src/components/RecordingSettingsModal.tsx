@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { log } from '@just-recordings/shared'
 import { FaMicrophone, FaVideo, FaVolumeUp } from 'react-icons/fa'
 import {
   Box,
@@ -128,7 +129,9 @@ export function RecordingSettingsModal({
           setWebcamDeviceId(cams[0].deviceId)
         }
       } catch (error) {
-        console.error('Failed to enumerate devices:', error)
+        log.error(error instanceof Error ? error : String(error), {
+          context: 'Failed to enumerate devices',
+        })
       }
     }
 
@@ -156,7 +159,9 @@ export function RecordingSettingsModal({
           videoRef.current.srcObject = stream
         }
       } catch (error) {
-        console.error('Failed to start webcam:', error)
+        log.error(error instanceof Error ? error : String(error), {
+          context: 'Failed to start webcam',
+        })
       }
     }
 
@@ -221,7 +226,9 @@ export function RecordingSettingsModal({
 
         updateLevel()
       } catch (error) {
-        console.error('Failed to start audio meter:', error)
+        log.error(error instanceof Error ? error : String(error), {
+          context: 'Failed to start audio meter',
+        })
       }
     }
 
