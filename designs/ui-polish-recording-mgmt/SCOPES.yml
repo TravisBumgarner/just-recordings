@@ -142,7 +142,7 @@ tasks:
       - Menu closes after selecting an action
     github_issue: 284
     milestone: 1
-    status: testing
+    status: implementing
     depends_on: [4]
 
   - id: 6

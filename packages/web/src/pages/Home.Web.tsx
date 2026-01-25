@@ -4,6 +4,7 @@ import type {
   UploadManager,
 } from '@just-recordings/recorder'
 import type { Recording as ApiRecording } from '@just-recordings/shared'
+import { FaEllipsisV } from 'react-icons/fa'
 import {
   Box,
   Button,
@@ -13,10 +14,20 @@ import {
   CardMedia,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Grid,
+  IconButton,
   LinearProgress,
   List,
   ListItem,
+  ListItemText,
+  Menu,
+  MenuItem,
+  TextField,
   Typography,
 } from '@mui/material'
 import { useQueryClient } from '@tanstack/react-query'
@@ -24,7 +35,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useThumbnailUrl } from '@/hooks/queries/useRecordingMedia'
 import { useRecordings } from '@/hooks/queries/useRecordings'
+import { useDeleteRecording } from '@/hooks/mutations/useDeleteRecording'
+import { useUpdateRecording } from '@/hooks/mutations/useUpdateRecording'
 import { queryKeys } from '@/lib/queryKeys'
+import { MODAL_ID } from '@/sharedComponents/Modal/Modal.consts'
+import { activeModalSignal } from '@/signals'
 import PageWrapper from '@/styles/shared/PageWrapper'
 import { setRecordingState } from '../utils/electron'
 import { useRecordingFlow, type RecordingSettings } from '../hooks/useRecordingFlow'
@@ -59,9 +74,79 @@ function RecordingCard({ recording }: { recording: ApiRecording }) {
     !!recording.thumbnailUrl
   )
 
+  const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [editedName, setEditedName] = useState(recording.name)
+
+  const deleteRecording = useDeleteRecording()
+  const updateRecording = useUpdateRecording()
+
+  const menuOpen = Boolean(menuAnchorEl)
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setMenuAnchorEl(event.currentTarget)
+  }
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null)
+  }
+
+  const handleShareClick = () => {
+    handleMenuClose()
+    activeModalSignal.value = {
+      id: MODAL_ID.SHARE_MODAL,
+      recordingId: recording.id,
+      recordingName: recording.name,
+    }
+  }
+
+  const handleEditTitleClick = () => {
+    handleMenuClose()
+    setEditedName(recording.name)
+    setEditDialogOpen(true)
+  }
+
+  const handleDeleteClick = () => {
+    handleMenuClose()
+    setDeleteDialogOpen(true)
+  }
+
+  const handleEditSave = () => {
+    if (editedName.trim()) {
+      updateRecording.mutate(
+        { id: recording.id, name: editedName.trim() },
+        {
+          onSuccess: () => {
+            setEditDialogOpen(false)
+          },
+        }
+      )
+    }
+  }
+
+  const handleEditCancel = () => {
+    setEditDialogOpen(false)
+    setEditedName(recording.name)
+  }
+
+  const handleDeleteConfirm = () => {
+    deleteRecording.mutate(recording.id, {
+      onSuccess: () => {
+        setDeleteDialogOpen(false)
+      },
+    })
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false)
+  }
+
   return (
     <Grid item xs={12} sm={6} md={4}>
-      <Card>
+      <Card sx={{ position: 'relative' }}>
         <CardActionArea
           component={Link}
           to={`/recordings/${recording.id}`}
@@ -115,6 +200,94 @@ function RecordingCard({ recording }: { recording: ApiRecording }) {
             </Typography>
           </CardContent>
         </CardActionArea>
+
+        {/* Menu Button */}
+        <IconButton
+          data-testid={`recording-card-menu-button-${recording.id}`}
+          onClick={handleMenuClick}
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            bgcolor: 'rgba(0, 0, 0, 0.5)',
+            color: 'white',
+            '&:hover': {
+              bgcolor: 'rgba(0, 0, 0, 0.7)',
+            },
+          }}
+          size="small"
+        >
+          <FaEllipsisV size={14} />
+        </IconButton>
+
+        {/* Dropdown Menu */}
+        <Menu
+          data-testid={`recording-card-menu-${recording.id}`}
+          anchorEl={menuAnchorEl}
+          open={menuOpen}
+          onClose={handleMenuClose}
+        >
+          <MenuItem onClick={handleShareClick}>
+            <ListItemText>Share</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleEditTitleClick}>
+            <ListItemText>Edit Title</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleDeleteClick}>
+            <ListItemText>Delete</ListItemText>
+          </MenuItem>
+        </Menu>
+
+        {/* Edit Title Dialog */}
+        <Dialog
+          open={editDialogOpen}
+          onClose={handleEditCancel}
+          data-testid="edit-title-dialog"
+        >
+          <DialogTitle>Edit Recording Title</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Title"
+              type="text"
+              fullWidth
+              value={editedName}
+              onChange={(e) => setEditedName(e.target.value)}
+              inputProps={{ 'data-testid': 'edit-title-input' }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleEditCancel}>Cancel</Button>
+            <Button onClick={handleEditSave} disabled={updateRecording.isPending}>
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={handleDeleteCancel}
+          data-testid="delete-confirmation-dialog"
+        >
+          <DialogTitle>Delete Recording?</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete "{recording.name}"? This action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteCancel}>Cancel</Button>
+            <Button
+              onClick={handleDeleteConfirm}
+              color="error"
+              disabled={deleteRecording.isPending}
+            >
+              Confirm Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Card>
     </Grid>
   )

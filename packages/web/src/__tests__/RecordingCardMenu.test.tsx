@@ -23,6 +23,7 @@ vi.mock('../api/recordings', () => ({
 
 import { deleteRecording, getRecordings, updateRecording } from '../api/recordings'
 import Home from '../pages/Home.Web'
+import RenderModal from '../sharedComponents/Modal'
 
 const mockGetRecordings = vi.mocked(getRecordings)
 const mockDeleteRecording = vi.mocked(deleteRecording)
@@ -100,6 +101,7 @@ describe('RecordingCard Menu', () => {
             recorderService={mockRecorderService as never}
             uploadManager={mockUploadManager as never}
           />
+          <RenderModal />
         </MemoryRouter>
       </QueryClientProvider>,
     )
