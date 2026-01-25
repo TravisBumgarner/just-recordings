@@ -23,6 +23,11 @@ import {
   type RecordingState,
 } from './floatingWindowIpc'
 import { getSystemPreferencesUrl } from './systemPreferences'
+import {
+  clearCountdownProgress,
+  showCountdownProgress,
+  updateCountdownProgress,
+} from './taskbarProgress'
 
 let mainWindow: BrowserWindow | null = null
 let floatingControlsWindow: BrowserWindow | null = null
@@ -252,18 +257,17 @@ app.whenReady().then(() => {
   )
 
   // Countdown IPC handlers
-  // These receive countdown state from renderer and will be used by Task 4
-  // to show progress in taskbar (Windows) or dock badge (macOS)
-  ipcMain.on(COUNTDOWN_CHANNELS.START, (_event, _state: CountdownState) => {
-    // Task 4 will implement: show initial progress in taskbar/dock
+  // Show countdown progress in taskbar (Windows) or dock badge (macOS)
+  ipcMain.on(COUNTDOWN_CHANNELS.START, (_event, state: CountdownState) => {
+    showCountdownProgress(state, mainWindow)
   })
 
-  ipcMain.on(COUNTDOWN_CHANNELS.TICK, (_event, _state: CountdownState) => {
-    // Task 4 will implement: update progress in taskbar/dock
+  ipcMain.on(COUNTDOWN_CHANNELS.TICK, (_event, state: CountdownState) => {
+    updateCountdownProgress(state, mainWindow)
   })
 
   ipcMain.on(COUNTDOWN_CHANNELS.END, () => {
-    // Task 4 will implement: clear progress from taskbar/dock
+    clearCountdownProgress(mainWindow)
   })
 
   // Set up display media request handler for screen capture
