@@ -27,22 +27,30 @@ export interface RecordingState {
  */
 export type FloatingControlAction = 'stop' | 'pause' | 'resume' | 'cancel'
 
+const VALID_CONTROL_ACTIONS: readonly FloatingControlAction[] = [
+  'stop',
+  'pause',
+  'resume',
+  'cancel',
+]
+
 /**
  * Validates that a value is a valid FloatingControlAction
  */
 export function isValidControlAction(action: unknown): action is FloatingControlAction {
-  return false // Stub
+  return (
+    typeof action === 'string' && VALID_CONTROL_ACTIONS.includes(action as FloatingControlAction)
+  )
 }
 
 /**
  * Creates a RecordingState object with default values
  */
-export function createRecordingState(
-  overrides: Partial<RecordingState> = {},
-): RecordingState {
+export function createRecordingState(overrides: Partial<RecordingState> = {}): RecordingState {
   return {
     status: 'recording',
     elapsedTimeMs: 0,
     webcamEnabled: false,
-  } // Stub - doesn't apply overrides yet
+    ...overrides,
+  }
 }

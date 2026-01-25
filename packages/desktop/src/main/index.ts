@@ -16,6 +16,11 @@ import {
   getFloatingWindowOptions,
   getFloatingWindowUrl,
 } from './floatingWindow'
+import {
+  FLOATING_WINDOW_CHANNELS,
+  type FloatingControlAction,
+  type RecordingState,
+} from './floatingWindowIpc'
 import { getSystemPreferencesUrl } from './systemPreferences'
 
 let mainWindow: BrowserWindow | null = null
@@ -207,6 +212,40 @@ app.whenReady().then(() => {
         shell.openExternal(url).catch((err) => {
           console.error('Failed to open System Preferences:', err)
         })
+      }
+    },
+  )
+
+  // Floating window IPC handlers
+  // Show floating controls window
+  ipcMain.on(FLOATING_WINDOW_CHANNELS.SHOW, () => {
+    showFloatingControls()
+  })
+
+  // Hide floating controls window
+  ipcMain.on(FLOATING_WINDOW_CHANNELS.HIDE, () => {
+    hideFloatingControls()
+  })
+
+  // Update recording state in floating window
+  ipcMain.on(
+    FLOATING_WINDOW_CHANNELS.UPDATE_RECORDING_STATE,
+    (_event, state: RecordingState) => {
+      if (floatingControlsWindow) {
+        floatingControlsWindow.webContents.send(
+          FLOATING_WINDOW_CHANNELS.UPDATE_RECORDING_STATE,
+          state,
+        )
+      }
+    },
+  )
+
+  // Forward control actions from floating window to main window
+  ipcMain.on(
+    FLOATING_WINDOW_CHANNELS.CONTROL_ACTION,
+    (_event, action: FloatingControlAction) => {
+      if (mainWindow) {
+        mainWindow.webContents.send(FLOATING_WINDOW_CHANNELS.CONTROL_ACTION, action)
       }
     },
   )
