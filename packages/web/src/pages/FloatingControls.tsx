@@ -36,14 +36,22 @@ function FloatingControls({ initialState }: FloatingControlsProps) {
 
   // Subscribe to recording state updates from main window
   useEffect(() => {
-    // Stub - will be implemented
-    return () => {}
+    const cleanup = window.api?.onRecordingStateUpdate((state: RecordingState) => {
+      setRecordingState(state)
+    })
+    return () => {
+      cleanup?.()
+    }
   }, [])
 
   // Handler to send control actions to main window
-  const sendControlAction = useCallback((_action: FloatingControlAction) => {
-    // Stub - will be implemented
+  // Will be passed to FloatingControlsContent in Task 4
+  const sendControlAction = useCallback((action: FloatingControlAction) => {
+    window.api?.sendFloatingControlAction(action)
   }, [])
+
+  // Expose sendControlAction for use by FloatingControlsContent (Task 4)
+  void sendControlAction
 
   if (!recordingState) {
     return (
