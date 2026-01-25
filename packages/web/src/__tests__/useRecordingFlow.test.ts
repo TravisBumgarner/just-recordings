@@ -4,26 +4,34 @@ import { useRecordingFlow, type RecordingSettings } from '../hooks/useRecordingF
 import type { Recording } from '@just-recordings/recorder'
 
 // Mock RecorderService
-const createMockRecorderService = () => ({
-  getState: vi.fn().mockReturnValue('idle'),
-  onStateChange: vi.fn().mockReturnValue(() => {}),
-  startScreenRecording: vi.fn().mockResolvedValue(undefined),
-  stopRecording: vi.fn().mockResolvedValue({
-    id: 1,
-    name: 'Test Recording',
-    blob: new Blob(),
-    mimeType: 'video/webm',
-    duration: 5000,
-    createdAt: new Date(),
-    fileSize: 1000,
-    uploadStatus: 'pending',
-  } as Recording),
-  pauseRecording: vi.fn(),
-  resumeRecording: vi.fn(),
-  cancelRecording: vi.fn(),
-  getElapsedTime: vi.fn().mockReturnValue(0),
-  saveRecording: vi.fn().mockResolvedValue(1),
-})
+const createMockRecorderService = () => {
+  const mockRelease = vi.fn()
+  return {
+    getState: vi.fn().mockReturnValue('idle'),
+    onStateChange: vi.fn().mockReturnValue(() => {}),
+    acquireScreen: vi.fn().mockResolvedValue({
+      stream: { getTracks: () => [] },
+      release: mockRelease,
+    }),
+    startScreenRecording: vi.fn().mockResolvedValue(undefined),
+    stopRecording: vi.fn().mockResolvedValue({
+      id: 1,
+      name: 'Test Recording',
+      blob: new Blob(),
+      mimeType: 'video/webm',
+      duration: 5000,
+      createdAt: new Date(),
+      fileSize: 1000,
+      uploadStatus: 'pending',
+    } as Recording),
+    pauseRecording: vi.fn(),
+    resumeRecording: vi.fn(),
+    cancelRecording: vi.fn(),
+    getElapsedTime: vi.fn().mockReturnValue(0),
+    saveRecording: vi.fn().mockResolvedValue(1),
+    _mockRelease: mockRelease, // Exposed for testing
+  }
+}
 
 describe('useRecordingFlow', () => {
   const defaultSettings: RecordingSettings = {
@@ -96,7 +104,7 @@ describe('useRecordingFlow', () => {
       expect(result.current.flowState).toBe('idle')
     })
 
-    it('transitions from settings to countdown when startWithSettings is called', () => {
+    it('transitions from settings to acquiring then countdown when startWithSettings is called', async () => {
       const mockService = createMockRecorderService()
       const { result } = renderHook(() =>
         useRecordingFlow({ recorderService: mockService as any }),
@@ -106,14 +114,49 @@ describe('useRecordingFlow', () => {
         result.current.openSettings()
       })
 
-      act(() => {
-        result.current.startWithSettings(defaultSettings)
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
 
       expect(result.current.flowState).toBe('countdown')
     })
 
-    it('stores settings when startWithSettings is called', () => {
+    it('acquires screen before transitioning to countdown', async () => {
+      const mockService = createMockRecorderService()
+      const { result } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      act(() => {
+        result.current.openSettings()
+      })
+
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
+      })
+
+      expect(mockService.acquireScreen).toHaveBeenCalled()
+    })
+
+    it('returns to settings if screen acquisition fails (user cancels)', async () => {
+      const mockService = createMockRecorderService()
+      mockService.acquireScreen.mockRejectedValue(new Error('User cancelled'))
+      const { result } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      act(() => {
+        result.current.openSettings()
+      })
+
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
+      })
+
+      expect(result.current.flowState).toBe('settings')
+    })
+
+    it('stores settings when startWithSettings is called', async () => {
       const mockService = createMockRecorderService()
       const { result } = renderHook(() =>
         useRecordingFlow({ recorderService: mockService as any }),
@@ -127,7 +170,10 @@ describe('useRecordingFlow', () => {
 
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(settings)
+      })
+
+      await act(async () => {
+        await result.current.startWithSettings(settings)
       })
 
       expect(result.current.currentSettings).toEqual(settings)
@@ -141,7 +187,10 @@ describe('useRecordingFlow', () => {
 
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(defaultSettings)
+      })
+
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
 
       await act(async () => {
@@ -153,8 +202,13 @@ describe('useRecordingFlow', () => {
   })
 
   describe('settings passed to RecorderService', () => {
-    it('passes settings to startScreenRecording when countdown completes', async () => {
+    it('passes settings and pre-acquired stream to startScreenRecording when countdown completes', async () => {
       const mockService = createMockRecorderService()
+      const mockStream = { getTracks: () => [] }
+      mockService.acquireScreen.mockResolvedValue({
+        stream: mockStream,
+        release: vi.fn(),
+      })
       const { result } = renderHook(() =>
         useRecordingFlow({ recorderService: mockService as any }),
       )
@@ -167,7 +221,10 @@ describe('useRecordingFlow', () => {
 
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(settings)
+      })
+
+      await act(async () => {
+        await result.current.startWithSettings(settings)
       })
 
       await act(async () => {
@@ -178,6 +235,32 @@ describe('useRecordingFlow', () => {
         includeSystemAudio: true,
         includeMicrophone: true,
         includeWebcam: false,
+        screenStream: mockStream,
+      })
+    })
+
+    it('passes includeSystemAudio to acquireScreen', async () => {
+      const mockService = createMockRecorderService()
+      const { result } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      const settings: RecordingSettings = {
+        includeSystemAudio: true,
+        includeMicrophone: false,
+        includeWebcam: false,
+      }
+
+      act(() => {
+        result.current.openSettings()
+      })
+
+      await act(async () => {
+        await result.current.startWithSettings(settings)
+      })
+
+      expect(mockService.acquireScreen).toHaveBeenCalledWith({
+        includeSystemAudio: true,
       })
     })
   })
@@ -192,7 +275,9 @@ describe('useRecordingFlow', () => {
       // Get to recording state
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
       await act(async () => {
         await result.current.onCountdownComplete()
@@ -215,7 +300,9 @@ describe('useRecordingFlow', () => {
       // Get to recording state
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
       await act(async () => {
         await result.current.onCountdownComplete()
@@ -238,7 +325,9 @@ describe('useRecordingFlow', () => {
       // Get to recording state
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
       await act(async () => {
         await result.current.onCountdownComplete()
@@ -267,7 +356,9 @@ describe('useRecordingFlow', () => {
       // Get to recording state
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
       await act(async () => {
         await result.current.onCountdownComplete()
@@ -289,7 +380,9 @@ describe('useRecordingFlow', () => {
       // Get to recording state
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
       await act(async () => {
         await result.current.onCountdownComplete()
@@ -312,7 +405,9 @@ describe('useRecordingFlow', () => {
       // Get to recording state
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
       await act(async () => {
         await result.current.onCountdownComplete()
@@ -334,7 +429,9 @@ describe('useRecordingFlow', () => {
       // Get to recording state
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
       await act(async () => {
         await result.current.onCountdownComplete()
@@ -345,6 +442,33 @@ describe('useRecordingFlow', () => {
       })
 
       expect(result.current.currentSettings).toBeNull()
+    })
+
+    it('releases acquired screen stream when cancelling during countdown', async () => {
+      const mockRelease = vi.fn()
+      const mockService = createMockRecorderService()
+      mockService.acquireScreen.mockResolvedValue({
+        stream: { getTracks: () => [] },
+        release: mockRelease,
+      })
+      const { result } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      // Get to countdown state (screen acquired but not used yet)
+      act(() => {
+        result.current.openSettings()
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
+      })
+      expect(result.current.flowState).toBe('countdown')
+
+      act(() => {
+        result.current.cancel()
+      })
+
+      expect(mockRelease).toHaveBeenCalled()
     })
   })
 
@@ -358,14 +482,16 @@ describe('useRecordingFlow', () => {
       // Get to recording state
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
       await act(async () => {
         await result.current.onCountdownComplete()
       })
 
-      act(() => {
-        result.current.restart()
+      await act(async () => {
+        await result.current.restart()
       })
 
       expect(result.current.flowState).toBe('countdown')
@@ -380,17 +506,46 @@ describe('useRecordingFlow', () => {
       // Get to recording state
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
       await act(async () => {
         await result.current.onCountdownComplete()
       })
 
-      act(() => {
-        result.current.restart()
+      await act(async () => {
+        await result.current.restart()
       })
 
       expect(mockService.cancelRecording).toHaveBeenCalled()
+    })
+
+    it('re-acquires screen when restart is called', async () => {
+      const mockService = createMockRecorderService()
+      const { result } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      // Get to recording state
+      act(() => {
+        result.current.openSettings()
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.onCountdownComplete()
+      })
+
+      mockService.acquireScreen.mockClear()
+
+      await act(async () => {
+        await result.current.restart()
+      })
+
+      // Should have called acquireScreen again for restart
+      expect(mockService.acquireScreen).toHaveBeenCalled()
     })
 
     it('preserves currentSettings when restart is called', async () => {
@@ -408,17 +563,46 @@ describe('useRecordingFlow', () => {
       // Get to recording state
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(settings)
+      })
+      await act(async () => {
+        await result.current.startWithSettings(settings)
       })
       await act(async () => {
         await result.current.onCountdownComplete()
       })
 
-      act(() => {
-        result.current.restart()
+      await act(async () => {
+        await result.current.restart()
       })
 
       expect(result.current.currentSettings).toEqual(settings)
+    })
+
+    it('returns to settings if screen re-acquisition fails on restart', async () => {
+      const mockService = createMockRecorderService()
+      const { result } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      // Get to recording state
+      act(() => {
+        result.current.openSettings()
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.onCountdownComplete()
+      })
+
+      // Make re-acquisition fail
+      mockService.acquireScreen.mockRejectedValue(new Error('User cancelled'))
+
+      await act(async () => {
+        await result.current.restart()
+      })
+
+      expect(result.current.flowState).toBe('settings')
     })
   })
 
@@ -432,7 +616,9 @@ describe('useRecordingFlow', () => {
       // Get to recording state
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
       await act(async () => {
         await result.current.onCountdownComplete()
@@ -454,7 +640,9 @@ describe('useRecordingFlow', () => {
       // Get to recording state
       act(() => {
         result.current.openSettings()
-        result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
       })
       await act(async () => {
         await result.current.onCountdownComplete()

@@ -22,6 +22,12 @@ import { setRecordingState } from '../utils/electron'
 const createMockRecorderService = () => {
   const stateCallbacks: Set<(state: string) => void> = new Set()
   return {
+    acquireScreen: vi.fn(() =>
+      Promise.resolve({
+        stream: { getTracks: () => [] },
+        release: vi.fn(),
+      }),
+    ),
     startScreenRecording: vi.fn(() => Promise.resolve()),
     stopRecording: vi.fn(() =>
       Promise.resolve({
@@ -111,7 +117,9 @@ describe('Home - Recording Flow Integration', () => {
   })
 
   describe('Settings → Start → Countdown → Recording flow', () => {
-    it('shows countdown overlay after clicking start in settings modal', () => {
+    it('shows countdown overlay after clicking start in settings modal', async () => {
+      vi.useRealTimers() // Need real timers for async acquireScreen
+
       renderHome()
 
       // Open settings
@@ -120,7 +128,10 @@ describe('Home - Recording Flow Integration', () => {
       // Click start recording in settings modal
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
 
-      expect(screen.getByTestId('countdown-overlay')).toBeInTheDocument()
+      // Wait for screen acquisition and countdown to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('countdown-overlay')).toBeInTheDocument()
+      })
     })
 
     it('starts recording after countdown completes', async () => {

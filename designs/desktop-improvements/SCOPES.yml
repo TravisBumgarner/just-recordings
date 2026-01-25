@@ -1,132 +1,117 @@
-project: Desktop App Improvements
-repo: travisbumgarner/just-recordings
-design_file: null  # Scoped from user requirements
-scoping_date: 2026-01-20
-
 milestones:
-  - number: 12
-    title: "3. Shared Styles Package"
-    description: Extract theme and style constants from web to shared package for use by both web and desktop apps
-    branch:
-      working: 69-shared-styles-package
-      base: main
-
-  - number: 13
-    title: "4. Desktop Menu Bar App"
-    description: Convert desktop app to a macOS menu bar app with simplified UI
-    branch:
-      working: 72-desktop-menu-bar-app
-      base: main
+  - id: 1
+    title: Desktop Improvements
+    description: Improvements to desktop app - taskbar countdown, webcam setup, upload toggle
+    base_branch: main
+    github_milestone: 40
 
 tasks:
-  - id: 1
-    github_issue: 69
-    milestone: 12
-    title: Add shared styles and theme to shared package
+  # Feature 0: Fix Recording Flow (Critical Bug)
+  - id: 7
+    title: Fix recording flow - screen selection before countdown
     description: |
-      Move the theme configuration and style constants from the web package to
-      the shared package so both web and desktop apps can use consistent styling.
-
-      **Files to create in shared package:**
-      - `src/styles/styleConsts.ts` - Design tokens (PALETTE, SPACING, FONT_SIZES, etc.)
-      - `src/styles/Theme.tsx` - MUI theme configuration with AppThemeProvider
-      - `src/styles/index.ts` - Barrel export
-
-      **Package updates:**
-      - Add `lodash` dependency (used by Theme.tsx for merge)
-      - Add `@mui/material` as peer dependency
-      - Add export path for `@just-recordings/shared/styles`
+      The current flow shows countdown THEN asks for screen selection. This is backwards.
+      Screen picker should appear when user clicks Start in settings, THEN countdown starts.
+      If user cancels screen picker, return to settings without showing countdown.
     acceptance_criteria:
-      - Create src/styles/styleConsts.ts in shared package with all design tokens
-      - Create src/styles/Theme.tsx in shared package with AppThemeProvider component
-      - Add lodash dependency to shared package
-      - Add @mui/material as peer dependency to shared package
-      - Export styles via @just-recordings/shared/styles
+      - Screen picker appears when user clicks Start in settings modal
+      - If user cancels screen picker flow returns to settings (no countdown)
+      - Countdown only starts after successful screen selection
+      - Recording uses the previously selected screen stream
+      - Flow works correctly on both web and desktop
+    github_issue: 265
+    milestone: 1
+    status: testing
     depends_on: []
-    effort: 2
-    status: scoped
 
+  # Feature 1: Webcam Setup Wizard (simplest)
+  - id: 1
+    title: Add webcam/camera step to setup wizard
+    description: |
+      Add a camera permissions step to the desktop setup wizard, following the same pattern
+      as existing screen recording and microphone steps.
+    acceptance_criteria:
+      - Camera step appears in setup wizard after microphone step
+      - User can test camera permissions
+      - User can request camera permissions
+      - User can open system preferences for camera
+      - Step shows appropriate status (granted/denied/unknown)
+    github_issue: 259
+    milestone: 1
+    status: pending
+    depends_on: []
+
+  # Feature 2: Upload Toggle Setting
   - id: 2
-    github_issue: 70
-    milestone: 12
-    title: Update web app to use shared styles
+    title: Add auto-upload toggle setting
     description: |
-      Update the web app to import theme and style constants from the shared
-      package instead of local files. Remove the now-redundant local style files.
+      Add a setting to enable/disable automatic upload after recording completes.
+      When disabled, recordings save locally but don't auto-upload.
     acceptance_criteria:
-      - Update imports throughout web app to use @just-recordings/shared/styles
-      - Remove local styles/styleConsts.ts (now in shared)
-      - Remove or simplify local styles/Theme.tsx
-      - Verify dark mode still works correctly
-      - All existing tests pass
-    depends_on: [1]
-    effort: 1
-    status: scoped
+      - Toggle setting exists in recording settings panel
+      - Setting persists to localStorage
+      - When enabled (default) recordings upload automatically after completion
+      - When disabled recordings save locally but don't auto-upload
+      - Setting label is clear - Auto-upload after recording
+    github_issue: 260
+    milestone: 1
+    status: pending
+    depends_on: []
 
+  # Feature 3: Taskbar Countdown (most complex, broken into subtasks)
   - id: 3
-    github_issue: 71
-    milestone: 12
-    title: Update desktop app to use shared theme
+    title: Add IPC handlers for countdown state
     description: |
-      Update the desktop app to use the shared theme from the shared package,
-      replacing the basic MUI default theme with the full themed version.
+      Add Electron IPC handlers to communicate countdown state between renderer and main process.
+      This is the foundation for the taskbar countdown feature.
     acceptance_criteria:
-      - Add @just-recordings/shared dependency to desktop package
-      - Update main.tsx to use AppThemeProvider from shared styles
-      - Add lodash dependency to desktop package
-      - Desktop app renders with consistent theme (grayscale, dark mode)
-      - All existing tests pass
-    depends_on: [1]
-    effort: 1
-    status: scoped
+      - Main process has handlers for countdown:start, countdown:tick, countdown:end
+      - Preload script exposes countdown API to renderer
+      - TypeScript types are properly defined
+      - IPC messages flow correctly from renderer to main
+    github_issue: 261
+    milestone: 1
+    status: pending
+    depends_on: []
 
   - id: 4
-    github_issue: 72
-    milestone: 13
-    title: Remove Backend Status and Environment displays from desktop
+    title: Show countdown progress in taskbar/dock
     description: |
-      Remove the "Backend Status" and "Environment" sections from the desktop
-      Home page. These are development/debug displays not needed in production.
-
-      **Remove from Home.tsx:**
-      - Environment section showing Electron/Chrome/Node versions
-      - Backend Status section showing connection status
-      - Related state, effects, and imports
+      During countdown, show progress in the system taskbar (Windows) or dock (macOS).
     acceptance_criteria:
-      - Remove Environment section from Home.tsx
-      - Remove Backend Status section from Home.tsx
-      - Remove healthStatus state and useEffect
-      - Remove checkHealth import
-      - Remove window.api.getVersions() call
-      - Update tests if they reference removed elements
-    depends_on: []
-    effort: 1
-    status: completed
+      - Windows taskbar shows progress bar during countdown
+      - macOS dock badge shows countdown number (3, 2, 1)
+      - Progress updates smoothly with each countdown tick
+      - Progress clears when countdown completes
+    github_issue: 262
+    milestone: 1
+    status: pending
+    depends_on: [3]
 
   - id: 5
-    github_issue: 73
-    milestone: 13
-    title: Convert desktop app to macOS menu bar app
+    title: Hide window during countdown and recording
     description: |
-      Convert the Electron desktop app from a standard window application to a
-      macOS menu bar (tray) application. The app should live in the status bar
-      and show a popover window when clicked.
-
-      **Key changes to main/index.ts:**
-      - Create Tray with icon
-      - Make BrowserWindow frameless (frame: false)
-      - Hide from Dock (skipTaskbar: true on macOS)
-      - Position window near tray icon on click
-      - Toggle window visibility on tray click
-      - Smaller window size appropriate for menu bar app
+      Hide the main Electron window during countdown so the countdown only shows in taskbar/dock.
     acceptance_criteria:
-      - Create tray icon in macOS status bar
-      - Window is frameless (no titlebar)
-      - App does not appear in Dock
-      - Window positions near tray icon when opened
-      - Clicking tray icon toggles window visibility
-      - Window size reduced to appropriate menu bar app dimensions
-      - App stays running when window is closed
-    depends_on: [4]
-    effort: 3
-    status: completed
+      - Window hides when countdown starts
+      - Window remains hidden during recording
+      - Window can be restored when recording stops (or via system tray)
+      - Works correctly on both macOS and Windows
+    github_issue: 263
+    milestone: 1
+    status: pending
+    depends_on: [3]
+
+  - id: 6
+    title: Send countdown IPC messages from CountdownOverlay
+    description: |
+      Update CountdownOverlay component to send IPC messages to the Electron main process during countdown.
+    acceptance_criteria:
+      - Sends countdown:start when countdown begins
+      - Sends countdown:tick with seconds remaining on each tick
+      - Sends countdown:end when countdown completes
+      - Only sends messages when running in Electron (check window.electron exists)
+    github_issue: 264
+    milestone: 1
+    status: pending
+    depends_on: [3]

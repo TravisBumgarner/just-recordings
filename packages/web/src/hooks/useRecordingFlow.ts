@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import type { RecorderState, Recording } from '@just-recordings/recorder'
+import type { AcquiredScreen, RecorderState, Recording } from '@just-recordings/recorder'
 import { RecorderService } from '@just-recordings/recorder'
 
-export type FlowState = 'idle' | 'settings' | 'countdown' | 'recording' | 'saving'
+export type FlowState = 'idle' | 'settings' | 'acquiring' | 'countdown' | 'recording' | 'saving'
 
 export interface RecordingSettings {
   includeSystemAudio: boolean
@@ -40,7 +40,7 @@ export interface UseRecordingFlowReturn {
 
 /**
  * Hook that orchestrates the entire recording flow:
- * idle → settings → countdown → recording → saving → idle
+ * idle → settings → acquiring → countdown → recording → saving → idle
  */
 export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseRecordingFlowReturn {
   const [flowState, setFlowState] = useState<FlowState>('idle')
@@ -55,6 +55,9 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
   const recorderServiceRef = useRef<RecorderService>(
     options.recorderService ?? new RecorderService(),
   )
+
+  // Store acquired screen stream for use after countdown
+  const acquiredScreenRef = useRef<AcquiredScreen | null>(null)
 
   // Subscribe to recorder state changes
   useEffect(() => {
@@ -72,18 +75,35 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
     setFlowState('idle')
   }, [])
 
-  const startWithSettings = useCallback((settings: RecordingSettings) => {
+  const startWithSettings = useCallback(async (settings: RecordingSettings) => {
     setCurrentSettings(settings)
-    setFlowState('countdown')
+    setFlowState('acquiring')
+
+    try {
+      // Acquire screen stream before countdown
+      const acquiredScreen = await recorderServiceRef.current.acquireScreen({
+        includeSystemAudio: settings.includeSystemAudio,
+      })
+      acquiredScreenRef.current = acquiredScreen
+      setFlowState('countdown')
+    } catch {
+      // User cancelled screen picker or error occurred - return to settings
+      setFlowState('settings')
+    }
   }, [])
 
   const onCountdownComplete = useCallback(async () => {
     if (!currentSettings) return
 
+    // Use the pre-acquired screen stream
+    const screenStream = acquiredScreenRef.current?.stream
+    acquiredScreenRef.current = null // Clear ref since stream is now owned by recorder
+
     await recorderServiceRef.current.startScreenRecording({
       includeSystemAudio: currentSettings.includeSystemAudio,
       includeMicrophone: currentSettings.includeMicrophone,
       includeWebcam: currentSettings.includeWebcam,
+      screenStream,
     })
     setFlowState('recording')
   }, [currentSettings])
@@ -105,16 +125,36 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
   }, [])
 
   const cancel = useCallback(() => {
+    // Release any acquired screen stream that hasn't been used
+    if (acquiredScreenRef.current) {
+      acquiredScreenRef.current.release()
+      acquiredScreenRef.current = null
+    }
     recorderServiceRef.current.cancelRecording()
     setCurrentSettings(null)
     setFlowState('idle')
   }, [])
 
-  const restart = useCallback(() => {
+  const restart = useCallback(async () => {
     recorderServiceRef.current.cancelRecording()
     // Keep currentSettings intact for restart
-    setFlowState('countdown')
-  }, [])
+    // Need to re-acquire screen since the old stream was used or stopped
+    if (currentSettings) {
+      setFlowState('acquiring')
+      try {
+        const acquiredScreen = await recorderServiceRef.current.acquireScreen({
+          includeSystemAudio: currentSettings.includeSystemAudio,
+        })
+        acquiredScreenRef.current = acquiredScreen
+        setFlowState('countdown')
+      } catch {
+        // User cancelled - return to settings
+        setFlowState('settings')
+      }
+    } else {
+      setFlowState('settings')
+    }
+  }, [currentSettings])
 
   const getElapsedTime = useCallback(() => {
     return recorderServiceRef.current.getElapsedTime()

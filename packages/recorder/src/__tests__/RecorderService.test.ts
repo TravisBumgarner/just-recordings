@@ -393,6 +393,89 @@ describe('RecorderService', () => {
     })
   })
 
+  describe('acquireScreen', () => {
+    it('returns a stream and release function', async () => {
+      const result = await service.acquireScreen()
+
+      expect(result).toHaveProperty('stream')
+      expect(result).toHaveProperty('release')
+      expect(typeof result.release).toBe('function')
+    })
+
+    it('calls getDisplayMedia', async () => {
+      await service.acquireScreen()
+
+      expect(mockGetDisplayMedia).toHaveBeenCalled()
+    })
+
+    it('requests system audio when includeSystemAudio is true', async () => {
+      await service.acquireScreen({ includeSystemAudio: true })
+
+      expect(mockGetDisplayMedia).toHaveBeenCalledWith(
+        expect.objectContaining({
+          video: true,
+          audio: true,
+        }),
+      )
+    })
+
+    it('does not request system audio by default', async () => {
+      await service.acquireScreen()
+
+      expect(mockGetDisplayMedia).toHaveBeenCalledWith(
+        expect.objectContaining({
+          video: true,
+          audio: false,
+        }),
+      )
+    })
+
+    it('release function stops all tracks', async () => {
+      const mockTrackStop = vi.fn()
+      const mockStream = {
+        getTracks: () => [{ stop: mockTrackStop }, { stop: mockTrackStop }],
+      }
+      mockGetDisplayMedia.mockResolvedValue(mockStream)
+
+      const result = await service.acquireScreen()
+      result.release()
+
+      expect(mockTrackStop).toHaveBeenCalledTimes(2)
+    })
+
+    it('throws error when user cancels screen picker', async () => {
+      mockGetDisplayMedia.mockRejectedValue(new DOMException('Permission denied', 'NotAllowedError'))
+
+      await expect(service.acquireScreen()).rejects.toThrow()
+    })
+  })
+
+  describe('startScreenRecording with pre-acquired stream', () => {
+    it('uses pre-acquired screen stream when provided', async () => {
+      const preAcquiredStream = new MockMediaStream() as unknown as MediaStream
+      await service.startScreenRecording({ screenStream: preAcquiredStream })
+
+      // Should not call getDisplayMedia since stream was provided
+      expect(mockGetDisplayMedia).not.toHaveBeenCalled()
+      expect(service.getState()).toBe('recording')
+    })
+
+    it('still requests microphone when includeMicrophone is true with pre-acquired stream', async () => {
+      const preAcquiredStream = new MockMediaStream() as unknown as MediaStream
+      await service.startScreenRecording({
+        screenStream: preAcquiredStream,
+        includeMicrophone: true,
+      })
+
+      expect(mockGetDisplayMedia).not.toHaveBeenCalled()
+      expect(mockGetUserMedia).toHaveBeenCalledWith(
+        expect.objectContaining({
+          audio: true,
+        }),
+      )
+    })
+  })
+
   describe('cancelRecording', () => {
     it('changes state to idle when recording', async () => {
       await service.startScreenRecording()

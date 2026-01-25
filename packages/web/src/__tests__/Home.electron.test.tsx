@@ -22,6 +22,12 @@ import { setRecordingState } from '../utils/electron'
 const createMockRecorderService = () => {
   const stateCallbacks: Set<(state: string) => void> = new Set()
   return {
+    acquireScreen: vi.fn(() =>
+      Promise.resolve({
+        stream: { getTracks: () => [] },
+        release: vi.fn(),
+      }),
+    ),
     startScreenRecording: vi.fn(() => Promise.resolve()),
     stopRecording: vi.fn(() =>
       Promise.resolve({
