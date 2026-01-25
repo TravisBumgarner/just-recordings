@@ -1,4 +1,5 @@
 import type { Response } from 'express'
+import config from '../../config.js'
 import { getSharesByRecordingId, userOwnsRecording } from '../../db/queries/shares.js'
 import type { AuthenticatedRequest } from '../../middleware/auth.js'
 import { requireUserId } from '../shared/auth.js'
@@ -34,15 +35,10 @@ export async function validate(
     return null
   }
 
-  // Get base URL for generating share URLs
-  const protocol = req.protocol
-  const host = req.get('host') || 'localhost'
-  const baseUrl = `${protocol}://${host}`
-
   return {
     userId: auth.userId,
     recordingId: id,
-    baseUrl,
+    baseUrl: config.frontendUrl,
   }
 }
 

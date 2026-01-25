@@ -8,6 +8,7 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().default(''),
   SUPABASE_SERVICE_ROLE_KEY: z.string().default(''),
   CLOUDINARY_URL: z.string().default(''),
+  FRONTEND_URL: z.string().default('http://localhost:5173'),
 })
 
 const envVars = {
@@ -17,6 +18,7 @@ const envVars = {
   SUPABASE_URL: process.env.SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   CLOUDINARY_URL: process.env.CLOUDINARY_URL,
+  FRONTEND_URL: process.env.FRONTEND_URL,
 }
 
 const parsed = envSchema.safeParse(envVars)
@@ -53,6 +55,7 @@ const config = {
   supabaseServiceRoleKey: parsed.data.SUPABASE_SERVICE_ROLE_KEY,
   isProduction: parsed.data.NODE_ENV === 'production',
   isDevelopment: parsed.data.NODE_ENV === 'development',
+  frontendUrl: parsed.data.FRONTEND_URL,
   cloudinary: {
     cloudName: cloudinaryCredentials?.cloudName ?? '',
     apiKey: cloudinaryCredentials?.apiKey ?? '',
