@@ -11,9 +11,15 @@ import {
   shell,
   Tray,
 } from 'electron'
+import {
+  getFloatingWindowHash,
+  getFloatingWindowOptions,
+  getFloatingWindowUrl,
+} from './floatingWindow'
 import { getSystemPreferencesUrl } from './systemPreferences'
 
 let mainWindow: BrowserWindow | null = null
+let floatingControlsWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let isSetupMode = false
 
@@ -124,6 +130,46 @@ function createWindow(): void {
     // Prod mode: Load bundled web app (copied from web package during build)
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+}
+
+// Create floating controls window for recording controls overlay
+function createFloatingControlsWindow(): void {
+  const preloadPath = join(__dirname, 'preload.js')
+  const options = getFloatingWindowOptions(preloadPath)
+
+  floatingControlsWindow = new BrowserWindow(options)
+
+  // Load the floating controls route
+  if (is.dev) {
+    const url = getFloatingWindowUrl(true)
+    floatingControlsWindow.loadURL(url)
+  } else {
+    // Production: load the index.html with hash routing
+    const hash = getFloatingWindowHash()
+    floatingControlsWindow.loadFile(join(__dirname, '../renderer/index.html'), {
+      hash,
+    })
+  }
+
+  // Clean up reference when window is closed
+  floatingControlsWindow.on('closed', () => {
+    floatingControlsWindow = null
+  })
+}
+
+// Show the floating controls window (creates it if needed)
+// Exported for use by IPC handlers (will be wired up in Task 2)
+export function showFloatingControls(): void {
+  if (!floatingControlsWindow) {
+    createFloatingControlsWindow()
+  }
+  floatingControlsWindow?.show()
+}
+
+// Hide the floating controls window
+// Exported for use by IPC handlers (will be wired up in Task 2)
+export function hideFloatingControls(): void {
+  floatingControlsWindow?.hide()
 }
 
 app.whenReady().then(() => {

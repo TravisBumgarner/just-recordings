@@ -43,7 +43,7 @@ tasks:
       - Window has default size (~300x200) and minimum size (~200x150)
     depends_on: []
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 2
     github_issue: 237
