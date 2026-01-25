@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PermissionService } from '../PermissionService'
-import type { PermissionStatus } from '../PermissionService'
 
 describe('PermissionService', () => {
   let service: PermissionService

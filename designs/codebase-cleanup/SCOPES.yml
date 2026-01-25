@@ -1,0 +1,122 @@
+project: Codebase Cleanup
+repo: TravisBumgarner/just-recordings
+scoping_date: 2026-01-25
+
+milestones:
+  - id: 1
+    title: Codebase Cleanup
+    description: Remove dead code, fix unused imports, and clean up commented-out code
+    base_branch: main
+    github_milestone: 46
+
+tasks:
+  - id: 1
+    title: Remove commented-out code in PasswordReset.tsx
+    description: |
+      Remove dead commented-out code blocks from the PasswordReset page.
+
+      Files to modify:
+      - packages/web/src/pages/PasswordReset.tsx
+
+      Code to remove:
+      - Line 10: Dead analytics import comment
+      - Lines 29-33: Commented-out Google auth detection
+      - Line 73: Dead comment about analytics
+      - Lines 113-115: Commented-out conditional
+
+      The analytics service doesn't exist, and Google auth detection will be
+      handled differently in the OAuth feature.
+    acceptance_criteria:
+      - All commented-out code blocks removed
+      - File still functions correctly after cleanup
+    github_issue: 312
+    milestone: 1
+    status: pending
+    depends_on: []
+    effort: 1
+
+  - id: 2
+    title: Remove unused logging.ts wrapper file
+    description: |
+      Remove the deprecated logging.ts wrapper file that is no longer imported anywhere.
+
+      Files to delete:
+      - packages/web/src/services/logging.ts
+
+      This was a backwards compatibility wrapper that re-exported from
+      @just-recordings/shared. Grep shows zero imports of this file.
+    acceptance_criteria:
+      - File packages/web/src/services/logging.ts deleted
+      - Verify no imports reference this file
+      - All tests still pass
+    github_issue: 313
+    milestone: 1
+    status: pending
+    depends_on: []
+    effort: 1
+
+  - id: 3
+    title: Fix unused imports flagged by Biome
+    description: |
+      Remove unused imports that Biome has flagged across the codebase.
+
+      Files to modify:
+      - packages/api/src/middleware/auth.ts - Remove unused `db` import
+      - packages/recorder/src/__tests__/PermissionService.test.ts - Remove unused import
+      - packages/web/src/__tests__/PermissionDeniedMessage.test.tsx - Remove unused imports
+      - packages/web/src/__tests__/useSetupStatus.test.ts - Remove unused imports
+      - packages/web/src/types/electron.d.ts - Remove useless empty export
+
+      Run `npx biome lint .` to verify these warnings are resolved.
+    acceptance_criteria:
+      - All unused imports removed from listed files
+      - Useless empty export removed from electron.d.ts
+      - Biome lint shows no unused import warnings for these files
+      - All tests still pass
+    github_issue: 314
+    milestone: 1
+    status: pending
+    depends_on: []
+    effort: 1
+
+  - id: 4
+    title: Rename misleading test file RecordingCardMenu.test.tsx
+    description: |
+      Rename the test file to accurately reflect what it tests.
+
+      Current: packages/web/src/__tests__/RecordingCardMenu.test.tsx
+      Proposed: packages/web/src/__tests__/Home.RecordingCardMenu.test.tsx
+
+      The current filename suggests it tests a RecordingCardMenu component,
+      but it actually tests Home.Web's recording card menu functionality.
+      The new name follows the pattern of other Home-related tests.
+    acceptance_criteria:
+      - File renamed to Home.RecordingCardMenu.test.tsx
+      - Tests still pass after rename
+    github_issue: 315
+    milestone: 1
+    status: pending
+    depends_on: []
+    effort: 1
+
+notes: |
+  ## Audit Summary
+
+  This cleanup was identified through a comprehensive codebase audit that checked for:
+  - Unused exports and dead code
+  - Commented-out code blocks
+  - Unused files and imports
+  - Orphaned test files
+  - Unused dependencies
+
+  ## What was NOT found (codebase is clean in these areas)
+
+  - No unused npm dependencies - all declared dependencies are actively used
+  - No orphaned source files - all source files are imported/used
+  - No truly orphaned test files - tests match their source files
+  - Test-only exports (validate/processRequest in API routes) are intentional for testability
+
+  ## All tasks can be done in a single PR
+
+  These are all low-risk, independent cleanup tasks that can be combined
+  into one PR for efficiency. No dependencies between tasks.

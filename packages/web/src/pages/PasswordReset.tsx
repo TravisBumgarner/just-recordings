@@ -7,7 +7,6 @@ import { type ChangeEvent, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../consts'
 import { resetPassword, updatePassword } from '../services/supabase'
-// import { trackEvent } from '../services/analytics'
 import Link from '../sharedComponents/Link'
 import Loading from '../sharedComponents/Loading'
 import Message from '../sharedComponents/Message'
@@ -26,11 +25,6 @@ export default function PasswordResetPage() {
   const [isLoading, setIsLoading] = useState(false)
   const appUser = useGlobalStore((state) => state.appUser)
   const loadingUser = useGlobalStore((state) => state.loadingUser)
-  // const authUser = useGlobalStore((state) => state.authUser)
-  // const isGoogleAuth =
-  //   !!authUser &&
-  //   !!authUser.identities &&
-  //   authUser.identities[0].provider === 'google'
 
   const navigate = useNavigate()
 
@@ -70,7 +64,6 @@ export default function PasswordResetPage() {
           'Password reset instructions have been sent to your email. Please check your inbox and spam folder.',
         )
         setEmail('')
-        // trackEvent for password reset requested could be added to analytics types
       } else {
         setError(response.error || 'Failed to send reset email')
       }
@@ -109,10 +102,6 @@ export default function PasswordResetPage() {
     },
     [password, confirmPassword, navigate],
   )
-
-  // if (isGoogleAuth) {
-  //   return <Navigate to="/" />
-  // }
 
   if (loadingUser) {
     return (
