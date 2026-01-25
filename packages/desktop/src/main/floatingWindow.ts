@@ -76,7 +76,7 @@ export function saveFloatingWindowBounds(
   bounds: FloatingWindowBounds,
   storage: { setItem: (key: string, value: string) => void },
 ): void {
-  // Stub - will be implemented
+  storage.setItem(FLOATING_WINDOW_STORAGE_KEY, JSON.stringify(bounds))
 }
 
 /**
@@ -86,7 +86,15 @@ export function saveFloatingWindowBounds(
 export function loadFloatingWindowBounds(storage: {
   getItem: (key: string) => string | null
 }): FloatingWindowBounds | null {
-  return null // Stub
+  const saved = storage.getItem(FLOATING_WINDOW_STORAGE_KEY)
+  if (!saved) {
+    return null
+  }
+  try {
+    return JSON.parse(saved) as FloatingWindowBounds
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -97,7 +105,32 @@ export function validateWindowBounds(
   bounds: FloatingWindowBounds,
   screenBounds: Rectangle,
 ): FloatingWindowBounds {
-  return bounds // Stub
+  let { x, y } = bounds
+  const { width, height } = bounds
+
+  // Ensure window is not off the left edge
+  if (x < screenBounds.x) {
+    x = screenBounds.x
+  }
+
+  // Ensure window is not off the top edge
+  if (y < screenBounds.y) {
+    y = screenBounds.y
+  }
+
+  // Ensure window is not off the right edge
+  const maxX = screenBounds.x + screenBounds.width - width
+  if (x > maxX) {
+    x = maxX
+  }
+
+  // Ensure window is not off the bottom edge
+  const maxY = screenBounds.y + screenBounds.height - height
+  if (y > maxY) {
+    y = maxY
+  }
+
+  return { x, y, width, height }
 }
 
 /**
@@ -108,5 +141,19 @@ export function getFloatingWindowOptionsWithBounds(
   savedBounds: FloatingWindowBounds | null,
   screenBounds: Rectangle,
 ): BrowserWindowConstructorOptions {
-  return getFloatingWindowOptions(preloadPath) // Stub
+  const baseOptions = getFloatingWindowOptions(preloadPath)
+
+  if (!savedBounds) {
+    return baseOptions
+  }
+
+  const validatedBounds = validateWindowBounds(savedBounds, screenBounds)
+
+  return {
+    ...baseOptions,
+    x: validatedBounds.x,
+    y: validatedBounds.y,
+    width: validatedBounds.width,
+    height: validatedBounds.height,
+  }
 }
