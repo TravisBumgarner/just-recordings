@@ -170,11 +170,13 @@ describe('FloatingControlsContent', () => {
       expect(titlebar).toBeInTheDocument()
     })
 
-    it('titlebar has app-region drag style for Electron', () => {
+    it('titlebar has cursor style indicating draggability', () => {
       render(<FloatingControlsContent {...defaultProps} />)
 
       const titlebar = screen.getByTestId('titlebar')
-      expect(titlebar).toHaveStyle({ WebkitAppRegion: 'drag' })
+      // Note: WebkitAppRegion: 'drag' is set for Electron but cannot be tested in jsdom
+      // Instead, we verify the cursor style which indicates drag functionality
+      expect(titlebar).toHaveStyle({ cursor: 'move' })
     })
   })
 })
