@@ -152,6 +152,13 @@ function Home({ recorderService, uploadManager }: HomeProps) {
     // Wizard completed, now showing home screen
   }, [])
 
+  // Auto-open settings modal on desktop when idle
+  useEffect(() => {
+    if (isSetupComplete && flowState === 'idle' && !showSettings) {
+      openSettings()
+    }
+  }, [isSetupComplete, flowState, showSettings, openSettings])
+
   // Show SetupWizard on first launch
   if (!isSetupComplete) {
     return (
@@ -199,21 +206,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
       {/* Main View */}
       {!showSettings && (
         <Box sx={{ py: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            {flowState === 'idle' && (
-              <Button
-                fullWidth
-                variant="contained"
-                color="primary"
-                size="large"
-                onClick={openSettings}
-              >
-                Start Recording
-              </Button>
-            )}
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
             <Link href={generateAbsoluteUrl('home')} target="_blank">
               View Recordings
             </Link>
