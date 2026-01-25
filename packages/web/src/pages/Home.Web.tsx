@@ -27,7 +27,7 @@ import { useRecordings } from '@/hooks/queries/useRecordings'
 import { queryKeys } from '@/lib/queryKeys'
 import PageWrapper from '@/styles/shared/PageWrapper'
 import { setRecordingState } from '../utils/electron'
-import { useRecordingFlow } from '../hooks/useRecordingFlow'
+import { useRecordingFlow, type RecordingSettings } from '../hooks/useRecordingFlow'
 import { RecordingSettingsModal } from '../components/RecordingSettingsModal'
 import { CountdownOverlay } from '../components/CountdownOverlay'
 import { RecordingControlsModal } from '../components/RecordingControlsModal'
@@ -126,11 +126,14 @@ function Home({ recorderService, uploadManager }: HomeProps) {
   const [queue, setQueue] = useState<Recording[]>([])
   const previousQueueRef = useRef<Recording[]>([])
 
-  // Handle recording saved - enqueue for upload and update tray icon
+  // Handle recording saved - enqueue for upload (if enabled) and update tray icon
   const handleRecordingSaved = useCallback(
-    async (recording: Recording) => {
+    async (recording: Recording, settings: RecordingSettings) => {
       setRecordingState(false)
-      await uploadManager.enqueue(recording)
+      // Only enqueue for upload if auto-upload is enabled (defaults to true)
+      if (settings.autoUpload !== false) {
+        await uploadManager.enqueue(recording)
+      }
     },
     [uploadManager],
   )

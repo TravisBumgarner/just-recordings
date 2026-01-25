@@ -136,6 +136,7 @@ describe('RecordingSettingsModal', () => {
         includeSystemAudio: true,
         includeMicrophone: true,
         includeWebcam: false,
+        autoUpload: true,
       })
     })
   })

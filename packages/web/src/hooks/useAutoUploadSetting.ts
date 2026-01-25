@@ -9,12 +9,14 @@ export interface UseAutoUploadSettingReturn {
 
 export function useAutoUploadSetting(): UseAutoUploadSettingReturn {
   const [autoUploadEnabled, setAutoUploadEnabledState] = useState(() => {
-    // TODO: implement - default to true
-    return true
+    const stored = localStorage.getItem(AUTO_UPLOAD_KEY)
+    // Default to true if no value is stored
+    return stored === null ? true : stored === 'true'
   })
 
   const setAutoUploadEnabled = useCallback((enabled: boolean) => {
-    // TODO: implement - persist to localStorage
+    localStorage.setItem(AUTO_UPLOAD_KEY, enabled ? 'true' : 'false')
+    setAutoUploadEnabledState(enabled)
   }, [])
 
   return {

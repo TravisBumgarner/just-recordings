@@ -55,7 +55,7 @@ tasks:
       - Setting label is clear - Auto-upload after recording
     github_issue: 260
     milestone: 1
-    status: testing
+    status: implementing
     depends_on: []
 
   # Feature 3: Taskbar Countdown (most complex, broken into subtasks)

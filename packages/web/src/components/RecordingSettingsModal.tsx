@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Box, Button, Checkbox, FormControlLabel, Typography } from '@mui/material'
 import type { RecordingSettings } from '../hooks/useRecordingFlow'
+import { useAutoUploadSetting } from '../hooks/useAutoUploadSetting'
 
 export interface RecordingSettingsModalProps {
   open: boolean
@@ -16,6 +17,7 @@ export function RecordingSettingsModal({
   const [includeSystemAudio, setIncludeSystemAudio] = useState(false)
   const [includeMicrophone, setIncludeMicrophone] = useState(false)
   const [includeWebcam, setIncludeWebcam] = useState(false)
+  const { autoUploadEnabled, setAutoUploadEnabled } = useAutoUploadSetting()
 
   if (!open) return null
 
@@ -24,6 +26,7 @@ export function RecordingSettingsModal({
       includeSystemAudio,
       includeMicrophone,
       includeWebcam,
+      autoUpload: autoUploadEnabled,
     })
   }
 
@@ -64,6 +67,18 @@ export function RecordingSettingsModal({
             />
           }
           label="Include webcam"
+        />
+      </Box>
+
+      <Box sx={{ my: 2 }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={autoUploadEnabled}
+              onChange={(e) => setAutoUploadEnabled(e.target.checked)}
+            />
+          }
+          label="Auto-upload after recording"
         />
       </Box>
 

@@ -8,13 +8,14 @@ export interface RecordingSettings {
   includeSystemAudio: boolean
   includeMicrophone: boolean
   includeWebcam: boolean
+  autoUpload?: boolean
 }
 
 export interface UseRecordingFlowOptions {
   /** RecorderService instance to use. If not provided, a new instance will be created. */
   recorderService?: RecorderService
   /** Callback when a recording is saved and ready for upload */
-  onRecordingSaved?: (recording: Recording) => void
+  onRecordingSaved?: (recording: Recording, settings: RecordingSettings) => void
 }
 
 export interface UseRecordingFlowReturn {
@@ -119,10 +120,12 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
   const stop = useCallback(async () => {
     setFlowState('saving')
     const recording = await recorderServiceRef.current.stopRecording()
-    optionsRef.current.onRecordingSaved?.(recording)
+    if (currentSettings) {
+      optionsRef.current.onRecordingSaved?.(recording, currentSettings)
+    }
     setCurrentSettings(null)
     setFlowState('idle')
-  }, [])
+  }, [currentSettings])
 
   const cancel = useCallback(() => {
     // Release any acquired screen stream that hasn't been used
