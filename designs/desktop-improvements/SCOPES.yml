@@ -113,5 +113,5 @@ tasks:
       - Only sends messages when running in Electron (check window.electron exists)
     github_issue: 264
     milestone: 1
-    status: implementing
+    status: completed
     depends_on: [3]
