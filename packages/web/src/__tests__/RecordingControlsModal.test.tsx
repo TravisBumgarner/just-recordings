@@ -62,7 +62,7 @@ describe('RecordingControlsModal', () => {
   })
 
   describe('control buttons', () => {
-    it('renders stop button', () => {
+    it('renders stop button with icon', () => {
       render(<RecordingControlsModal {...defaultProps} />)
 
       expect(screen.getByRole('button', { name: /stop/i })).toBeInTheDocument()

@@ -102,6 +102,44 @@ describe('FloatingControlsContent', () => {
     })
   })
 
+  describe('restart button', () => {
+    it('renders restart button', () => {
+      render(<FloatingControlsContent {...defaultProps} />)
+
+      expect(screen.getByRole('button', { name: /restart/i })).toBeInTheDocument()
+    })
+
+    it('shows confirmation dialog when restart button is clicked', () => {
+      render(<FloatingControlsContent {...defaultProps} />)
+
+      fireEvent.click(screen.getByRole('button', { name: /restart/i }))
+
+      expect(screen.getByTestId('confirmation-dialog')).toBeInTheDocument()
+      expect(screen.getByText(/discard/i)).toBeInTheDocument()
+    })
+
+    it('calls onAction with restart when restart is confirmed', () => {
+      const onAction = vi.fn()
+
+      render(<FloatingControlsContent {...defaultProps} onAction={onAction} />)
+      fireEvent.click(screen.getByRole('button', { name: /restart/i }))
+      fireEvent.click(screen.getByRole('button', { name: /confirm/i }))
+
+      expect(onAction).toHaveBeenCalledWith('restart')
+    })
+
+    it('does not call onAction when restart confirmation is cancelled', () => {
+      const onAction = vi.fn()
+
+      render(<FloatingControlsContent {...defaultProps} onAction={onAction} />)
+      fireEvent.click(screen.getByRole('button', { name: /restart/i }))
+      fireEvent.click(screen.getByRole('button', { name: /go back/i }))
+
+      expect(onAction).not.toHaveBeenCalled()
+      expect(screen.queryByTestId('confirmation-dialog')).not.toBeInTheDocument()
+    })
+  })
+
   describe('cancel button', () => {
     it('renders cancel button', () => {
       render(<FloatingControlsContent {...defaultProps} />)
