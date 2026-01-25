@@ -1,4 +1,9 @@
 export const ROUTES = {
+  downloads: {
+    key: 'downloads',
+    href: () => '/downloads',
+    label: 'Downloads',
+  },
   privacy: {
     key: 'privacy',
     href: () => '/privacy',
@@ -82,3 +87,14 @@ export const ROUTES = {
 }
 
 export const PAGINATION_SIZE = 10
+
+export const APP_VERSION = '0.0.2'
+
+// GitHub release download URLs using the "latest" pattern for stable links
+const GITHUB_RELEASE_BASE = 'https://github.com/TravisBumgarner/just-recordings/releases/latest/download'
+
+export const EXTERNAL_LINKS = {
+  windows: `${GITHUB_RELEASE_BASE}/Just-Recordings-win32-x64-setup.exe`,
+  mac: `${GITHUB_RELEASE_BASE}/Just-Recordings-darwin.dmg`,
+  linux: `${GITHUB_RELEASE_BASE}/just-recordings_${APP_VERSION}_amd64.deb`,
+}

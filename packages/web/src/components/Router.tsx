@@ -12,6 +12,7 @@ const TermsOfService = lazy(async () => await import('../pages/TermsOfService'))
 const PrivacyPolicy = lazy(async () => await import('../pages/PrivacyPolicy'))
 const ReleaseNotes = lazy(async () => await import('../pages/ReleaseNotes'))
 const Feedback = lazy(async () => await import('../pages/Feedback'))
+const Downloads = lazy(async () => await import('../pages/Downloads'))
 const Login = lazy(async () => await import('../pages/Login'))
 const Error500 = lazy(async () => await import('../pages/Error500'))
 const Error404 = lazy(async () => await import('../pages/Error404'))
@@ -104,6 +105,7 @@ const Router = ({ isElectron }: { isElectron: boolean }) => {
         <Route path={ROUTES.privacy.href()} element={<PrivacyPolicy />} />
         <Route path={ROUTES.releaseNotes.href()} element={<ReleaseNotes />} />
         <Route path={ROUTES.feedback.href()} element={<Feedback />} />
+        <Route path={ROUTES.downloads.href()} element={<Downloads />} />
 
         <Route path={ROUTES.passwordReset.href()} element={<PasswordReset />} />
 

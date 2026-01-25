@@ -74,7 +74,7 @@ function LandingPage() {
           )}
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 2 }}>
           <Button
             component={RouterLink}
             to={ROUTES.signup.href()}
@@ -90,10 +90,25 @@ function LandingPage() {
           >
             Get started free
           </Button>
-          <Typography variant="body2" color="text.secondary">
-            Free during beta
-          </Typography>
+          <Button
+            component={RouterLink}
+            to={ROUTES.downloads.href()}
+            variant="outlined"
+            size="large"
+            sx={{
+              px: 4,
+              py: 1.5,
+              fontSize: '1rem',
+              textTransform: 'none',
+              borderRadius: 1,
+            }}
+          >
+            Download desktop app
+          </Button>
         </Box>
+        <Typography variant="body2" color="text.secondary">
+          Free during beta
+        </Typography>
       </Container>
     </Box>
   )

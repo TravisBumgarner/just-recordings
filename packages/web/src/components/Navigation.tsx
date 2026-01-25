@@ -13,9 +13,9 @@ import { BORDER_RADIUS } from '../styles/styleConsts'
 
 type Items = (keyof typeof ROUTES | 'divider')[]
 
-export const USER_ROUTES: Items = ['home', 'settings', 'logout']
+export const USER_ROUTES: Items = ['home', 'downloads', 'settings', 'logout']
 
-export const ANON_ROUTES: Items = ['home', 'login', 'signup']
+export const ANON_ROUTES: Items = ['home', 'downloads', 'login', 'signup']
 
 const DropdownLinks = ({ onClose }: { onClose: () => void }) => {
   const appUser = useGlobalStore((state) => state.appUser)
