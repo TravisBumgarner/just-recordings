@@ -5,6 +5,12 @@ import Home from '../pages/Home.Desktop'
 
 // Create mock recorder service
 const createMockRecorderService = () => ({
+  acquireScreen: vi.fn(() =>
+    Promise.resolve({
+      stream: { getTracks: () => [] },
+      release: vi.fn(),
+    }),
+  ),
   startScreenRecording: vi.fn(() => Promise.resolve()),
   stopRecording: vi.fn(() =>
     Promise.resolve({

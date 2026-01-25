@@ -1,5 +1,5 @@
 import { RecorderDatabase } from './db'
-import type { RecorderState, Recording, RecordingOptions } from './types'
+import type { AcquiredScreen, AcquireScreenOptions, RecorderState, Recording, RecordingOptions } from './types'
 
 const DEFAULT_MIME_TYPE = 'video/webm'
 const TIMESLICE_MS = 1000
@@ -37,6 +37,40 @@ export class RecorderService {
     this.listeners.forEach((callback) => callback(newState))
   }
 
+  /**
+   * Acquire a screen stream without starting recording.
+   * Use this to show screen picker before countdown.
+   * Returns the stream and a release function to clean up if recording is cancelled.
+   */
+  async acquireScreen(options?: AcquireScreenOptions): Promise<AcquiredScreen> {
+    const includeSystemAudio = options?.includeSystemAudio ?? false
+    let stream: MediaStream
+
+    try {
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: includeSystemAudio,
+      })
+    } catch {
+      // If system audio request fails, retry without audio
+      if (includeSystemAudio) {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false,
+        })
+      } else {
+        throw new Error('Failed to get display media')
+      }
+    }
+
+    return {
+      stream,
+      release: () => {
+        stream.getTracks().forEach((track) => track.stop())
+      },
+    }
+  }
+
   async startScreenRecording(options?: RecordingOptions): Promise<void> {
     // Determine mime type
     this.mimeType = options?.mimeType || DEFAULT_MIME_TYPE
@@ -44,22 +78,27 @@ export class RecorderService {
       this.mimeType = DEFAULT_MIME_TYPE
     }
 
-    // Get display media stream with optional system audio
-    const includeSystemAudio = options?.includeSystemAudio ?? false
-    try {
-      this.mediaStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: includeSystemAudio,
-      })
-    } catch {
-      // If system audio request fails, retry without audio
-      if (includeSystemAudio) {
+    // Use pre-acquired screen stream or get a new one
+    if (options?.screenStream) {
+      this.mediaStream = options.screenStream
+    } else {
+      // Get display media stream with optional system audio (backward compatibility)
+      const includeSystemAudio = options?.includeSystemAudio ?? false
+      try {
         this.mediaStream = await navigator.mediaDevices.getDisplayMedia({
           video: true,
-          audio: false,
+          audio: includeSystemAudio,
         })
-      } else {
-        throw new Error('Failed to get display media')
+      } catch {
+        // If system audio request fails, retry without audio
+        if (includeSystemAudio) {
+          this.mediaStream = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: false,
+          })
+        } else {
+          throw new Error('Failed to get display media')
+        }
       }
     }
 

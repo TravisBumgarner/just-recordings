@@ -27,4 +27,17 @@ export interface RecordingOptions {
   includeMicrophone?: boolean
   /** Include webcam video */
   includeWebcam?: boolean
+  /** Pre-acquired screen stream (for screen selection before countdown) */
+  screenStream?: MediaStream
+}
+
+export interface AcquireScreenOptions {
+  /** Include system/tab audio from screen share */
+  includeSystemAudio?: boolean
+}
+
+export interface AcquiredScreen {
+  stream: MediaStream
+  /** Release the stream without starting a recording */
+  release: () => void
 }
