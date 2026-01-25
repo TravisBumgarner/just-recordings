@@ -1,5 +1,4 @@
 import type { NextFunction, Request, Response } from 'express'
-import { db } from '../db/index.js'
 import { getOrCreateUserByAuth, getUserByAuthId } from '../db/queries/users.js'
 import { supabase } from '../lib/supabase.js'
 
