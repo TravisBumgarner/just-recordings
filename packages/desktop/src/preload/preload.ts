@@ -9,6 +9,12 @@ const FLOATING_WINDOW_CHANNELS = {
   CONTROL_ACTION: 'floating-control-action',
 } as const
 
+const COUNTDOWN_CHANNELS = {
+  START: 'countdown:start',
+  TICK: 'countdown:tick',
+  END: 'countdown:end',
+} as const
+
 // Type definitions for floating window communication
 interface RecordingState {
   status: 'recording' | 'paused'
@@ -17,6 +23,12 @@ interface RecordingState {
 }
 
 type FloatingControlAction = 'stop' | 'pause' | 'resume' | 'cancel'
+
+// Type definitions for countdown communication
+interface CountdownState {
+  totalSeconds: number
+  secondsRemaining: number
+}
 
 // Custom APIs for renderer
 const api = {
@@ -70,6 +82,17 @@ const api = {
     return () => {
       ipcRenderer.removeListener(FLOATING_WINDOW_CHANNELS.CONTROL_ACTION, handler)
     }
+  },
+
+  // Countdown APIs
+  countdownStart: (state: CountdownState) => {
+    ipcRenderer.send(COUNTDOWN_CHANNELS.START, state)
+  },
+  countdownTick: (state: CountdownState) => {
+    ipcRenderer.send(COUNTDOWN_CHANNELS.TICK, state)
+  },
+  countdownEnd: () => {
+    ipcRenderer.send(COUNTDOWN_CHANNELS.END)
   },
 }
 
