@@ -61,7 +61,7 @@ tasks:
       - Tests updated to reflect new chunk size behavior
     github_issue: 282
     milestone: 1
-    status: scoped
+    status: completed
     depends_on: []
 
   - id: 3

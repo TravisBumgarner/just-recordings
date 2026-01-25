@@ -28,6 +28,19 @@ describe('chunkBlob', () => {
     expect(chunks).toEqual([])
   })
 
+  it('uses default chunk size of at least 5MB for Cloudinary compatibility', () => {
+    // Cloudinary requires all parts except EOF-chunk to be >= 5MB
+    // Create a blob that's 12MB to ensure we test the default chunking
+    const data = 'a'.repeat(12 * 1024 * 1024) // 12MB
+    const blob = new Blob([data])
+    const chunks = chunkBlob(blob) // Uses default chunk size
+
+    // With 12MB and 6MB default chunks, we should get 2 chunks
+    expect(chunks.length).toBe(2)
+    // First chunk should be at least 5MB (Cloudinary minimum)
+    expect(chunks[0].size).toBeGreaterThanOrEqual(5 * 1024 * 1024)
+  })
+
   it('returns single chunk for blob smaller than chunk size', () => {
     const data = 'small data'
     const blob = new Blob([data])
