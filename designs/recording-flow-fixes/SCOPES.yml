@@ -188,5 +188,5 @@ tasks:
       - Setting continues to persist to localStorage
     github_issue: 279
     milestone: 1
-    status: implementing
+    status: completed
     depends_on: []
