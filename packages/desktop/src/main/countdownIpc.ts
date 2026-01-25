@@ -21,10 +21,10 @@ export interface CountdownState {
  * Creates a CountdownState object with default values
  */
 export function createCountdownState(overrides: Partial<CountdownState> = {}): CountdownState {
-  // TODO: implement
   return {
     totalSeconds: 3,
     secondsRemaining: 3,
+    ...overrides,
   }
 }
 
@@ -32,6 +32,9 @@ export function createCountdownState(overrides: Partial<CountdownState> = {}): C
  * Validates that a value is a valid CountdownState
  */
 export function isValidCountdownState(state: unknown): state is CountdownState {
-  // TODO: implement
-  return false
+  if (state === null || state === undefined || typeof state !== 'object') {
+    return false
+  }
+  const obj = state as Record<string, unknown>
+  return typeof obj.totalSeconds === 'number' && typeof obj.secondsRemaining === 'number'
 }

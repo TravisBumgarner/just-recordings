@@ -16,6 +16,7 @@ import {
   getFloatingWindowOptions,
   getFloatingWindowUrl,
 } from './floatingWindow'
+import { COUNTDOWN_CHANNELS, type CountdownState } from './countdownIpc'
 import {
   FLOATING_WINDOW_CHANNELS,
   type FloatingControlAction,
@@ -249,6 +250,21 @@ app.whenReady().then(() => {
       }
     },
   )
+
+  // Countdown IPC handlers
+  // These receive countdown state from renderer and will be used by Task 4
+  // to show progress in taskbar (Windows) or dock badge (macOS)
+  ipcMain.on(COUNTDOWN_CHANNELS.START, (_event, _state: CountdownState) => {
+    // Task 4 will implement: show initial progress in taskbar/dock
+  })
+
+  ipcMain.on(COUNTDOWN_CHANNELS.TICK, (_event, _state: CountdownState) => {
+    // Task 4 will implement: update progress in taskbar/dock
+  })
+
+  ipcMain.on(COUNTDOWN_CHANNELS.END, () => {
+    // Task 4 will implement: clear progress from taskbar/dock
+  })
 
   // Set up display media request handler for screen capture
   session.defaultSession.setDisplayMediaRequestHandler(async (_request, callback) => {

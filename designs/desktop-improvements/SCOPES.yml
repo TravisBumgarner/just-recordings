@@ -71,7 +71,7 @@ tasks:
       - IPC messages flow correctly from renderer to main
     github_issue: 261
     milestone: 1
-    status: testing
+    status: implementing
     depends_on: []
 
   - id: 4
