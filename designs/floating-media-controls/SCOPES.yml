@@ -99,7 +99,7 @@ tasks:
       - Custom titlebar area enables window dragging
     depends_on: [3]
     effort: 2
-    status: scoped
+    status: testing
 
   - id: 5
     github_issue: 240
