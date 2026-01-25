@@ -1,0 +1,154 @@
+project: Floating Media Controls
+repo: TravisBumgarner/just-recordings
+design_file: designs/floating-media-controls/DESIGN.md
+scoping_date: 2026-01-24
+
+milestones:
+  - number: 1
+    title: "1. Floating Window Infrastructure"
+    description: Create the Electron BrowserWindow for floating controls and set up IPC communication
+    branch:
+      working: floating-window-infrastructure
+      base: main
+
+  - number: 2
+    title: "2. Floating Controls UI"
+    description: Create the FloatingControls page and content components
+    branch:
+      working: floating-controls-ui
+      base: main
+
+  - number: 3
+    title: "3. Webcam Preview and Polish"
+    description: Add webcam preview to floating window and implement position persistence
+    branch:
+      working: floating-webcam-preview
+      base: main
+
+tasks:
+  # Milestone 1: Floating Window Infrastructure
+  - id: 1
+    github_issue: 236
+    milestone: 1
+    title: Create floating BrowserWindow for recording controls
+    description: |
+      Create a new Electron BrowserWindow that will host the floating recording controls.
+      The window should be always on top, frameless, resizable, and hidden from taskbar.
+      It will load a dedicated route (/floating-controls) from the web app.
+    acceptance_criteria:
+      - createFloatingControlsWindow() function creates BrowserWindow with correct options
+      - Window loads /floating-controls route (dev and production)
+      - Window is alwaysOnTop: true and skipTaskbar: true
+      - Window is frameless (frame: false) and transparent
+      - Window has default size (~300x200) and minimum size (~200x150)
+    depends_on: []
+    effort: 2
+    status: testing
+
+  - id: 2
+    github_issue: 237
+    milestone: 1
+    title: Set up IPC channels for floating window communication
+    description: |
+      Establish bidirectional IPC communication between main window and floating controls:
+      - Main → Floating: Recording state updates (state, elapsed time, webcam enabled)
+      - Floating → Main: Control actions (stop, pause, resume, cancel)
+      - Main process: Show/hide floating window commands
+    acceptance_criteria:
+      - show-floating-controls IPC handler shows the floating window
+      - hide-floating-controls IPC handler hides the floating window
+      - update-recording-state sends state to floating window
+      - floating-control-action forwards actions from floating to main window
+      - Preload script exposes necessary API methods
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  # Milestone 2: Floating Controls UI
+  - id: 3
+    github_issue: 238
+    milestone: 2
+    title: Create FloatingControls page and route
+    description: |
+      Create a new React page rendered in the floating window with its own route.
+      The page listens for recording state updates via IPC and renders
+      FloatingControlsContent, sending control actions back to the main window.
+    acceptance_criteria:
+      - /floating-controls route exists in the router
+      - FloatingControls.tsx page component created
+      - Page listens for onRecordingStateUpdate IPC events
+      - Page maintains local state for recording status, elapsed time, webcam enabled
+      - Control actions dispatch via sendFloatingControlAction IPC
+    depends_on: [2]
+    effort: 2
+    status: scoped
+
+  - id: 4
+    github_issue: 239
+    milestone: 2
+    title: Create FloatingControlsContent component
+    description: |
+      Create the UI component that renders inside the floating window displaying:
+      recording state indicator, elapsed time timer, control buttons (Pause/Resume,
+      Stop, Cancel), and custom titlebar area for dragging.
+    acceptance_criteria:
+      - Component displays recording state (recording vs paused indicator)
+      - Component shows elapsed time in MM:SS format
+      - Pause/Resume button toggles based on state
+      - Stop and Cancel buttons work with confirmation for Cancel
+      - Custom titlebar area enables window dragging
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 5
+    github_issue: 240
+    milestone: 2
+    title: Integrate floating window with recording flow
+    description: |
+      Wire up the floating window to useRecordingFlow. When recording starts
+      on desktop, the floating window should appear. When recording stops,
+      it should hide. State should sync continuously.
+    acceptance_criteria:
+      - Floating window shows when flowState transitions to 'recording' (desktop only)
+      - Floating window hides when recording stops/cancels
+      - Recording state (recording/paused) syncs to floating window
+      - Actions from floating window (stop/pause/resume/cancel) work correctly
+    depends_on: [2, 4]
+    effort: 2
+    status: scoped
+
+  # Milestone 3: Webcam Preview and Polish
+  - id: 6
+    github_issue: 241
+    milestone: 3
+    title: Add webcam preview to floating controls
+    description: |
+      When webcam is enabled in recording settings, display a live preview
+      of the webcam feed in the floating controls window. The floating window
+      requests its own webcam stream for preview.
+    acceptance_criteria:
+      - Webcam preview section visible when webcamEnabled is true
+      - Preview uses video element with autoplay, muted, playsInline
+      - Floating window requests its own webcam stream for preview
+      - Video scales to fill available width maintaining aspect ratio
+      - Stream properly cleaned up when window hides or closes
+    depends_on: [4]
+    effort: 2
+    status: scoped
+
+  - id: 7
+    github_issue: 242
+    milestone: 3
+    title: Persist floating window position and size
+    description: |
+      Remember the user's preferred position and size for the floating controls
+      window between recordings and app sessions using localStorage or electron-store.
+    acceptance_criteria:
+      - Window position (x, y) is saved when moved
+      - Window size (width, height) is saved when resized
+      - Saved position/size is restored when window is created
+      - Handles edge case of saved position being off-screen
+    depends_on: [1]
+    effort: 1
+    status: scoped
