@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('../utils/electron', () => ({
   setRecordingState: vi.fn(),
   isElectron: vi.fn(() => false),
+  isElectronCheck: vi.fn(() => false),
   countdownStart: vi.fn(),
   countdownTick: vi.fn(),
   countdownEnd: vi.fn(),
@@ -164,9 +165,9 @@ describe('Home - Recording Flow Integration', () => {
       // Open settings
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
 
-      // Select options
-      fireEvent.click(screen.getByRole('checkbox', { name: /system audio/i }))
-      fireEvent.click(screen.getByRole('checkbox', { name: /microphone/i }))
+      // Select options (icon buttons)
+      fireEvent.click(screen.getByTestId('system-audio-toggle'))
+      fireEvent.click(screen.getByTestId('microphone-toggle'))
 
       // Start recording
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))

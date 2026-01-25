@@ -12,6 +12,14 @@ vi.mock('@just-recordings/recorder', async () => {
   }
 })
 
+// Mock electron utils
+vi.mock('../utils/electron', () => ({
+  isElectronCheck: vi.fn(() => false),
+}))
+
+// Mock navigator.mediaDevices.enumerateDevices
+const mockEnumerateDevices = vi.fn()
+
 describe('RecordingSettingsModal', () => {
   const mockOnClose = vi.fn()
   const mockOnStartRecording = vi.fn()
@@ -38,14 +46,33 @@ describe('RecordingSettingsModal', () => {
     ;(PermissionService as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       () => mockPermissionService,
     )
+
+    // Setup mock for enumerateDevices
+    mockEnumerateDevices.mockResolvedValue([
+      { kind: 'audioinput', deviceId: 'mic-1', label: 'Built-in Microphone' },
+      { kind: 'videoinput', deviceId: 'cam-1', label: 'Built-in Webcam' },
+    ])
+
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: {
+        enumerateDevices: mockEnumerateDevices,
+        getUserMedia: vi.fn().mockResolvedValue({
+          getTracks: () => [{ stop: vi.fn() }],
+          getAudioTracks: () => [{ stop: vi.fn() }],
+          getVideoTracks: () => [{ stop: vi.fn() }],
+        }),
+      },
+      writable: true,
+      configurable: true,
+    })
   })
 
   afterEach(() => {
     localStorage.clear()
   })
 
-  describe('checkbox rendering', () => {
-    it('renders with three checkboxes for audio/video sources', async () => {
+  describe('icon button rendering', () => {
+    it('renders with three icon buttons for audio/video sources', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -55,15 +82,15 @@ describe('RecordingSettingsModal', () => {
       )
 
       await waitFor(() => {
-        expect(screen.getByRole('checkbox', { name: /system audio/i })).toBeInTheDocument()
-        expect(screen.getByRole('checkbox', { name: /microphone/i })).toBeInTheDocument()
-        expect(screen.getByRole('checkbox', { name: /webcam/i })).toBeInTheDocument()
+        expect(screen.getByTestId('system-audio-toggle')).toBeInTheDocument()
+        expect(screen.getByTestId('microphone-toggle')).toBeInTheDocument()
+        expect(screen.getByTestId('webcam-toggle')).toBeInTheDocument()
       })
     })
   })
 
-  describe('checkbox toggleability', () => {
-    it('system audio checkbox is independently toggleable', async () => {
+  describe('icon button toggleability', () => {
+    it('system audio icon button is independently toggleable', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -72,17 +99,21 @@ describe('RecordingSettingsModal', () => {
         />,
       )
 
-      const systemAudioCheckbox = screen.getByRole('checkbox', { name: /system audio/i })
-      expect(systemAudioCheckbox).not.toBeChecked()
+      await waitFor(() => {
+        expect(screen.getByTestId('system-audio-toggle')).toBeInTheDocument()
+      })
 
-      fireEvent.click(systemAudioCheckbox)
-      expect(systemAudioCheckbox).toBeChecked()
+      const systemAudioButton = screen.getByTestId('system-audio-toggle')
+      expect(systemAudioButton).toHaveAttribute('aria-pressed', 'false')
 
-      fireEvent.click(systemAudioCheckbox)
-      expect(systemAudioCheckbox).not.toBeChecked()
+      fireEvent.click(systemAudioButton)
+      expect(systemAudioButton).toHaveAttribute('aria-pressed', 'true')
+
+      fireEvent.click(systemAudioButton)
+      expect(systemAudioButton).toHaveAttribute('aria-pressed', 'false')
     })
 
-    it('microphone checkbox is independently toggleable', async () => {
+    it('microphone icon button is independently toggleable', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -91,14 +122,18 @@ describe('RecordingSettingsModal', () => {
         />,
       )
 
-      const microphoneCheckbox = screen.getByRole('checkbox', { name: /microphone/i })
-      expect(microphoneCheckbox).not.toBeChecked()
+      await waitFor(() => {
+        expect(screen.getByTestId('microphone-toggle')).toBeInTheDocument()
+      })
 
-      fireEvent.click(microphoneCheckbox)
-      expect(microphoneCheckbox).toBeChecked()
+      const microphoneButton = screen.getByTestId('microphone-toggle')
+      expect(microphoneButton).toHaveAttribute('aria-pressed', 'false')
+
+      fireEvent.click(microphoneButton)
+      expect(microphoneButton).toHaveAttribute('aria-pressed', 'true')
     })
 
-    it('webcam checkbox is independently toggleable', async () => {
+    it('webcam icon button is independently toggleable', async () => {
       render(
         <RecordingSettingsModal
           open={true}
@@ -107,11 +142,15 @@ describe('RecordingSettingsModal', () => {
         />,
       )
 
-      const webcamCheckbox = screen.getByRole('checkbox', { name: /webcam/i })
-      expect(webcamCheckbox).not.toBeChecked()
+      await waitFor(() => {
+        expect(screen.getByTestId('webcam-toggle')).toBeInTheDocument()
+      })
 
-      fireEvent.click(webcamCheckbox)
-      expect(webcamCheckbox).toBeChecked()
+      const webcamButton = screen.getByTestId('webcam-toggle')
+      expect(webcamButton).toHaveAttribute('aria-pressed', 'false')
+
+      fireEvent.click(webcamButton)
+      expect(webcamButton).toHaveAttribute('aria-pressed', 'true')
     })
   })
 
@@ -125,18 +164,26 @@ describe('RecordingSettingsModal', () => {
         />,
       )
 
+      await waitFor(() => {
+        expect(screen.getByTestId('system-audio-toggle')).toBeInTheDocument()
+      })
+
       // Toggle on system audio and microphone
-      fireEvent.click(screen.getByRole('checkbox', { name: /system audio/i }))
-      fireEvent.click(screen.getByRole('checkbox', { name: /microphone/i }))
+      fireEvent.click(screen.getByTestId('system-audio-toggle'))
+      fireEvent.click(screen.getByTestId('microphone-toggle'))
 
       // Click start
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }))
 
-      expect(mockOnStartRecording).toHaveBeenCalledWith({
-        includeSystemAudio: true,
-        includeMicrophone: true,
-        includeWebcam: false,
-        autoUpload: true,
+      await waitFor(() => {
+        expect(mockOnStartRecording).toHaveBeenCalledWith(
+          expect.objectContaining({
+            includeSystemAudio: true,
+            includeMicrophone: true,
+            includeWebcam: false,
+            autoUpload: true,
+          }),
+        )
       })
     })
   })

@@ -9,6 +9,8 @@ export interface RecordingSettings {
   includeMicrophone: boolean
   includeWebcam: boolean
   autoUpload?: boolean
+  microphoneDeviceId?: string
+  webcamDeviceId?: string
 }
 
 export interface UseRecordingFlowOptions {

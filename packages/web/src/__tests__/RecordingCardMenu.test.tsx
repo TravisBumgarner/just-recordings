@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('../utils/electron', () => ({
   setRecordingState: vi.fn(),
   isElectron: vi.fn(() => false),
+  isElectronCheck: vi.fn(() => false),
   countdownStart: vi.fn(),
   countdownTick: vi.fn(),
   countdownEnd: vi.fn(),
