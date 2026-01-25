@@ -1,0 +1,146 @@
+project: UI Polish & Recording Management
+repo: TravisBumgarner/just-recordings
+scoping_date: 2026-01-25
+
+milestones:
+  - id: 1
+    title: UI Polish & Recording Management
+    description: Unify recording controls UI, fix upload chunk size, add recording rename and thumbnail dropdown menu
+    base_branch: main
+    github_milestone: 42
+
+tasks:
+  - id: 1
+    title: Unify recording controls with icon buttons (web and desktop)
+    description: |
+      Unify the recording control buttons between web (RecordingControlsModal) and desktop
+      (FloatingControlsContent) to use the same icon-based UI. Both should have: Stop,
+      Pause/Resume, Restart, and Cancel buttons using react-icons.
+
+      Currently:
+      - Desktop FloatingControlsContent: Uses icon buttons (FaStop, FaPause, FaPlay, FaTimes)
+        but is missing Restart
+      - Web RecordingControlsModal: Uses text-based buttons with full words
+
+      Update RecordingControlsModal to use the same icon-button pattern as FloatingControlsContent,
+      and add a Restart button to FloatingControlsContent.
+
+      Files to modify:
+      - packages/web/src/components/RecordingControlsModal.tsx
+      - packages/web/src/components/FloatingControlsContent.tsx
+      - packages/web/src/__tests__/RecordingControlsModal.test.tsx
+      - packages/web/src/__tests__/FloatingControlsContent.test.tsx
+    acceptance_criteria:
+      - RecordingControlsModal uses IconButton components with react-icons (FaStop, FaPause, FaPlay, FaRedo, FaTimes)
+      - FloatingControlsContent includes a Restart button with FaRedo icon
+      - Both components have tooltips on buttons showing the action name
+      - Confirmation dialogs for Restart and Cancel work on both platforms
+    github_issue: 281
+    milestone: 1
+    status: completed
+    depends_on: []
+
+  - id: 2
+    title: Fix upload chunk size to meet Cloudinary 5MB minimum
+    description: |
+      Fix the "All parts except EOF-chunk must be larger than 5mb" error from Cloudinary
+      uploads by increasing the chunk size from 1MB to 6MB.
+
+      Current issue:
+      - chunkBlob.ts uses DEFAULT_CHUNK_SIZE = 1MB
+      - CloudinaryUploader.ts uses CLOUDINARY_CHUNK_SIZE = 6MB for uploads
+      - The mismatch causes non-final chunks to be under 5MB, violating Cloudinary's
+        chunked upload requirements
+
+      Fix: Update DEFAULT_CHUNK_SIZE in chunkBlob.ts to 6MB (6 * 1024 * 1024).
+
+      Files to modify:
+      - packages/recorder/src/uploader/chunkBlob.ts
+    acceptance_criteria:
+      - DEFAULT_CHUNK_SIZE in chunkBlob.ts is increased to 6MB (6 * 1024 * 1024)
+      - Tests updated to reflect new chunk size behavior
+    github_issue: 282
+    milestone: 1
+    status: scoped
+    depends_on: []
+
+  - id: 3
+    title: Add PATCH endpoint to update recording name
+    description: |
+      Create API endpoint to allow the recording owner to rename their recording.
+
+      Add PATCH /api/recordings/:id endpoint that:
+      - Accepts { name: string } in request body
+      - Validates user owns the recording
+      - Updates only the name field
+      - Returns the updated recording
+
+      Files to create/modify:
+      - packages/api/src/routes/recordings/update.ts (new)
+      - packages/api/src/routes/recordings/index.ts (add route)
+      - packages/api/src/db/queries/recordings.ts (add updateRecording query)
+      - packages/shared/src/api/recordings.ts (add UpdateRecordingRequest type)
+    acceptance_criteria:
+      - PATCH /api/recordings/:id endpoint accepts { name: string }
+      - Endpoint returns 403 if user doesn't own the recording
+      - Endpoint returns 404 if recording doesn't exist
+      - Endpoint returns updated recording on success
+      - Shared types exported for request/response
+    github_issue: 283
+    milestone: 1
+    status: scoped
+    depends_on: []
+
+  - id: 4
+    title: Add recording rename UI to RecordingViewer
+    description: |
+      Add inline editing capability to the recording title in RecordingViewer.
+
+      When user clicks an edit button next to the title:
+      - Title becomes an editable text input
+      - Save/Cancel buttons appear (or use Enter/Escape keyboard shortcuts)
+      - On save, call the PATCH endpoint and update React Query cache
+      - On cancel, revert to original title
+
+      Files to create/modify:
+      - packages/web/src/hooks/mutations/useUpdateRecording.ts (new)
+      - packages/web/src/api/recordings.ts (add updateRecording function)
+      - packages/web/src/pages/RecordingViewer.tsx
+    acceptance_criteria:
+      - Edit button (pencil icon) appears next to recording title
+      - Clicking edit shows inline text input with current name
+      - Enter key or Save button saves the new name
+      - Escape key or Cancel button reverts changes
+      - Loading state shown during save
+      - React Query cache updated optimistically
+    github_issue: 283
+    milestone: 1
+    status: scoped
+    depends_on: [3]
+
+  - id: 5
+    title: Add dropdown menu to recording thumbnail cards
+    description: |
+      Add a dropdown menu (three-dot/kebab menu) to RecordingCard in Home.Web.tsx with
+      quick actions: Share, Edit Title, Delete.
+
+      Implementation:
+      - Add IconButton with MoreVert icon in card header area
+      - Use MUI Menu component for dropdown
+      - Share: Opens share modal via activeModalSignal
+      - Edit Title: Opens edit dialog/modal
+      - Delete: Shows confirmation dialog, then deletes
+
+      Files to modify:
+      - packages/web/src/pages/Home.Web.tsx (RecordingCard component)
+    acceptance_criteria:
+      - Three-dot menu button appears on recording cards (positioned in corner)
+      - Menu opens on click without navigating to recording
+      - Share option opens share modal
+      - Edit Title option shows edit dialog
+      - Delete option shows confirmation then deletes recording
+      - Menu closes after selecting an action
+    github_issue: 284
+    milestone: 1
+    status: scoped
+    depends_on: [4]
