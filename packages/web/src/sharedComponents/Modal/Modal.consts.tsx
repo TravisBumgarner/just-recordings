@@ -1,3 +1,4 @@
 export const MODAL_ID = {
   CONFIRMATION_MODAL: 'CONFIRMATION_MODAL',
+  SHARE_MODAL: 'SHARE_MODAL',
 } as const

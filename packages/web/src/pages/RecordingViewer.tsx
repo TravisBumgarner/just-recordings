@@ -1,3 +1,4 @@
+import { IoMdShare } from 'react-icons/io'
 import {
   Box,
   Button,
@@ -8,6 +9,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   Typography,
 } from '@mui/material'
 import { useState } from 'react'
@@ -17,6 +19,8 @@ import { useDeleteRecording } from '@/hooks/mutations/useDeleteRecording'
 import { useVideoUrl } from '@/hooks/queries/useRecordingMedia'
 import { useRecording } from '@/hooks/queries/useRecordings'
 import { ApiError } from '@/lib/ApiError'
+import { MODAL_ID } from '@/sharedComponents/Modal/Modal.consts'
+import { activeModalSignal } from '@/signals'
 import PageWrapper from '@/styles/shared/PageWrapper'
 import { errorMessages } from '@just-recordings/shared'
 
@@ -55,6 +59,16 @@ function RecordingViewerPage() {
   const { data: recording, isLoading, isError } = useRecording(id)
   const { data: videoUrl } = useVideoUrl(id)
   const deleteRecording = useDeleteRecording()
+
+  const handleShareClick = () => {
+    if (recording) {
+      activeModalSignal.value = {
+        id: MODAL_ID.SHARE_MODAL,
+        recordingId: recording.id,
+        recordingName: recording.name,
+      }
+    }
+  }
 
   const handleDeleteClick = () => {
     setDeleteDialogOpen(true)
@@ -127,9 +141,18 @@ function RecordingViewerPage() {
           Back
         </Button>
 
-        <Typography variant="h4" component="h1" gutterBottom>
-          {recording.name}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <Typography variant="h4" component="h1">
+            {recording.name}
+          </Typography>
+          <IconButton
+            onClick={handleShareClick}
+            title="Share recording"
+            data-testid="share-button"
+          >
+            <IoMdShare size={24} />
+          </IconButton>
+        </Box>
 
         {/* Video Player */}
         <Box sx={{ mb: 3 }}>

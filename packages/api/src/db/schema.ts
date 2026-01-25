@@ -27,3 +27,20 @@ export const recordings = pgTable('recordings', {
 
 export type Recording = typeof recordings.$inferSelect
 export type NewRecording = typeof recordings.$inferInsert
+
+export const recordingShares = pgTable('recording_shares', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  recordingId: uuid('recording_id')
+    .notNull()
+    .references(() => recordings.id, { onDelete: 'cascade' }),
+  shareToken: varchar('share_token', { length: 64 }).unique().notNull(),
+  shareType: varchar('share_type', { length: 20 }).notNull(), // 'link' | 'single_view'
+  viewCount: integer('view_count').notNull().default(0),
+  maxViews: integer('max_views'), // NULL = unlimited
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+})
+
+export type RecordingShare = typeof recordingShares.$inferSelect
+export type NewRecordingShare = typeof recordingShares.$inferInsert

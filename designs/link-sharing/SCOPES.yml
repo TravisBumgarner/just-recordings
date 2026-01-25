@@ -35,7 +35,7 @@ tasks:
       Create the database schema for storing recording share links. The table tracks
       share tokens, types (link vs single_view), view counts, and revocation status.
     acceptance_criteria:
-      - Drizzle schema for recordingShares table exists in packages/shared/src/db/schema.ts
+      - Drizzle schema for recordingShares table exists in packages/api/src/db/schema.ts
       - Migration file created for the recording_shares table
       - Table has all required columns (id, recordingId, shareToken, shareType, viewCount, maxViews, createdAt, expiresAt, revokedAt)
       - Foreign key to recordings table with ON DELETE CASCADE
@@ -43,7 +43,7 @@ tasks:
       - Index on recordingId
     depends_on: []
     effort: 2
-    status: pending
+    status: completed
 
   - id: 2
     github_issue: 250
@@ -61,7 +61,7 @@ tasks:
       - Zod schemas for API request/response validation
     depends_on: [1]
     effort: 1
-    status: pending
+    status: completed
 
   - id: 3
     github_issue: 251
@@ -80,7 +80,7 @@ tasks:
       - generateShareToken() creates cryptographically secure URL-safe tokens
     depends_on: [1]
     effort: 2
-    status: pending
+    status: completed
 
   # Milestone 2: API Layer
   - id: 4
@@ -99,7 +99,7 @@ tasks:
       - Responses include full share info including shareUrl
     depends_on: [2, 3]
     effort: 2
-    status: pending
+    status: completed
 
   - id: 5
     github_issue: 253
@@ -118,7 +118,7 @@ tasks:
       - Rate limiting on public endpoints
     depends_on: [2, 3]
     effort: 3
-    status: pending
+    status: completed
 
   # Milestone 3: Web Client
   - id: 6
@@ -136,7 +136,7 @@ tasks:
       - Functions return typed responses
     depends_on: [4, 5]
     effort: 1
-    status: pending
+    status: completed
 
   - id: 7
     github_issue: 255
@@ -155,7 +155,7 @@ tasks:
       - Toast notifications for copy success and share actions
     depends_on: [6]
     effort: 3
-    status: pending
+    status: completed
 
   - id: 8
     github_issue: 256
@@ -175,7 +175,7 @@ tasks:
       - Loading state while fetching recording metadata
     depends_on: [5, 6]
     effort: 2
-    status: pending
+    status: completed
 
   - id: 9
     github_issue: 257
@@ -193,4 +193,4 @@ tasks:
       - Share button has appropriate icon
     depends_on: [7, 8]
     effort: 1
-    status: pending
+    status: completed

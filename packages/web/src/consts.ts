@@ -74,6 +74,11 @@ export const ROUTES = {
     href: () => '/floating-controls',
     label: 'Floating Controls',
   },
+  sharedRecording: {
+    key: 'sharedRecording',
+    href: (token?: string) => `/share/${token || ':token'}`,
+    label: 'Shared Recording',
+  },
 }
 
 export const PAGINATION_SIZE = 10
