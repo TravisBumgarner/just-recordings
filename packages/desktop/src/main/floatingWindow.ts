@@ -1,4 +1,19 @@
-import type { BrowserWindowConstructorOptions } from 'electron'
+import type { BrowserWindowConstructorOptions, Rectangle } from 'electron'
+
+/**
+ * Storage key for persisting floating window bounds
+ */
+export const FLOATING_WINDOW_STORAGE_KEY = 'floating-window-bounds'
+
+/**
+ * Represents the bounds of a floating window
+ */
+export interface FloatingWindowBounds {
+  x: number
+  y: number
+  width: number
+  height: number
+}
 
 /**
  * Default dimensions for the floating controls window
@@ -52,4 +67,46 @@ export function getFloatingWindowUrl(isDev: boolean): string {
  */
 export function getFloatingWindowHash(): string {
   return '/floating-controls'
+}
+
+/**
+ * Saves the floating window bounds to the provided storage.
+ */
+export function saveFloatingWindowBounds(
+  bounds: FloatingWindowBounds,
+  storage: { setItem: (key: string, value: string) => void },
+): void {
+  // Stub - will be implemented
+}
+
+/**
+ * Loads saved floating window bounds from storage.
+ * Returns null if no saved bounds exist or if parsing fails.
+ */
+export function loadFloatingWindowBounds(storage: {
+  getItem: (key: string) => string | null
+}): FloatingWindowBounds | null {
+  return null // Stub
+}
+
+/**
+ * Validates that window bounds are within visible screen area.
+ * Returns adjusted bounds if the position is off-screen, or the original bounds if valid.
+ */
+export function validateWindowBounds(
+  bounds: FloatingWindowBounds,
+  screenBounds: Rectangle,
+): FloatingWindowBounds {
+  return bounds // Stub
+}
+
+/**
+ * Returns window options with saved bounds applied (if available and valid).
+ */
+export function getFloatingWindowOptionsWithBounds(
+  preloadPath: string,
+  savedBounds: FloatingWindowBounds | null,
+  screenBounds: Rectangle,
+): BrowserWindowConstructorOptions {
+  return getFloatingWindowOptions(preloadPath) // Stub
 }

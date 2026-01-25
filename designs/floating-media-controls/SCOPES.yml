@@ -151,4 +151,4 @@ tasks:
       - Handles edge case of saved position being off-screen
     depends_on: [1]
     effort: 1
-    status: scoped
+    status: testing
