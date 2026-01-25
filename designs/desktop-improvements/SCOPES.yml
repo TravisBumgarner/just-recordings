@@ -21,7 +21,7 @@ tasks:
       - Flow works correctly on both web and desktop
     github_issue: 265
     milestone: 1
-    status: implementing
+    status: completed
     depends_on: []
 
   # Feature 1: Webcam Setup Wizard (simplest)
