@@ -29,7 +29,7 @@ tasks:
       - Flow works correctly on both web and desktop
     github_issue: 273
     milestone: 1
-    status: implementing
+    status: completed
     depends_on: []
 
   - id: 2
@@ -51,7 +51,7 @@ tasks:
       - Works correctly on both macOS and Windows
     github_issue: 274
     milestone: 1
-    status: implementing
+    status: completed
     depends_on: []
 
   - id: 3
@@ -76,7 +76,7 @@ tasks:
       - No render loops or excessive re-renders
     github_issue: 275
     milestone: 1
-    status: implementing
+    status: completed
     depends_on: []
 
   - id: 4
@@ -93,7 +93,7 @@ tasks:
       - Update tests to reflect the change
     github_issue: 277
     milestone: 1
-    status: implementing
+    status: completed
     depends_on: []
 
   - id: 5
@@ -112,7 +112,7 @@ tasks:
       - Event listeners are properly cleaned up on recording stop/cancel
     github_issue: 278
     milestone: 1
-    status: implementing
+    status: completed
     depends_on: []
 
   - id: 6
