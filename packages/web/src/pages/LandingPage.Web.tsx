@@ -69,20 +69,22 @@ function LandingPage() {
             >
               Get started free
             </Button>
-            <Typography
+            <Button
               component="a"
               href="#download"
-              color="text.secondary"
+              variant="outlined"
+              size="large"
               sx={{
-                fontSize: '1.1rem',
-                textDecoration: 'none',
-                '&:hover': {
-                  textDecoration: 'underline',
-                },
+                px: 4,
+                py: 2,
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                borderRadius: 2,
               }}
             >
-              or download desktop app
-            </Typography>
+              Download desktop app
+            </Button>
           </Box>
           <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
             Free during beta
