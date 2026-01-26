@@ -776,4 +776,80 @@ describe('useRecordingFlow', () => {
       expect(elapsed).toBe(5000)
     })
   })
+
+  describe('cleanup on unmount', () => {
+    it('releases acquired screen stream when component unmounts during countdown', async () => {
+      const mockRelease = vi.fn()
+      const mockService = createMockRecorderService()
+      mockService.acquireScreen.mockResolvedValue({
+        stream: { getTracks: () => [] },
+        release: mockRelease,
+      })
+      const { result, unmount } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      // Get to countdown state (screen acquired but not used yet)
+      act(() => {
+        result.current.openSettings()
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
+      })
+      expect(result.current.flowState).toBe('countdown')
+
+      // Unmount the component (simulates window close/hide)
+      unmount()
+
+      expect(mockRelease).toHaveBeenCalled()
+    })
+
+    it('does not release stream when unmounting if stream was already used for recording', async () => {
+      const mockRelease = vi.fn()
+      const mockService = createMockRecorderService()
+      mockService.acquireScreen.mockResolvedValue({
+        stream: { getTracks: () => [] },
+        release: mockRelease,
+      })
+      const { result, unmount } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      // Get to recording state (stream ownership transferred)
+      act(() => {
+        result.current.openSettings()
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.onCountdownComplete()
+      })
+      expect(result.current.flowState).toBe('recording')
+
+      // Unmount the component
+      unmount()
+
+      // Stream should NOT be released via acquiredScreenRef.release() because
+      // ownership was transferred to the recorder
+      expect(mockRelease).not.toHaveBeenCalled()
+    })
+
+    it('does not release stream when unmounting from idle state', async () => {
+      const mockRelease = vi.fn()
+      const mockService = createMockRecorderService()
+      mockService.acquireScreen.mockResolvedValue({
+        stream: { getTracks: () => [] },
+        release: mockRelease,
+      })
+      const { unmount } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      // Unmount from idle state (no stream acquired)
+      unmount()
+
+      expect(mockRelease).not.toHaveBeenCalled()
+    })
+  })
 })

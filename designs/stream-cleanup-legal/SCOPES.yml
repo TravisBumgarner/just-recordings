@@ -1,0 +1,73 @@
+project: Stream Cleanup & Legal Pages
+repo: travisbumgarner/just-recordings
+design_file: null
+scoping_date: 2026-01-26
+
+milestones:
+  - number: 53
+    title: "Stream Cleanup & Legal Pages"
+    description: |
+      Fix stream cleanup on desktop app close and add basic TOS/Privacy Policy pages.
+    branch:
+      working: milestone-53-stream-cleanup-legal
+      base: main
+
+tasks:
+  # Bug Fix
+  - id: 1
+    github_issue: 339
+    milestone: 53
+    title: Release acquired screen stream when desktop app window is hidden/closed
+    description: |
+      When the desktop app window is hidden (on blur) or closed, any pre-acquired
+      screen stream should be released. Currently if a user starts the recording
+      flow but the window hides during countdown, the stream remains active.
+
+      The fix should add cleanup logic in useRecordingFlow.ts to release the
+      acquiredScreenRef stream on component unmount or when receiving a signal
+      that the window is being hidden.
+    acceptance_criteria:
+      - Pre-acquired screen stream is released when desktop app window is hidden
+      - Pre-acquired screen stream is released when desktop app is closed/quit
+      - Stream cleanup does not interfere with active recordings
+      - No memory leaks from unreleased streams
+    depends_on: []
+    effort: 2
+    status: testing
+
+  # Legal Pages
+  - id: 2
+    github_issue: 340
+    milestone: 53
+    title: Add basic Terms of Service page content
+    description: |
+      Replace the placeholder "Coming soon" content in TermsOfService.tsx with
+      actual TOS content. Cover standard topics: service description, account
+      terms, acceptable use, user content ownership, service availability,
+      limitation of liability, termination rights, and contact information.
+    acceptance_criteria:
+      - TOS page displays actual legal content instead of placeholder
+      - Content is readable and well-formatted
+      - "Last updated" date is displayed
+      - Page maintains consistent styling with rest of app
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 3
+    github_issue: 341
+    milestone: 53
+    title: Add basic Privacy Policy page content
+    description: |
+      Replace the placeholder "Coming soon" content in PrivacyPolicy.tsx with
+      actual privacy policy content. Cover: data collected, recording storage
+      options, third-party services, data retention, user rights, cookies,
+      children's privacy (COPPA), and contact information.
+    acceptance_criteria:
+      - Privacy Policy page displays actual legal content instead of placeholder
+      - Content is readable and well-formatted with clear sections
+      - "Last updated" date is displayed
+      - Page maintains consistent styling with rest of app
+    depends_on: []
+    effort: 2
+    status: scoped
