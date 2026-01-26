@@ -588,25 +588,23 @@ function Home({ recorderService, uploadManager }: HomeProps) {
             </Grid>
 
             {/* Pagination controls */}
-            {totalPages > 1 && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  mt: 4,
-                }}
-              >
-                <Pagination
-                  count={totalPages}
-                  page={currentPage}
-                  onChange={handlePageChange}
-                  color="primary"
-                  size="large"
-                  showFirstButton
-                  showLastButton
-                />
-              </Box>
-            )}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                mt: 4,
+              }}
+            >
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                color="primary"
+                size="large"
+                showFirstButton
+                showLastButton
+              />
+            </Box>
           </Box>
         )}
       </Box>
