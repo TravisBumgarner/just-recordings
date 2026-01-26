@@ -182,4 +182,4 @@ tasks:
       - Recording flow state transitions are clean
     depends_on: []
     effort: 1
-    status: implementing
+    status: completed
