@@ -52,7 +52,7 @@ function LandingPage() {
             No bloat. No subscriptions. Just a simple tool that records your screen.
           </Typography>
 
-          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 3 }}>
+          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center', mb: 3 }}>
             <Button
               component={RouterLink}
               to={ROUTES.signup.href()}
@@ -69,6 +69,20 @@ function LandingPage() {
             >
               Get started free
             </Button>
+            <Typography
+              component="a"
+              href="#download"
+              color="text.secondary"
+              sx={{
+                fontSize: '1.1rem',
+                textDecoration: 'none',
+                '&:hover': {
+                  textDecoration: 'underline',
+                },
+              }}
+            >
+              or download desktop app
+            </Typography>
           </Box>
           <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
             Free during beta
@@ -105,7 +119,7 @@ function LandingPage() {
       </Box>
 
       {/* Download Section */}
-      <Box sx={{ py: 16 }}>
+      <Box id="download" sx={{ py: 16, scrollMarginTop: '2rem' }}>
         <Container maxWidth="lg">
           <Typography
             variant="h2"
