@@ -46,7 +46,7 @@ tasks:
       - Extension loads in Chrome via chrome://extensions (load unpacked)
     depends_on: []
     effort: 2
-    status: implementing
+    status: completed
 
   - id: 2
     github_issue: 318
