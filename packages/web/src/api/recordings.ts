@@ -1,7 +1,7 @@
-import {
-  type ApiResponse,
-  type ErrorCode,
-  type Recording,
+import type {
+  ApiResponse,
+  ErrorCode,
+  Recording,
 } from '@just-recordings/shared'
 import { getToken } from '@/services/supabase'
 import config from '../config'
