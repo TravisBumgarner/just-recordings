@@ -46,6 +46,8 @@ export function getFloatingWindowOptions(
     webPreferences: {
       preload: preloadPath,
       sandbox: false,
+      // Share the same persistent partition as main window for consistent storage
+      partition: 'persist:main',
     },
   }
 }
