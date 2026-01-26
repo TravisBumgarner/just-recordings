@@ -2,6 +2,7 @@ import { Box, Button, Container, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { FaApple, FaLinux, FaWindows } from 'react-icons/fa'
 import { APP_VERSION, EXTERNAL_LINKS, ROUTES } from '../consts'
+import { ComparisonTable } from '../components/ComparisonTable'
 
 const platforms = [
   { name: 'Windows', icon: FaWindows, url: EXTERNAL_LINKS.windows },
@@ -117,6 +118,26 @@ function LandingPage() {
               ),
             )}
           </Box>
+        </Container>
+      </Box>
+
+      {/* Comparison Section */}
+      <Box sx={{ py: 12 }}>
+        <Container maxWidth="md">
+          <Typography
+            variant="h2"
+            component="h2"
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              letterSpacing: '-0.02em',
+              mb: 6,
+              textAlign: 'center',
+            }}
+          >
+            How we compare
+          </Typography>
+          <ComparisonTable />
         </Container>
       </Box>
 
