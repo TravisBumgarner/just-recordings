@@ -1,5 +1,5 @@
 import type { Recording } from '@just-recordings/shared'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, count, desc, eq } from 'drizzle-orm'
 import { db } from '../index.js'
 import { type Recording as DbRecording, type NewRecording, recordings } from '../schema.js'
 
@@ -29,6 +29,29 @@ export async function getAllRecordings(userId?: string): Promise<Recording[]> {
   }
   const rows = await db.select().from(recordings).orderBy(desc(recordings.createdAt))
   return rows.map(toRecording)
+}
+
+export async function getRecordingsPage(
+  userId: string,
+  limit: number,
+  offset: number
+): Promise<Recording[]> {
+  const rows = await db
+    .select()
+    .from(recordings)
+    .where(eq(recordings.userId, userId))
+    .orderBy(desc(recordings.createdAt))
+    .limit(limit)
+    .offset(offset)
+  return rows.map(toRecording)
+}
+
+export async function getRecordingsCount(userId: string): Promise<number> {
+  const result = await db
+    .select({ count: count() })
+    .from(recordings)
+    .where(eq(recordings.userId, userId))
+  return result[0]?.count ?? 0
 }
 
 export async function getRecordingById(id: string, userId?: string): Promise<Recording | null> {
