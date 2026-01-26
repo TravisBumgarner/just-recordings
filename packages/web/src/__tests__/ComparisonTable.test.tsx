@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { ComparisonTable } from '../components/ComparisonTable'
 
@@ -35,7 +35,8 @@ describe('ComparisonTable', () => {
   describe('features displayed', () => {
     it('includes local recording as a feature', () => {
       renderComparisonTable()
-      expect(screen.getByText(/local recording/i)).toBeInTheDocument()
+      // Multiple matches expected (banner + table row)
+      expect(screen.getAllByText(/local recording/i).length).toBeGreaterThanOrEqual(1)
     })
 
     it('includes cloud storage as a feature', () => {
