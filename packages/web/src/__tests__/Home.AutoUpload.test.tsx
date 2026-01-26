@@ -128,6 +128,12 @@ describe('Home - Auto-Upload Integration', () => {
         fireEvent.click(screen.getByRole('button', { name: /stop/i }))
       })
 
+      // Wait for naming modal and click Save
+      await waitFor(() => {
+        expect(screen.getByTestId('recording-name-modal')).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByRole('button', { name: /save/i }))
+
       // Should enqueue for upload
       await waitFor(() => {
         expect(mockUploadManager.enqueue).toHaveBeenCalled()
@@ -161,6 +167,12 @@ describe('Home - Auto-Upload Integration', () => {
         fireEvent.click(screen.getByRole('button', { name: /stop/i }))
       })
 
+      // Wait for naming modal and click Save
+      await waitFor(() => {
+        expect(screen.getByTestId('recording-name-modal')).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByRole('button', { name: /save/i }))
+
       await waitFor(() => {
         expect(mockRecorderService.stopRecording).toHaveBeenCalled()
       })
@@ -191,6 +203,12 @@ describe('Home - Auto-Upload Integration', () => {
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: /stop/i }))
       })
+
+      // Wait for naming modal and click Save
+      await waitFor(() => {
+        expect(screen.getByTestId('recording-name-modal')).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByRole('button', { name: /save/i }))
 
       await waitFor(() => {
         expect(mockRecorderService.stopRecording).toHaveBeenCalled()
