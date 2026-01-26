@@ -44,6 +44,23 @@ vi.mock('../db/queries/recordings.js', () => {
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       )
     }),
+    getRecordingsPage: vi.fn(async (userId: string, limit: number, offset: number) => {
+      let recordings = Array.from(mockRecordings.values())
+      if (userId) {
+        recordings = recordings.filter((r) => r.userId === userId)
+      }
+      recordings.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
+      return recordings.slice(offset, offset + limit)
+    }),
+    getRecordingsCount: vi.fn(async (userId: string) => {
+      let recordings = Array.from(mockRecordings.values())
+      if (userId) {
+        recordings = recordings.filter((r) => r.userId === userId)
+      }
+      return recordings.length
+    }),
     getRecordingById: vi.fn(async (id: string, userId?: string) => {
       const recording = mockRecordings.get(id)
       if (!recording) return null
@@ -177,6 +194,7 @@ describe('Recordings endpoints', () => {
       expect(response.status).toBe(200)
       expect(response.body.success).toBe(true)
       expect(response.body.data.recordings).toEqual([])
+      expect(response.body.data.total).toBe(0)
     })
 
     it('returns list of recordings with metadata', async () => {
@@ -196,6 +214,7 @@ describe('Recordings endpoints', () => {
       expect(response.status).toBe(200)
       expect(response.body.success).toBe(true)
       expect(response.body.data.recordings).toHaveLength(1)
+      expect(response.body.data.total).toBe(1)
       expect(response.body.data.recordings[0]).toMatchObject({
         id: 'test-id-1',
         name: 'Recording 1',
@@ -229,6 +248,7 @@ describe('Recordings endpoints', () => {
       expect(response.status).toBe(200)
       expect(response.body.success).toBe(true)
       expect(response.body.data.recordings).toHaveLength(1)
+      expect(response.body.data.total).toBe(1)
       expect(response.body.data.recordings[0].id).toBe('my-recording')
     })
   })

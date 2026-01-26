@@ -31,6 +31,20 @@ export async function getAllRecordings(userId?: string): Promise<Recording[]> {
   return rows.map(toRecording)
 }
 
+export async function getRecordingsPage(
+  _userId: string,
+  _limit: number,
+  _offset: number
+): Promise<Recording[]> {
+  // Stub - will be implemented in ralph-code phase
+  return []
+}
+
+export async function getRecordingsCount(_userId: string): Promise<number> {
+  // Stub - will be implemented in ralph-code phase
+  return 0
+}
+
 export async function getRecordingById(id: string, userId?: string): Promise<Recording | null> {
   let rows: DbRecording[]
   if (userId) {
