@@ -21,7 +21,7 @@ const Profile = () => {
 
   const _regDate = new Date(authUser.created_at).toDateString()
   return (
-    <PageWrapper width="small" minHeight>
+    <PageWrapper width="full" minHeight>
       <PageTitle text="User Settings" marginBottom />
       <Box
         sx={{
@@ -30,9 +30,6 @@ const Profile = () => {
           gap: SPACING.SMALL.PX,
         }}
       >
-        <Typography variant="body1">
-          <strong>Username:</strong> {appUser.displayName.toUpperCase()}
-        </Typography>
         <Typography variant="body1">
           <strong>Email:</strong> {appUser.email}
         </Typography>
