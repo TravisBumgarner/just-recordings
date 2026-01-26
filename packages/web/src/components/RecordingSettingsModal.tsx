@@ -81,6 +81,8 @@ export function RecordingSettingsModal({
   const [microphoneDevices, setMicrophoneDevices] = useState<MediaDevice[]>([])
   const [webcamDevices, setWebcamDevices] = useState<MediaDevice[]>([])
   const [audioLevel, setAudioLevel] = useState(0)
+  // Key that increments when window becomes visible again, triggering stream restart
+  const [streamRestartKey, setStreamRestartKey] = useState(0)
   const { autoUploadEnabled } = useAutoUploadSetting()
 
   const isDesktop = isElectronCheck()
@@ -173,7 +175,7 @@ export function RecordingSettingsModal({
         webcamStreamRef.current = null
       }
     }
-  }, [open, isDesktop, includeWebcam, webcamDeviceId])
+  }, [open, isDesktop, includeWebcam, webcamDeviceId, streamRestartKey])
 
   // Start/stop audio level meter (desktop only)
   useEffect(() => {
@@ -248,7 +250,7 @@ export function RecordingSettingsModal({
         micStreamRef.current = null
       }
     }
-  }, [open, isDesktop, includeMicrophone, microphoneDeviceId])
+  }, [open, isDesktop, includeMicrophone, microphoneDeviceId, streamRestartKey])
 
   // Clean up all streams when modal closes
   useEffect(() => {
@@ -272,7 +274,7 @@ export function RecordingSettingsModal({
     }
   }, [open])
 
-  // Clean up streams when window becomes hidden (desktop app window closed/hidden)
+  // Clean up streams when window becomes hidden, restart when visible again
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -293,6 +295,9 @@ export function RecordingSettingsModal({
           cancelAnimationFrame(animationFrameRef.current)
           animationFrameRef.current = null
         }
+      } else if (open && isDesktop) {
+        // Window became visible again - trigger stream restart
+        setStreamRestartKey((k) => k + 1)
       }
     }
 
@@ -300,7 +305,7 @@ export function RecordingSettingsModal({
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [])
+  }, [open, isDesktop])
 
   const handleStartRecording = () => {
     // Clean up preview streams before starting recording
