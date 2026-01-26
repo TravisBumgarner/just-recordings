@@ -1,8 +1,15 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
 import type { AcquiredScreen, RecorderState, Recording } from '@just-recordings/recorder'
 import { RecorderService } from '@just-recordings/recorder'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-export type FlowState = 'idle' | 'settings' | 'acquiring' | 'countdown' | 'recording' | 'saving'
+export type FlowState =
+  | 'idle'
+  | 'settings'
+  | 'acquiring'
+  | 'countdown'
+  | 'recording'
+  | 'saving'
+  | 'naming'
 
 export interface RecordingSettings {
   includeSystemAudio: boolean
@@ -25,6 +32,8 @@ export interface UseRecordingFlowReturn {
   flowState: FlowState
   recorderState: RecorderState
   currentSettings: RecordingSettings | null
+  /** The stopped recording waiting to be named (available in 'naming' state) */
+  pendingRecording: Recording | null
 
   // Actions
   openSettings: () => void
@@ -36,6 +45,8 @@ export interface UseRecordingFlowReturn {
   stop: () => Promise<void>
   cancel: () => void
   restart: () => void
+  /** Called after user names the recording to complete the save */
+  finishWithName: (name: string) => void
 
   // For RecordingTimer
   getElapsedTime: () => number
@@ -43,12 +54,13 @@ export interface UseRecordingFlowReturn {
 
 /**
  * Hook that orchestrates the entire recording flow:
- * idle → settings → acquiring → countdown → recording → saving → idle
+ * idle → settings → acquiring → countdown → recording → saving → naming → idle
  */
 export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseRecordingFlowReturn {
   const [flowState, setFlowState] = useState<FlowState>('idle')
   const [recorderState, setRecorderState] = useState<RecorderState>('idle')
   const [currentSettings, setCurrentSettings] = useState<RecordingSettings | null>(null)
+  const [pendingRecording, setPendingRecording] = useState<Recording | null>(null)
 
   // Store options in ref to avoid stale closures
   const optionsRef = useRef(options)
@@ -155,12 +167,28 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
   const stop = useCallback(async () => {
     setFlowState('saving')
     const recording = await recorderServiceRef.current.stopRecording()
-    if (currentSettings) {
-      optionsRef.current.onRecordingSaved?.(recording, currentSettings)
-    }
-    setCurrentSettings(null)
-    setFlowState('idle')
-  }, [currentSettings])
+    // Store the recording and transition to naming state
+    setPendingRecording(recording)
+    setFlowState('naming')
+  }, [])
+
+  const finishWithName = useCallback(
+    (name: string) => {
+      if (!pendingRecording || !currentSettings) return
+
+      // Create recording with the user-provided name
+      const namedRecording: Recording = {
+        ...pendingRecording,
+        name,
+      }
+
+      optionsRef.current.onRecordingSaved?.(namedRecording, currentSettings)
+      setPendingRecording(null)
+      setCurrentSettings(null)
+      setFlowState('idle')
+    },
+    [pendingRecording, currentSettings],
+  )
 
   // Keep stopRef up to date so stream ended handler uses current stop function
   useEffect(() => {
@@ -207,6 +235,7 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
     flowState,
     recorderState,
     currentSettings,
+    pendingRecording,
     openSettings,
     closeSettings,
     startWithSettings,
@@ -216,6 +245,7 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
     stop,
     cancel,
     restart,
+    finishWithName,
     getElapsedTime,
   }
 }

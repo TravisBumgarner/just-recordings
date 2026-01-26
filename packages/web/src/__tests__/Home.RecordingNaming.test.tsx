@@ -165,8 +165,8 @@ describe('Home - Recording Naming Flow', () => {
 
       // Wait for naming modal and check input
       await waitFor(() => {
-        const input = screen.getByTestId('recording-name-input')
-        expect(input).toHaveValue(expect.stringMatching(/^Recording/))
+        const input = screen.getByTestId('recording-name-input') as HTMLInputElement
+        expect(input.value).toMatch(/^Recording/)
       })
     })
   })

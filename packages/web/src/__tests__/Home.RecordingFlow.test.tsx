@@ -236,6 +236,12 @@ describe('Home - Recording Flow Integration', () => {
         expect(mockRecorderService.stopRecording).toHaveBeenCalled()
       })
 
+      // Wait for naming modal and click Save
+      await waitFor(() => {
+        expect(screen.getByTestId('recording-name-modal')).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByRole('button', { name: /save/i }))
+
       await waitFor(() => {
         expect(mockUploadManager.enqueue).toHaveBeenCalled()
       })
@@ -340,6 +346,12 @@ describe('Home - Recording Flow Integration', () => {
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: /stop/i }))
       })
+
+      // Wait for naming modal and click Save
+      await waitFor(() => {
+        expect(screen.getByTestId('recording-name-modal')).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByRole('button', { name: /save/i }))
 
       await waitFor(() => {
         expect(setRecordingState).toHaveBeenCalledWith(false)

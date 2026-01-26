@@ -1,10 +1,5 @@
-import type {
-  RecorderService,
-  Recording,
-  UploadManager,
-} from '@just-recordings/recorder'
+import type { RecorderService, Recording, UploadManager } from '@just-recordings/recorder'
 import type { Recording as ApiRecording } from '@just-recordings/shared'
-import { FaEllipsisV } from 'react-icons/fa'
 import {
   Box,
   Button,
@@ -33,20 +28,22 @@ import {
 } from '@mui/material'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { FaEllipsisV } from 'react-icons/fa'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useThumbnailUrl } from '@/hooks/queries/useRecordingMedia'
-import { useRecordings } from '@/hooks/queries/useRecordings'
 import { useDeleteRecording } from '@/hooks/mutations/useDeleteRecording'
 import { useUpdateRecording } from '@/hooks/mutations/useUpdateRecording'
+import { useThumbnailUrl } from '@/hooks/queries/useRecordingMedia'
+import { useRecordings } from '@/hooks/queries/useRecordings'
 import { queryKeys } from '@/lib/queryKeys'
 import { MODAL_ID } from '@/sharedComponents/Modal/Modal.consts'
 import { activeModalSignal } from '@/signals'
 import PageWrapper from '@/styles/shared/PageWrapper'
-import { setRecordingState } from '../utils/electron'
-import { useRecordingFlow, type RecordingSettings } from '../hooks/useRecordingFlow'
-import { RecordingSettingsModal } from '../components/RecordingSettingsModal'
 import { CountdownOverlay } from '../components/CountdownOverlay'
 import { RecordingControlsModal } from '../components/RecordingControlsModal'
+import { generateDefaultRecordingName, RecordingNameModal } from '../components/RecordingNameModal'
+import { RecordingSettingsModal } from '../components/RecordingSettingsModal'
+import { type RecordingSettings, useRecordingFlow } from '../hooks/useRecordingFlow'
+import { setRecordingState } from '../utils/electron'
 
 export interface HomeProps {
   recorderService: RecorderService
@@ -72,7 +69,7 @@ function formatDate(dateString: string): string {
 function RecordingCard({ recording }: { recording: ApiRecording }) {
   const { data: thumbnailUrl, isLoading: thumbnailLoading } = useThumbnailUrl(
     recording.id,
-    !!recording.thumbnailUrl
+    !!recording.thumbnailUrl,
   )
 
   const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null)
@@ -123,7 +120,7 @@ function RecordingCard({ recording }: { recording: ApiRecording }) {
           onSuccess: () => {
             setEditDialogOpen(false)
           },
-        }
+        },
       )
     }
   }
@@ -196,8 +193,7 @@ function RecordingCard({ recording }: { recording: ApiRecording }) {
               {recording.name}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {formatDuration(recording.duration)} &bull;{' '}
-              {formatDate(recording.createdAt)}
+              {formatDuration(recording.duration)} &bull; {formatDate(recording.createdAt)}
             </Typography>
           </CardContent>
         </CardActionArea>
@@ -240,11 +236,7 @@ function RecordingCard({ recording }: { recording: ApiRecording }) {
         </Menu>
 
         {/* Edit Title Dialog */}
-        <Dialog
-          open={editDialogOpen}
-          onClose={handleEditCancel}
-          data-testid="edit-title-dialog"
-        >
+        <Dialog open={editDialogOpen} onClose={handleEditCancel} data-testid="edit-title-dialog">
           <DialogTitle>Edit Recording Title</DialogTitle>
           <DialogContent>
             <TextField
@@ -336,6 +328,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
   const {
     flowState,
     recorderState,
+    pendingRecording,
     openSettings,
     closeSettings,
     startWithSettings,
@@ -345,6 +338,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
     stop,
     cancel,
     restart,
+    finishWithName,
     getElapsedTime,
   } = useRecordingFlow({
     recorderService,
@@ -376,8 +370,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
       // Find recordings that were uploading but are now gone (completed)
       const completedUploads = prevQueue.filter(
         (prev) =>
-          prev.uploadStatus === 'uploading' &&
-          !newQueue.some((curr) => curr.id === prev.id)
+          prev.uploadStatus === 'uploading' && !newQueue.some((curr) => curr.id === prev.id),
       )
 
       // If any uploads completed, invalidate recordings list
@@ -443,6 +436,17 @@ function Home({ recorderService, uploadManager }: HomeProps) {
         onResume={resume}
         onRestart={restart}
         onCancel={cancel}
+      />
+
+      {/* Recording Name Modal */}
+      <RecordingNameModal
+        open={flowState === 'naming'}
+        defaultName={generateDefaultRecordingName(pendingRecording?.createdAt)}
+        onSave={finishWithName}
+        onCancel={() => {
+          // Cancel uses default name
+          finishWithName(generateDefaultRecordingName(pendingRecording?.createdAt))
+        }}
       />
 
       <Box sx={{ py: 4 }}>

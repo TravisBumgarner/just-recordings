@@ -154,6 +154,12 @@ describe('Home - Electron IPC integration', () => {
       expect(mockRecorderService.stopRecording).toHaveBeenCalled()
     })
 
+    // Wait for naming modal and click Save
+    await waitFor(() => {
+      expect(screen.getByTestId('recording-name-modal')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByRole('button', { name: /save/i }))
+
     await waitFor(() => {
       expect(setRecordingState).toHaveBeenCalledWith(false)
     })

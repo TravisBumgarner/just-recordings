@@ -1,12 +1,5 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-} from '@mui/material'
-import { useState } from 'react'
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
+import { useEffect, useState } from 'react'
 
 export interface RecordingNameModalProps {
   open: boolean
@@ -27,8 +20,46 @@ export function RecordingNameModal({
 }: RecordingNameModalProps) {
   const [name, setName] = useState(defaultName)
 
-  // TODO: Implement modal UI
-  return null
+  // Reset name when modal opens with new defaultName
+  useEffect(() => {
+    if (open) {
+      setName(defaultName)
+    }
+  }, [open, defaultName])
+
+  const handleSave = () => {
+    const trimmedName = name.trim()
+    // Use default name if user cleared the input
+    onSave(trimmedName || defaultName)
+  }
+
+  if (!open) {
+    return null
+  }
+
+  return (
+    <Dialog open={open} onClose={onCancel} data-testid="recording-name-modal">
+      <DialogTitle>Name Your Recording</DialogTitle>
+      <DialogContent>
+        <TextField
+          autoFocus
+          margin="dense"
+          label="Recording Name"
+          type="text"
+          fullWidth
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          inputProps={{ 'data-testid': 'recording-name-input' }}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={handleSave} variant="contained">
+          Save
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
 }
 
 /**
@@ -36,6 +67,15 @@ export function RecordingNameModal({
  * Format: "Recording Jan 26, 2026 2:30 PM"
  */
 export function generateDefaultRecordingName(date: Date = new Date()): string {
-  // TODO: Implement
-  return ''
+  const datePart = date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+  const timePart = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+  return `Recording ${datePart} ${timePart}`
 }

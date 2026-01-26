@@ -267,7 +267,7 @@ describe('useRecordingFlow', () => {
   })
 
   describe('stop recording', () => {
-    it('transitions to saving then idle when stop is called', async () => {
+    it('transitions to saving then naming when stop is called', async () => {
       const mockService = createMockRecorderService()
       const { result } = renderHook(() =>
         useRecordingFlow({ recorderService: mockService as any }),
@@ -287,6 +287,36 @@ describe('useRecordingFlow', () => {
       // Stop recording
       await act(async () => {
         await result.current.stop()
+      })
+
+      expect(result.current.flowState).toBe('naming')
+    })
+
+    it('transitions to idle after finishWithName is called', async () => {
+      const mockService = createMockRecorderService()
+      const { result } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      // Get to recording state
+      act(() => {
+        result.current.openSettings()
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.onCountdownComplete()
+      })
+
+      // Stop recording
+      await act(async () => {
+        await result.current.stop()
+      })
+
+      // Finish with name
+      act(() => {
+        result.current.finishWithName('My Recording')
       })
 
       expect(result.current.flowState).toBe('idle')
@@ -316,7 +346,7 @@ describe('useRecordingFlow', () => {
       expect(mockService.stopRecording).toHaveBeenCalled()
     })
 
-    it('calls onRecordingSaved callback with the recording and settings', async () => {
+    it('calls onRecordingSaved callback with the recording and settings after finishWithName', async () => {
       const mockService = createMockRecorderService()
       const onRecordingSaved = vi.fn()
       const { result } = renderHook(() =>
@@ -338,9 +368,17 @@ describe('useRecordingFlow', () => {
         await result.current.stop()
       })
 
+      // Should not be called yet (still in naming state)
+      expect(onRecordingSaved).not.toHaveBeenCalled()
+
+      // Finish with custom name
+      act(() => {
+        result.current.finishWithName('My Custom Recording')
+      })
+
       expect(onRecordingSaved).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Test Recording',
+          name: 'My Custom Recording',
           uploadStatus: 'pending',
         }),
         defaultSettings,
