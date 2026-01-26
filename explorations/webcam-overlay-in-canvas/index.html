@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Screen + Webcam Recorder</title>
+  <style>
+    body { font-family: system-ui; padding: 16px; }
+    button { margin-right: 8px; }
+    video { max-width: 100%; margin-top: 12px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <button id="start">Start Recording</button>
+  <button id="stop" disabled>Stop Recording</button>
+
+  <video id="playback" controls></video>
+
+  <script>
+    let recorder, recordedChunks = []
+
+    document.getElementById('start').onclick = async () => {
+      const screen = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
+      const cam = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+
+      const screenVid = Object.assign(document.createElement('video'), { srcObject: screen, muted: true })
+      const camVid = Object.assign(document.createElement('video'), { srcObject: cam, muted: true })
+      await Promise.all([screenVid.play(), camVid.play()])
+
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      canvas.width = screenVid.videoWidth
+      canvas.height = screenVid.videoHeight
+
+      function draw() {
+        ctx.drawImage(screenVid, 0, 0)
+        ctx.drawImage(
+          camVid,
+          canvas.width - 320 - 16,
+          canvas.height - 180 - 16,
+          320,
+          180
+        )
+        requestAnimationFrame(draw)
+      }
+      draw()
+
+      const stream = canvas.captureStream(30)
+      const audioCtx = new AudioContext()
+      const dest = audioCtx.createMediaStreamDestination()
+
+      if (screen.getAudioTracks().length)
+        audioCtx.createMediaStreamSource(screen).connect(dest)
+      if (cam.getAudioTracks().length)
+        audioCtx.createMediaStreamSource(cam).connect(dest)
+
+      dest.stream.getAudioTracks().forEach(t => stream.addTrack(t))
+
+      recorder = new MediaRecorder(stream)
+      recordedChunks = []
+      recorder.ondataavailable = e => recordedChunks.push(e.data)
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: recorder.mimeType })
+        document.getElementById('playback').src = URL.createObjectURL(blob)
+      }
+
+      recorder.start()
+      document.getElementById('start').disabled = true
+      document.getElementById('stop').disabled = false
+    }
+
+    document.getElementById('stop').onclick = () => {
+      recorder.stop()
+      document.getElementById('start').disabled = false
+      document.getElementById('stop').disabled = true
+    }
+  </script>
+</body>
+</html>

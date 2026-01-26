@@ -1,5 +1,5 @@
+import type { RecorderState, Recording } from '@just-recordings/recorder'
 import { RecorderService } from '@just-recordings/recorder'
-import type { Recording, RecorderState } from '@just-recordings/recorder'
 
 // Initialize recorder service
 const recorder = new RecorderService()
