@@ -157,4 +157,4 @@ tasks:
       - Works on all screen sizes
     depends_on: []
     effort: 1
-    status: implementing
+    status: completed
