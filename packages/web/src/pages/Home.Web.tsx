@@ -599,10 +599,28 @@ function Home({ recorderService, uploadManager }: HomeProps) {
                 count={totalPages}
                 page={currentPage}
                 onChange={handlePageChange}
-                color="primary"
                 size="large"
                 showFirstButton
                 showLastButton
+                sx={{
+                  '& .MuiPaginationItem-root': {
+                    borderRadius: 0,
+                    border: '1px solid',
+                    borderColor: 'text.primary',
+                    color: 'text.primary',
+                    '&:hover': {
+                      backgroundColor: 'text.primary',
+                      color: 'background.default',
+                    },
+                    '&.Mui-selected': {
+                      backgroundColor: 'text.primary',
+                      color: 'background.default',
+                      '&:hover': {
+                        backgroundColor: 'text.primary',
+                      },
+                    },
+                  },
+                }}
               />
             </Box>
           </Box>
