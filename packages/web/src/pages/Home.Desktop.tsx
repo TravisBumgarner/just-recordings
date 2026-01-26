@@ -15,6 +15,7 @@ import { useRecordingFlow } from '../hooks/useRecordingFlow'
 import { RecordingSettingsModal } from '../components/RecordingSettingsModal'
 import { CountdownOverlay } from '../components/CountdownOverlay'
 import { RecordingControlsModal } from '../components/RecordingControlsModal'
+import { generateDefaultRecordingName, RecordingNameModal } from '../components/RecordingNameModal'
 import { Settings } from '../components/Settings'
 import type { FloatingControlAction } from './FloatingControls'
 
@@ -42,6 +43,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
     flowState,
     recorderState,
     currentSettings,
+    pendingRecording,
     openSettings,
     closeSettings,
     startWithSettings,
@@ -51,6 +53,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
     stop,
     cancel,
     restart,
+    finishWithName,
     getElapsedTime,
   } = useRecordingFlow({
     recorderService,
@@ -196,6 +199,17 @@ function Home({ recorderService, uploadManager }: HomeProps) {
         onResume={resume}
         onRestart={restart}
         onCancel={cancel}
+      />
+
+      {/* Recording Name Modal */}
+      <RecordingNameModal
+        open={flowState === 'naming'}
+        defaultName={generateDefaultRecordingName(pendingRecording?.createdAt)}
+        onSave={finishWithName}
+        onCancel={() => {
+          // Cancel uses default name
+          finishWithName(generateDefaultRecordingName(pendingRecording?.createdAt))
+        }}
       />
 
       {/* Settings View */}
