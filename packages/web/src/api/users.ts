@@ -1,4 +1,4 @@
-import { type ApiResponse, type User } from '@just-recordings/shared'
+import type { ApiResponse, User } from '@just-recordings/shared'
 import config from '../config'
 import { getToken } from '../services/supabase'
 

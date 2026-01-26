@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron'
+import type { BrowserWindow } from 'electron'
 
 // Internal state to track if window is hidden for countdown/recording
 let windowHiddenForRecording = false
