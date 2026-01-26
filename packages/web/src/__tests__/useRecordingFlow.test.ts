@@ -646,6 +646,72 @@ describe('useRecordingFlow', () => {
     })
   })
 
+  describe('onCountdownComplete error handling', () => {
+    it('transitions to idle (not settings) when stream becomes invalid during countdown', async () => {
+      const mockRelease = vi.fn()
+      const mockService = createMockRecorderService()
+      // Return a stream that has no active video tracks (simulating stream ended)
+      mockService.acquireScreen.mockResolvedValue({
+        stream: {
+          getVideoTracks: () => [{ readyState: 'ended' }],
+        },
+        release: mockRelease,
+      })
+      const { result } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      act(() => {
+        result.current.openSettings()
+      })
+
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
+      })
+
+      expect(result.current.flowState).toBe('countdown')
+
+      await act(async () => {
+        await result.current.onCountdownComplete()
+      })
+
+      // Should go to idle, not settings (to avoid modal flash)
+      expect(result.current.flowState).toBe('idle')
+      expect(mockRelease).toHaveBeenCalled()
+    })
+
+    it('transitions to idle (not settings) when startScreenRecording fails', async () => {
+      const mockRelease = vi.fn()
+      const mockService = createMockRecorderService()
+      mockService.acquireScreen.mockResolvedValue({
+        stream: { getTracks: () => [] },
+        release: mockRelease,
+      })
+      mockService.startScreenRecording.mockRejectedValue(new Error('Recording failed'))
+      const { result } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      act(() => {
+        result.current.openSettings()
+      })
+
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
+      })
+
+      expect(result.current.flowState).toBe('countdown')
+
+      await act(async () => {
+        await result.current.onCountdownComplete()
+      })
+
+      // Should go to idle, not settings (to avoid modal flash)
+      expect(result.current.flowState).toBe('idle')
+      expect(mockRelease).toHaveBeenCalled()
+    })
+  })
+
   describe('pause and resume', () => {
     it('calls pauseRecording on RecorderService when pause is called', async () => {
       const mockService = createMockRecorderService()

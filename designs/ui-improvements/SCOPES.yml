@@ -39,6 +39,14 @@ milestones:
       working: milestone-51-marketing-enhancements
       base: main
 
+  - number: 52
+    title: "Bug Fixes"
+    description: |
+      Fix various bugs and issues in the web and desktop apps.
+    branch:
+      working: milestone-52-bug-fixes
+      base: main
+
 tasks:
   # Milestone 48: Homepage Pagination
   - id: 1
@@ -155,6 +163,23 @@ tasks:
       - Clicking scrolls smoothly to download section
       - Styled as secondary action (not competing with primary)
       - Works on all screen sizes
+    depends_on: []
+    effort: 1
+    status: completed
+
+  # Milestone 52: Bug Fixes
+  - id: 8
+    github_issue: 334
+    milestone: 52
+    title: Fix settings modal flash during countdown
+    description: |
+      When the recording countdown on web reaches 1 or 0, the Recording Settings
+      modal briefly flashes/appears before disappearing. This is likely a race
+      condition or state transition issue in the recording flow.
+    acceptance_criteria:
+      - Settings modal does not flash during countdown
+      - Settings modal remains hidden throughout countdown and recording
+      - Recording flow state transitions are clean
     depends_on: []
     effort: 1
     status: completed
