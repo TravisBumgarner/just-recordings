@@ -114,7 +114,7 @@ tasks:
       - Name is saved with recording metadata
     depends_on: []
     effort: 2
-    status: scoped
+    status: completed
 
   # Milestone 50: Settings Page Redesign
   - id: 5
