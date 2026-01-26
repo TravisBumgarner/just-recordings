@@ -135,9 +135,10 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
         : !!screenStream // For mocked streams, just check existence
 
     if (!screenStream || !hasActiveVideoTrack) {
-      // Stream became invalid - release and return to settings
+      // Stream became invalid - release and return to idle (not settings, to avoid modal flash)
       acquiredScreen?.release()
-      setFlowState('settings')
+      setCurrentSettings(null)
+      setFlowState('idle')
       return
     }
 
@@ -150,9 +151,10 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
       })
       setFlowState('recording')
     } catch {
-      // If recording fails, release the stream and return to settings
+      // If recording fails, release the stream and return to idle (not settings, to avoid modal flash)
       acquiredScreen?.release()
-      setFlowState('settings')
+      setCurrentSettings(null)
+      setFlowState('idle')
     }
   }, [currentSettings])
 
