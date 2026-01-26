@@ -1,0 +1,88 @@
+project: Chrome Extension Recording Prototype
+repo: travisbumgarner/just-recordings
+design_file: null  # Throwaway prototype - no formal design doc
+scoping_date: 2026-01-26
+
+# Technical Decisions
+#
+# React: NO - Using vanilla TypeScript for simplicity in this throwaway prototype.
+#        The core recording logic is framework-agnostic anyway.
+#
+# Vite: YES - Lightweight bundler for TypeScript, handles extension entry points cleanly.
+#
+# Code Reuse: The @just-recordings/recorder package is 100% reusable.
+#             RecorderService, PermissionService, and types work unchanged in extension context.
+#             No if(electron)/if(web)/if(extension) conditionals needed - the abstraction is clean.
+
+milestones:
+  - number: 47
+    title: "Chrome Extension Recording Prototype"
+    description: |
+      Throwaway prototype Chrome extension for screen recording.
+      Goal: Validate that @just-recordings/recorder package works in extension context
+      without modification, proving the abstraction is clean.
+    branch:
+      working: 317-chrome-extension-prototype
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 317
+    milestone: 47
+    title: Set up Chrome extension scaffold with Vite
+    description: |
+      Create the basic Chrome extension structure in `explorations/chrome-extension/`:
+      - Manifest V3 configuration with permissions (activeTab, downloads, storage)
+      - Vite build setup for TypeScript with extension-specific config
+      - Popup HTML with Start/Stop buttons and status display
+      - Build script that outputs to dist/ folder
+
+      Using vanilla TypeScript (no React) for prototype simplicity.
+    acceptance_criteria:
+      - manifest.json with Manifest V3 format and required permissions
+      - vite.config.ts configured for extension build
+      - popup.html with basic UI structure (buttons, status area)
+      - package.json with build scripts
+      - Extension loads in Chrome via chrome://extensions (load unpacked)
+    depends_on: []
+    effort: 2
+    status: completed
+
+  - id: 2
+    github_issue: 318
+    milestone: 47
+    title: Integrate RecorderService into extension popup
+    description: |
+      Wire up @just-recordings/recorder package's RecorderService to the popup UI.
+      This validates the core recording logic works unchanged in Chrome extension context.
+
+      - Import RecorderService from @just-recordings/recorder
+      - Connect Start button to acquireScreen() + startScreenRecording()
+      - Connect Stop button to stopRecording()
+      - Display recording state and elapsed time
+      - Handle onStreamEnded callback (user clicks Chrome's "Stop sharing")
+    acceptance_criteria:
+      - RecorderService imports and initializes without errors
+      - Start button triggers screen share picker and begins recording
+      - Stop button ends recording and returns blob
+      - UI reflects current state (idle/recording) and elapsed time
+    depends_on: [1]
+    effort: 2
+    status: completed
+
+  - id: 3
+    github_issue: 319
+    milestone: 47
+    title: Implement recording download functionality
+    description: |
+      After stopping a recording, download the video file to the user's computer.
+
+      Simple approach: Create object URL from blob, create <a download> link, trigger click.
+      Filename should include timestamp (e.g., recording-2026-01-26-143052.webm).
+    acceptance_criteria:
+      - Recording downloads automatically after stopping (or via download button)
+      - Downloaded file has .webm extension and plays correctly
+      - Filename includes timestamp for uniqueness
+    depends_on: [2]
+    effort: 1
+    status: completed

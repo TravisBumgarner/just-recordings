@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Screen + Webcam PiP (State-safe)</title>
+  <style>
+    body { font-family: system-ui; padding: 16px; }
+    button { margin-right: 8px; }
+    canvas { display: none; }
+    video { display: block; margin-top: 12px; max-width: 100%; }
+  </style>
+</head>
+<body>
+  <button id="pip">Start Webcam PiP</button>
+  <button id="record">Start Recording</button>
+  <button id="stop">Stop</button>
+
+  <video id="playback" controls></video>
+
+  <script>
+    let camStream, screenStream
+    let pipVideo
+    let canvas, ctx, raf
+    let recorder, chunks = []
+
+    const pipBtn = document.getElementById('pip')
+    const recordBtn = document.getElementById('record')
+    const stopBtn = document.getElementById('stop')
+    const playback = document.getElementById('playback')
+
+    function setState(state) {
+      pipBtn.disabled    = state !== 'idle'
+      recordBtn.disabled = state !== 'pip'
+      stopBtn.disabled   = state === 'idle'
+    }
+
+    setState('idle')
+
+    pipBtn.onclick = async () => {
+      camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+
+      pipVideo = document.createElement('video')
+      pipVideo.srcObject = camStream
+      pipVideo.muted = true
+      pipVideo.playsInline = true
+
+      await new Promise(r => pipVideo.onloadedmetadata = r)
+      await pipVideo.play()
+      await pipVideo.requestPictureInPicture()
+
+      setState('pip')
+    }
+
+    recordBtn.onclick = async () => {
+      screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
+
+      const screenVid = Object.assign(document.createElement('video'), {
+        srcObject: screenStream,
+        muted: true
+      })
+      const camVid = Object.assign(document.createElement('video'), {
+        srcObject: camStream,
+        muted: true
+      })
+
+      await Promise.all([screenVid.play(), camVid.play()])
+
+      canvas = document.createElement('canvas')
+      canvas.width = screenVid.videoWidth
+      canvas.height = screenVid.videoHeight
+      ctx = canvas.getContext('2d')
+
+      function draw() {
+        ctx.drawImage(screenVid, 0, 0)
+        ctx.drawImage(camVid, canvas.width - 320 - 16, canvas.height - 180 - 16, 320, 180)
+        raf = requestAnimationFrame(draw)
+      }
+      draw()
+
+      const audioCtx = new AudioContext()
+      const dest = audioCtx.createMediaStreamDestination()
+
+      if (screenStream.getAudioTracks().length)
+        audioCtx.createMediaStreamSource(screenStream).connect(dest)
+      if (camStream.getAudioTracks().length)
+        audioCtx.createMediaStreamSource(camStream).connect(dest)
+
+      const mixedStream = new MediaStream([
+        ...canvas.captureStream(30).getVideoTracks(),
+        ...dest.stream.getAudioTracks()
+      ])
+
+      recorder = new MediaRecorder(mixedStream)
+      chunks = []
+      recorder.ondataavailable = e => chunks.push(e.data)
+      recorder.onstop = () => {
+        playback.src = URL.createObjectURL(new Blob(chunks, { type: recorder.mimeType }))
+      }
+      recorder.start()
+
+      setState('recording')
+    }
+
+    stopBtn.onclick = async () => {
+      cancelAnimationFrame(raf)
+      recorder?.stop()
+      camStream?.getTracks().forEach(t => t.stop())
+      screenStream?.getTracks().forEach(t => t.stop())
+      if (document.pictureInPictureElement)
+        await document.exitPictureInPicture()
+
+      setState('idle')
+    }
+  </script>
+</body>
+</html>
