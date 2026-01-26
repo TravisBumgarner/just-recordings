@@ -1,0 +1,160 @@
+project: UI Improvements
+repo: travisbumgarner/just-recordings
+design_file: null
+scoping_date: 2026-01-26
+
+milestones:
+  - number: 48
+    title: "Homepage Pagination"
+    description: |
+      Add pagination to the recordings list on the web homepage to handle
+      large numbers of recordings efficiently.
+    branch:
+      working: milestone-48-homepage-pagination
+      base: main
+
+  - number: 49
+    title: "Recording Naming"
+    description: |
+      Allow users to name recordings when they finish recording,
+      both on web and desktop apps.
+    branch:
+      working: milestone-49-recording-naming
+      base: main
+
+  - number: 50
+    title: "Settings Page Redesign"
+    description: |
+      Improve the visual design and organization of the settings page.
+    branch:
+      working: milestone-50-settings-redesign
+      base: main
+
+  - number: 51
+    title: "Marketing Page Enhancements"
+    description: |
+      Add price comparison table and secondary download CTA to the
+      marketing/landing page.
+    branch:
+      working: milestone-51-marketing-enhancements
+      base: main
+
+tasks:
+  # Milestone 48: Homepage Pagination
+  - id: 1
+    github_issue: 323
+    milestone: 48
+    title: Add pagination support to recordings list API
+    description: |
+      Update the GET /recordings endpoint to support pagination via
+      limit and offset query parameters. Return total count in response.
+    acceptance_criteria:
+      - API accepts `limit` and `offset` query parameters
+      - Response includes `total` count of all recordings
+      - Default limit is reasonable (e.g., 20)
+      - Works correctly with existing authorization
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 2
+    github_issue: 324
+    milestone: 48
+    title: Add pagination UI to web homepage
+    description: |
+      Add pagination controls to the recordings list on the homepage.
+      Show page numbers or prev/next buttons, handle loading states.
+    acceptance_criteria:
+      - Pagination controls appear when there are multiple pages
+      - Users can navigate between pages
+      - Loading state shown during page transitions
+      - URL reflects current page (optional but nice)
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  # Milestone 49: Recording Naming
+  - id: 3
+    github_issue: 325
+    milestone: 49
+    title: Add recording name prompt on save (web)
+    description: |
+      When a recording ends on the web app, show a modal asking the user
+      to name the recording before upload begins.
+    acceptance_criteria:
+      - Modal appears after recording stops
+      - Pre-filled with default name (Recording + timestamp)
+      - User can accept default or enter custom name
+      - Cancel uses default name
+      - Name is saved with recording metadata
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 4
+    github_issue: 326
+    milestone: 49
+    title: Add recording name prompt on save (desktop)
+    description: |
+      When a recording ends on the desktop app, show a modal asking the user
+      to name the recording before upload begins.
+    acceptance_criteria:
+      - Modal appears after recording stops
+      - Pre-filled with default name (Recording + timestamp)
+      - User can accept default or enter custom name
+      - Cancel uses default name
+      - Name is saved with recording metadata
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  # Milestone 50: Settings Page Redesign
+  - id: 5
+    github_issue: 327
+    milestone: 50
+    title: Redesign settings page layout and styling
+    description: |
+      Improve the visual design of the settings page with better
+      organization, spacing, and visual hierarchy.
+    acceptance_criteria:
+      - Settings organized into logical groups
+      - Better visual hierarchy with section headers
+      - Consistent styling with rest of app
+      - Responsive design maintained
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  # Milestone 51: Marketing Page Enhancements
+  - id: 6
+    github_issue: 328
+    milestone: 51
+    title: Add price comparison table to marketing page
+    description: |
+      Add a comparison table showing Just Recordings features vs competitors.
+      Leave price fields empty for now. Highlight that local recording is free.
+    acceptance_criteria:
+      - Comparison table with key features
+      - "Local recording is always free" prominent
+      - Price columns left empty (to be filled later)
+      - Responsive design
+      - Accessible table semantics
+    depends_on: []
+    effort: 3
+    status: scoped
+
+  - id: 7
+    github_issue: 329
+    milestone: 51
+    title: Add "Download Desktop App" CTA next to signup button
+    description: |
+      Add a secondary call-to-action next to "Get started free" that says
+      "or download desktop app" and scrolls to the download section.
+    acceptance_criteria:
+      - Secondary CTA link/button added
+      - Clicking scrolls smoothly to download section
+      - Styled as secondary action (not competing with primary)
+      - Works on all screen sizes
+    depends_on: []
+    effort: 1
+    status: completed
