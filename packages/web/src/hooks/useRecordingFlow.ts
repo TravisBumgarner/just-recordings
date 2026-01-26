@@ -94,6 +94,37 @@ export function useRecordingFlow(options: UseRecordingFlowOptions = {}): UseReco
     return unsubscribe
   }, [])
 
+  // Cleanup: Release any acquired screen stream on unmount
+  // This handles cases where the desktop app window is hidden/closed during countdown
+  useEffect(() => {
+    return () => {
+      if (acquiredScreenRef.current) {
+        acquiredScreenRef.current.release()
+        acquiredScreenRef.current = null
+      }
+    }
+  }, [])
+
+  // Cleanup: Release acquired screen stream when window becomes hidden
+  // This handles the desktop app window being hidden/closed during countdown
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && acquiredScreenRef.current) {
+        // Window is now hidden - release pre-acquired stream
+        acquiredScreenRef.current.release()
+        acquiredScreenRef.current = null
+        // Reset to idle state since we can't continue the recording flow
+        setCurrentSettings(null)
+        setFlowState('idle')
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
+
   const openSettings = useCallback(() => {
     setFlowState('settings')
   }, [])
