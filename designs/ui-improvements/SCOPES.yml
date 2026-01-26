@@ -149,7 +149,7 @@ tasks:
       - Accessible table semantics
     depends_on: []
     effort: 3
-    status: implementing
+    status: completed
 
   - id: 7
     github_issue: 329
