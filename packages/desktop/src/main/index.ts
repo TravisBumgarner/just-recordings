@@ -120,6 +120,10 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
       sandbox: false,
+      // Use a persistent partition to ensure localStorage (auth tokens, settings)
+      // survives app restarts. Without this, abrupt process termination (e.g., Ctrl+C
+      // during development) can lose unflushed storage data.
+      partition: 'persist:main',
     },
   })
 
