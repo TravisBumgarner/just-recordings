@@ -852,4 +852,77 @@ describe('useRecordingFlow', () => {
       expect(mockRelease).not.toHaveBeenCalled()
     })
   })
+
+  describe('cleanup on visibility change', () => {
+    it('releases acquired screen stream when window becomes hidden during countdown', async () => {
+      const mockRelease = vi.fn()
+      const mockService = createMockRecorderService()
+      mockService.acquireScreen.mockResolvedValue({
+        stream: { getTracks: () => [] },
+        release: mockRelease,
+      })
+      const { result } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      // Get to countdown state (screen acquired but not used yet)
+      act(() => {
+        result.current.openSettings()
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
+      })
+      expect(result.current.flowState).toBe('countdown')
+
+      // Simulate window becoming hidden
+      Object.defineProperty(document, 'hidden', { value: true, writable: true })
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      expect(mockRelease).toHaveBeenCalled()
+      expect(result.current.flowState).toBe('idle')
+
+      // Restore document.hidden
+      Object.defineProperty(document, 'hidden', { value: false, writable: true })
+    })
+
+    it('does not release stream when window becomes hidden during active recording', async () => {
+      const mockRelease = vi.fn()
+      const mockService = createMockRecorderService()
+      mockService.acquireScreen.mockResolvedValue({
+        stream: { getTracks: () => [] },
+        release: mockRelease,
+      })
+      const { result } = renderHook(() =>
+        useRecordingFlow({ recorderService: mockService as any }),
+      )
+
+      // Get to recording state (stream ownership transferred)
+      act(() => {
+        result.current.openSettings()
+      })
+      await act(async () => {
+        await result.current.startWithSettings(defaultSettings)
+      })
+      await act(async () => {
+        await result.current.onCountdownComplete()
+      })
+      expect(result.current.flowState).toBe('recording')
+
+      // Simulate window becoming hidden
+      Object.defineProperty(document, 'hidden', { value: true, writable: true })
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      // Stream should NOT be released because ownership was transferred to recorder
+      expect(mockRelease).not.toHaveBeenCalled()
+      // Flow state should remain recording
+      expect(result.current.flowState).toBe('recording')
+
+      // Restore document.hidden
+      Object.defineProperty(document, 'hidden', { value: false, writable: true })
+    })
+  })
 })
