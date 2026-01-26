@@ -38,7 +38,7 @@ export function RecordingNameModal({
   }
 
   return (
-    <Dialog open={open} onClose={onCancel} data-testid="recording-name-modal">
+    <Dialog open={open} onClose={onCancel} maxWidth="sm" fullWidth data-testid="recording-name-modal">
       <DialogTitle>Name Your Recording</DialogTitle>
       <DialogContent>
         <TextField
