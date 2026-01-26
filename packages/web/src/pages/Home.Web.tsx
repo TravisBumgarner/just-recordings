@@ -27,12 +27,13 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Pagination,
   TextField,
   Typography,
 } from '@mui/material'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useThumbnailUrl } from '@/hooks/queries/useRecordingMedia'
 import { useRecordings } from '@/hooks/queries/useRecordings'
 import { useDeleteRecording } from '@/hooks/mutations/useDeleteRecording'
@@ -293,9 +294,29 @@ function RecordingCard({ recording }: { recording: ApiRecording }) {
   )
 }
 
+const PAGE_SIZE = 20
+
 function Home({ recorderService, uploadManager }: HomeProps) {
   const queryClient = useQueryClient()
-  const { data: recordings = [], isLoading, isError } = useRecordings()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Get page from URL, default to 1
+  const currentPage = Number(searchParams.get('page')) || 1
+
+  const { data, isLoading, isError, isFetching } = useRecordings({
+    page: currentPage,
+    limit: PAGE_SIZE,
+  })
+
+  const recordings = data?.recordings ?? []
+  const total = data?.total ?? 0
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, page: number) => {
+    setSearchParams({ page: String(page) })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const [queue, setQueue] = useState<Recording[]>([])
   const previousQueueRef = useRef<Recording[]>([])
 
@@ -526,7 +547,7 @@ function Home({ recorderService, uploadManager }: HomeProps) {
           </Box>
         )}
 
-        {!isLoading && !isError && recordings.length === 0 && (
+        {!isLoading && !isError && recordings.length === 0 && total === 0 && (
           <Box sx={{ textAlign: 'center', py: 4 }} data-testid="empty-state">
             <Typography variant="h6" color="text.secondary">
               No recordings yet
@@ -538,11 +559,55 @@ function Home({ recorderService, uploadManager }: HomeProps) {
         )}
 
         {!isLoading && !isError && recordings.length > 0 && (
-          <Grid container spacing={3}>
-            {recordings.map((recording) => (
-              <RecordingCard key={recording.id} recording={recording} />
-            ))}
-          </Grid>
+          <Box sx={{ position: 'relative' }}>
+            {/* Loading overlay for page transitions */}
+            {isFetching && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  bgcolor: 'rgba(255, 255, 255, 0.7)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 1,
+                }}
+                data-testid="page-loading-overlay"
+              >
+                <CircularProgress />
+              </Box>
+            )}
+
+            <Grid container spacing={3}>
+              {recordings.map((recording) => (
+                <RecordingCard key={recording.id} recording={recording} />
+              ))}
+            </Grid>
+
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  mt: 4,
+                }}
+              >
+                <Pagination
+                  count={totalPages}
+                  page={currentPage}
+                  onChange={handlePageChange}
+                  color="primary"
+                  size="large"
+                  showFirstButton
+                  showLastButton
+                />
+              </Box>
+            )}
+          </Box>
         )}
       </Box>
     </PageWrapper>

@@ -15,7 +15,7 @@ vi.mock('../utils/electron', () => ({
 
 // Mock the API
 vi.mock('../api/recordings', () => ({
-  getRecordings: vi.fn(() => Promise.resolve({ success: true, data: [] })),
+  getRecordings: vi.fn(() => Promise.resolve({ success: true, data: { recordings: [], total: 0 } })),
   getThumbnailUrl: vi.fn(),
 }))
 

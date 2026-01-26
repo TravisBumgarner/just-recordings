@@ -71,7 +71,7 @@ tasks:
       - URL reflects current page (optional but nice)
     depends_on: [1]
     effort: 2
-    status: scoped
+    status: implementing
 
   # Milestone 49: Recording Naming
   - id: 3

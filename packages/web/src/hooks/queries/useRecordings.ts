@@ -1,18 +1,29 @@
-import { useQuery } from '@tanstack/react-query'
-import { getRecording, getRecordings } from '@/api/recordings'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
+import { getRecording, getRecordings, type PaginatedRecordings } from '@/api/recordings'
 import { ApiError } from '@/lib/ApiError'
 import { queryKeys } from '@/lib/queryKeys'
 
-export function useRecordings() {
+const DEFAULT_PAGE_SIZE = 20
+
+export interface UseRecordingsOptions {
+  page?: number
+  limit?: number
+}
+
+export function useRecordings(options: UseRecordingsOptions = {}) {
+  const { page = 1, limit = DEFAULT_PAGE_SIZE } = options
+  const offset = (page - 1) * limit
+
   return useQuery({
-    queryKey: queryKeys.recordings,
-    queryFn: async () => {
-      const response = await getRecordings()
+    queryKey: queryKeys.recordings(page, limit),
+    queryFn: async (): Promise<PaginatedRecordings> => {
+      const response = await getRecordings({ limit, offset })
       if (!response.success) {
         throw new ApiError(response.errorCode)
       }
       return response.data
     },
+    placeholderData: keepPreviousData,
   })
 }
 

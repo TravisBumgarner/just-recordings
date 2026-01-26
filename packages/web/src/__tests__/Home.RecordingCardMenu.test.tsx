@@ -89,7 +89,10 @@ describe('RecordingCard Menu', () => {
     mockUploadManager = createMockUploadManager()
     mockGetRecordings.mockResolvedValue({
       success: true,
-      data: [createMockRecording({ id: 'rec-1', name: 'Recording 1' })],
+      data: {
+        recordings: [createMockRecording({ id: 'rec-1', name: 'Recording 1' })],
+        total: 1,
+      },
     })
   })
 

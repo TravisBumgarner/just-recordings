@@ -30,14 +30,37 @@ async function parseErrorResponse(
   }
 }
 
-export const getRecordings = async (): Promise<ApiResponse<Recording[]>> => {
+export interface PaginatedRecordings {
+  recordings: Recording[]
+  total: number
+}
+
+export interface PaginationParams {
+  limit?: number
+  offset?: number
+}
+
+export const getRecordings = async (
+  params: PaginationParams = {}
+): Promise<ApiResponse<PaginatedRecordings>> => {
   try {
     const tokenResponse = await getToken()
     if (!tokenResponse.success || !tokenResponse.token) {
       return { success: false, errorCode: 'UNAUTHORIZED' }
     }
 
-    const response = await fetch(`${config.apiBaseUrl}/recordings`, {
+    const searchParams = new URLSearchParams()
+    if (params.limit !== undefined) {
+      searchParams.set('limit', String(params.limit))
+    }
+    if (params.offset !== undefined) {
+      searchParams.set('offset', String(params.offset))
+    }
+
+    const queryString = searchParams.toString()
+    const url = `${config.apiBaseUrl}/recordings${queryString ? `?${queryString}` : ''}`
+
+    const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${tokenResponse.token}`,
       },
@@ -48,8 +71,14 @@ export const getRecordings = async (): Promise<ApiResponse<Recording[]>> => {
     }
 
     const json = await response.json()
-    // API returns { success: true, data: { recordings: [...] } }
-    return { success: true, data: json.data.recordings }
+    // API returns { success: true, data: { recordings: [...], total: N } }
+    return {
+      success: true,
+      data: {
+        recordings: json.data.recordings,
+        total: json.data.total,
+      },
+    }
   } catch {
     return { success: false, errorCode: 'INTERNAL_ERROR' }
   }
