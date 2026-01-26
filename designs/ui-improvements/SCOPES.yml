@@ -131,7 +131,7 @@ tasks:
       - Responsive design maintained
     depends_on: []
     effort: 2
-    status: scoped
+    status: testing
 
   # Milestone 51: Marketing Page Enhancements
   - id: 6
