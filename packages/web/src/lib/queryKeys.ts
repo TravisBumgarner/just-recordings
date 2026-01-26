@@ -1,6 +1,6 @@
 export const queryKeys = {
   // Recordings
-  recordings: ['recordings'] as const,
+  recordings: (page = 1, limit = 20) => ['recordings', { page, limit }] as const,
   recording: (id: string) => ['recordings', id] as const,
 
   // Media
