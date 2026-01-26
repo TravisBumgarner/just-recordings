@@ -18,6 +18,41 @@ let timerInterval: number | null = null
 let lastRecording: Recording | null = null
 
 /**
+ * Generate a timestamp string for filenames (e.g., "2026-01-26-143052")
+ */
+function generateTimestamp(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = (now.getMonth() + 1).toString().padStart(2, '0')
+  const day = now.getDate().toString().padStart(2, '0')
+  const hours = now.getHours().toString().padStart(2, '0')
+  const minutes = now.getMinutes().toString().padStart(2, '0')
+  const seconds = now.getSeconds().toString().padStart(2, '0')
+  return `${year}-${month}-${day}-${hours}${minutes}${seconds}`
+}
+
+/**
+ * Download a recording blob as a file
+ */
+function downloadRecording(recording: Recording): void {
+  // Create object URL from blob
+  const url = URL.createObjectURL(recording.blob)
+
+  // Create temporary anchor element
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `recording-${generateTimestamp()}.webm`
+
+  // Trigger download
+  document.body.appendChild(a)
+  a.click()
+
+  // Cleanup
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+/**
  * Format milliseconds as MM:SS
  */
 function formatTime(ms: number): string {
@@ -105,8 +140,10 @@ async function handleStop(): Promise<void> {
   const recording = await recorder.stopRecording()
   lastRecording = recording
 
-  // Dispatch custom event for Task 3 to handle download
-  window.dispatchEvent(new CustomEvent('recording-complete', { detail: recording }))
+  // Automatically download the recording
+  if (recording.blob.size > 0) {
+    downloadRecording(recording)
+  }
 }
 
 // Subscribe to state changes
