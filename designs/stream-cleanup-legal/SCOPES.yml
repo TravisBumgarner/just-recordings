@@ -70,4 +70,4 @@ tasks:
       - Page maintains consistent styling with rest of app
     depends_on: []
     effort: 2
-    status: scoped
+    status: testing
