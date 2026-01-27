@@ -2,7 +2,7 @@ import { initLogging } from '@just-recordings/shared'
 import * as Sentry from '@sentry/react'
 import config from './config'
 
-const DSN = 'https://7213e102d4077c4fb5aec45ae1dfb113@o196886.ingest.us.sentry.io/4510784837451776'
+const DSN = 'https://c57ebeb4435b98c703bad24d09570000@o196886.ingest.us.sentry.io/4510784950042624'
 
 export function initSentry(): void {
   if (config.isProduction) {
