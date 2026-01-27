@@ -1,0 +1,129 @@
+project: Google OAuth with Supabase
+repo: travisbumgarner/just-recordings
+design_file: null
+scoping_date: 2026-01-27
+
+milestones:
+  - number: 53
+    title: "Google OAuth with Supabase"
+    description: |
+      Add Google OAuth sign-in using Supabase, including the auth service
+      function, OAuth callback handling, UI button on Login/Signup pages,
+      and setup documentation for Google Cloud Console and Supabase Dashboard.
+    branch:
+      working: milestone-53-google-oauth
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 346
+    milestone: 53
+    title: Add signInWithGoogle function to auth service
+    description: |
+      Add a `signInWithGoogle` function to the shared auth service that calls
+      `client.auth.signInWithOAuth({ provider: 'google' })` with an appropriate
+      `redirectTo` URL pointing back to the app origin.
+
+      In `packages/web/src/auth/service.ts`, add:
+      ```ts
+      export async function signInWithGoogle(
+        client: AuthClient,
+        redirectTo: string,
+      ): Promise<AuthResponse>
+      ```
+
+      This should call `client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } })`
+      and return `{ success: true }` or `{ error: '...', success: false }`.
+
+      Then add the corresponding wrapper in `packages/web/src/services/supabase.ts`
+      that passes `window.location.origin` as the `redirectTo`.
+    acceptance_criteria:
+      - signInWithGoogle function added to packages/web/src/auth/service.ts
+      - Function calls client.auth.signInWithOAuth with provider google and redirectTo option
+      - Wrapper function exported from packages/web/src/services/supabase.ts
+      - Function returns AuthResponse consistent with existing auth functions
+    depends_on: []
+    effort: 1
+    status: testing
+
+  - id: 2
+    github_issue: 347
+    milestone: 53
+    title: Add onAuthStateChange listener for OAuth session detection
+    description: |
+      The current `useLoadUserIntoState` hook only checks the session once on
+      mount via `loadUserIntoState()`. After an OAuth redirect, Supabase detects
+      the tokens from the URL hash and fires an `onAuthStateChange` event, but
+      nothing in the app listens for it.
+
+      Update `packages/web/src/hooks/useLoadUserIntoState.ts` to subscribe to
+      `client.auth.onAuthStateChange`. When a `SIGNED_IN` event fires, call
+      `loadUserIntoState()` to populate the Zustand store. The subscription
+      must be cleaned up on unmount by calling the unsubscribe function returned
+      by `onAuthStateChange`.
+
+      The Supabase client is available via `import { client } from '../services/supabase'`.
+    acceptance_criteria:
+      - onAuthStateChange listener added in useLoadUserIntoState hook
+      - User is loaded into state when a SIGNED_IN event fires
+      - Listener subscription is cleaned up on unmount
+      - Existing email/password login flow continues to work unchanged
+    depends_on: []
+    effort: 1
+    status: scoped
+
+  - id: 3
+    github_issue: 348
+    milestone: 53
+    title: Create GoogleSignInButton component and wire up on Login/Signup pages
+    description: |
+      Create a `GoogleSignInButton` component in `packages/web/src/sharedComponents/`
+      that renders an MUI Button calling `signInWithGoogle()` from the supabase
+      service on click.
+
+      The component should:
+      - Accept a `text` prop (e.g., "Sign in with Google" or "Sign up with Google")
+      - Show an error message if the OAuth call fails
+      - Use MUI `Button` with `variant="outlined"` and `fullWidth` to match existing form styling
+
+      Then update both `Login.tsx` and `Signup.tsx`:
+      - Replace the commented-out `{/* <GoogleSignInButton ... /> */}` with the real component
+      - Add a visual separator (MUI Divider with "or" text) between the Google button
+        and the email/password form
+    acceptance_criteria:
+      - GoogleSignInButton component created in packages/web/src/sharedComponents/
+      - Component accepts a text prop for the button label
+      - Button calls signInWithGoogle on click
+      - Button handles and displays errors if the OAuth call fails
+      - Button is rendered on the Login page with text "Sign in with Google"
+      - Button is rendered on the Signup page with text "Sign up with Google"
+      - Visual separator between Google button and email/password form
+    depends_on: [1, 2]
+    effort: 2
+    status: scoped
+
+  - id: 4
+    github_issue: 349
+    milestone: 53
+    title: Add Google OAuth setup documentation
+    description: |
+      Create a `SETUP.md` file in `designs/google-oauth/` documenting the steps
+      to configure Google OAuth with Supabase. This is a reference document for
+      the project owner or any developer who needs to set up or reconfigure
+      the Google OAuth integration.
+
+      Cover:
+      1. Google Cloud Console: Creating an OAuth 2.0 client ID, setting
+         authorized JavaScript origins and redirect URIs
+      2. Supabase Dashboard: Enabling the Google provider, pasting the client
+         ID and secret, configuring redirect URLs
+      3. Local development: Adding localhost to authorized origins and redirect URIs
+      4. Environment: No new env vars needed (Supabase client already configured)
+    acceptance_criteria:
+      - Documentation covers Google Cloud Console OAuth client setup
+      - Documentation covers Supabase Dashboard Google provider configuration
+      - Documentation covers adding the Supabase callback URL to Google authorized redirect URIs
+      - Documentation covers local development setup
+    depends_on: []
+    effort: 1
+    status: scoped

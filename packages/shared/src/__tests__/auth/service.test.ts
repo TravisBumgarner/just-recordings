@@ -6,6 +6,7 @@ import {
   login,
   logout,
   resetPassword,
+  signInWithGoogle,
   signup,
   updatePassword,
 } from '../../../../web/src/auth/service'
@@ -26,6 +27,7 @@ function createMockClient(
     signOut?: () => Promise<{ error: null | { message: string } }>
     resetPasswordForEmail?: () => Promise<{ error: null | { message: string } }>
     updateUser?: () => Promise<{ error: null | { message: string } }>
+    signInWithOAuth?: () => Promise<{ data: unknown; error: null | { message: string } }>
   } = {},
 ): AuthClient {
   return {
@@ -41,6 +43,8 @@ function createMockClient(
       resetPasswordForEmail:
         overrides.resetPasswordForEmail ?? vi.fn().mockResolvedValue({ error: null }),
       updateUser: overrides.updateUser ?? vi.fn().mockResolvedValue({ error: null }),
+      signInWithOAuth:
+        overrides.signInWithOAuth ?? vi.fn().mockResolvedValue({ data: {}, error: null }),
     },
   } as unknown as AuthClient
 }
@@ -199,6 +203,36 @@ describe('updatePassword', () => {
       updateUser: vi.fn().mockResolvedValue({ error: { message: 'Invalid password' } }),
     })
     const result = await updatePassword(mockClient, 'weak')
+    expect(result.success).toBe(false)
+  })
+})
+
+describe('signInWithGoogle', () => {
+  it('returns success when OAuth sign-in initiates', async () => {
+    const mockClient = createMockClient({
+      signInWithOAuth: vi.fn().mockResolvedValue({ data: { url: 'https://google.com/auth' }, error: null }),
+    })
+    const result = await signInWithGoogle(mockClient, 'https://app.com')
+    expect(result.success).toBe(true)
+  })
+
+  it('calls signInWithOAuth with google provider and redirectTo', async () => {
+    const mockSignIn = vi.fn().mockResolvedValue({ data: {}, error: null })
+    const mockClient = createMockClient({
+      signInWithOAuth: mockSignIn,
+    })
+    await signInWithGoogle(mockClient, 'https://app.com')
+    expect(mockSignIn).toHaveBeenCalledWith({
+      provider: 'google',
+      options: { redirectTo: 'https://app.com' },
+    })
+  })
+
+  it('returns error when OAuth sign-in fails', async () => {
+    const mockClient = createMockClient({
+      signInWithOAuth: vi.fn().mockResolvedValue({ data: null, error: { message: 'OAuth error' } }),
+    })
+    const result = await signInWithGoogle(mockClient, 'https://app.com')
     expect(result.success).toBe(false)
   })
 })
