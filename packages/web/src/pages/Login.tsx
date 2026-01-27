@@ -1,11 +1,13 @@
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Divider from '@mui/material/Divider'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { type ChangeEvent, useCallback, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../consts'
 import { login } from '../services/supabase'
+import GoogleSignInButton from '../sharedComponents/GoogleSignInButton'
 import Link from '../sharedComponents/Link'
 import Message from '../sharedComponents/Message'
 import useGlobalStore from '../store'
@@ -68,7 +70,8 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} style={authFormCSS}>
         <PageTitle text="Log In" center />
         {error && <Message includeVerticalMargin color="error" message={error} />}
-        {/* <GoogleSignInButton text="Sign in with Google" /> */}
+        <GoogleSignInButton text="Sign in with Google" />
+        <Divider flexItem>or</Divider>
         <TextField
           id="email"
           name="email"

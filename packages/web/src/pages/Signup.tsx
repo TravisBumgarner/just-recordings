@@ -1,10 +1,12 @@
 import Button from '@mui/material/Button'
+import Divider from '@mui/material/Divider'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { type ChangeEvent, useCallback, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../consts'
 import { signup } from '../services/supabase'
+import GoogleSignInButton from '../sharedComponents/GoogleSignInButton'
 import Link from '../sharedComponents/Link'
 import Message from '../sharedComponents/Message'
 import { MODAL_ID } from '../sharedComponents/Modal/Modal.consts'
@@ -94,8 +96,8 @@ export default function SignupPage() {
       <form onSubmit={handleSubmit} style={authFormCSS}>
         <PageTitle center text="Sign Up" />
         {error && <Message includeVerticalMargin color="error" message={error} />}
-        {/* <GoogleSignInButton text="Sign up with Google" /> */}
-
+        <GoogleSignInButton text="Sign up with Google" />
+        <Divider flexItem>or</Divider>
         <TextField
           id="email"
           name="email"
