@@ -85,10 +85,17 @@ export async function resetPassword(
 }
 
 export async function signInWithGoogle(
-  _client: AuthClient,
-  _redirectTo: string,
+  client: AuthClient,
+  redirectTo: string,
 ): Promise<AuthResponse> {
-  return { error: 'Not implemented', success: false }
+  const { error } = await client.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo },
+  })
+  if (error) {
+    return { error: 'Google sign-in failed', success: false }
+  }
+  return { success: true }
 }
 
 export async function updatePassword(client: AuthClient, password: string): Promise<AuthResponse> {

@@ -44,7 +44,7 @@ tasks:
       - Function returns AuthResponse consistent with existing auth functions
     depends_on: []
     effort: 1
-    status: testing
+    status: implementing
 
   - id: 2
     github_issue: 347
