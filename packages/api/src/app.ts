@@ -19,6 +19,11 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' })
 })
 
+// TODO: remove test route
+app.get('/api/sentry-test', () => {
+  throw new Error('Sentry test error from API')
+})
+
 app.use('/api/upload', cloudinaryRouter)
 app.use('/api/recordings', recordingsRouter)
 app.use('/api/recordings/:id/shares', sharesAuthenticatedRouter)
