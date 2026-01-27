@@ -70,7 +70,7 @@ tasks:
       - Existing email/password login flow continues to work unchanged
     depends_on: []
     effort: 1
-    status: scoped
+    status: completed
 
   - id: 3
     github_issue: 348
@@ -100,7 +100,7 @@ tasks:
       - Visual separator between Google button and email/password form
     depends_on: [1, 2]
     effort: 2
-    status: scoped
+    status: completed
 
   - id: 4
     github_issue: 349
@@ -126,4 +126,4 @@ tasks:
       - Documentation covers local development setup
     depends_on: []
     effort: 1
-    status: scoped
+    status: completed
