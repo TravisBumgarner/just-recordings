@@ -8,6 +8,7 @@ import {
   login as sharedLogin,
   logout as sharedLogout,
   resetPassword as sharedResetPassword,
+  signInWithGoogle as sharedSignInWithGoogle,
   signup as sharedSignup,
   updatePassword as sharedUpdatePassword,
 } from '@/auth'
@@ -56,6 +57,10 @@ export async function getToken(): Promise<GetTokenResponse> {
 export async function resetPassword(email: string): Promise<AuthResponse> {
   const redirectUrl = `${window.location.origin}${ROUTES.passwordReset.href()}`
   return sharedResetPassword(client, email, redirectUrl)
+}
+
+export async function signInWithGoogle(): Promise<AuthResponse> {
+  return sharedSignInWithGoogle(client, window.location.origin)
 }
 
 export async function updatePassword(password: string): Promise<AuthResponse> {
