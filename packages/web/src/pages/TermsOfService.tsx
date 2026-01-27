@@ -14,77 +14,98 @@ const TermsOfService = () => {
       <Box>
         <Typography variant="h3">1. Service Description</Typography>
         <Typography variant="body1">
-          Just Recordings is a web and desktop application that allows users to record, store, and
-          share screen recordings and video content. By using our service, you agree to be bound by
-          these Terms of Service.
+          Just Recordings is a web and desktop application that enables users to record, store, and
+          share screen and video recordings. By using the service, you agree to these Terms of
+          Service.
         </Typography>
       </Box>
 
       <Box>
-        <Typography variant="h3">2. Account Terms</Typography>
+        <Typography variant="h3">2. Eligibility & Accounts</Typography>
         <Typography variant="body1">
-          You must provide accurate and complete information when creating an account. You are
-          responsible for maintaining the security of your account credentials. You must be at least
-          13 years of age to use this service. You are responsible for all activity that occurs
-          under your account.
+          You must be at least 13 years old to use the service. You agree to provide accurate
+          account information and are responsible for all activity under your account. You are
+          responsible for maintaining the security of your credentials.
         </Typography>
       </Box>
 
       <Box>
         <Typography variant="h3">3. Acceptable Use</Typography>
         <Typography variant="body1">
-          You agree not to use the service to upload, record, or share content that is unlawful,
-          harmful, threatening, abusive, harassing, defamatory, or otherwise objectionable. You may
-          not use the service to violate any applicable laws or regulations. You may not attempt to
-          gain unauthorized access to the service or its related systems.
+          You may not use the service to record, upload, or share content that is unlawful,
+          infringing, abusive, defamatory, or otherwise objectionable. You are solely responsible
+          for ensuring you have all necessary rights and consents to record and share content,
+          including compliance with applicable recording and privacy laws. You may not attempt to
+          access the service or related systems in an unauthorized manner.
         </Typography>
       </Box>
 
       <Box>
         <Typography variant="h3">4. User Content</Typography>
         <Typography variant="body1">
-          You retain ownership of all content you create, upload, or record using the service. By
-          using the service, you grant us a limited license to store and deliver your content as
-          necessary to operate the service. You are solely responsible for the content you create
-          and share through the service.
+          You retain ownership of all content you create or upload. You grant Just Recordings a
+          limited, non-exclusive, revocable license to store, process, and deliver your content
+          solely to operate and improve the service. You are solely responsible for your content and
+          how it is shared.
         </Typography>
       </Box>
 
       <Box>
-        <Typography variant="h3">5. Service Availability</Typography>
+        <Typography variant="h3">5. Copyright & Takedowns</Typography>
         <Typography variant="body1">
-          We strive to maintain consistent availability of the service but do not guarantee
-          uninterrupted access. The service may be temporarily unavailable due to maintenance,
-          updates, or circumstances beyond our control. We reserve the right to modify or
-          discontinue features of the service with reasonable notice.
+          We respect intellectual property rights and will respond to valid copyright or legal
+          takedown requests. Repeated infringement may result in account termination.
         </Typography>
       </Box>
 
       <Box>
-        <Typography variant="h3">6. Limitation of Liability</Typography>
+        <Typography variant="h3">6. Service Availability & Data</Typography>
         <Typography variant="body1">
-          The service is provided &ldquo;as is&rdquo; without warranties of any kind, either express
-          or implied. We shall not be liable for any indirect, incidental, special, consequential,
-          or punitive damages arising from your use of the service. Our total liability shall not
-          exceed the amount you have paid us in the twelve months preceding the claim.
+          The service is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. We
+          do not guarantee uninterrupted access or that recordings will never be lost. You are
+          responsible for maintaining backups of your content. We may modify or discontinue features
+          at any time with reasonable notice.
         </Typography>
       </Box>
 
       <Box>
-        <Typography variant="h3">7. Termination</Typography>
+        <Typography variant="h3">7. Termination & Data Retention</Typography>
         <Typography variant="body1">
-          You may close your account at any time by contacting us. We reserve the right to suspend
-          or revoke your access to the service if you violate these terms. Upon account closure,
-          your right to use the service will immediately cease. We may retain your data for a
-          reasonable period as required by law.
+          You may close your account at any time. We may suspend or terminate access if you violate
+          these terms. Upon termination, access ends immediately. Data may be retained temporarily
+          as required by law or for operational purposes, after which it will be deleted.
         </Typography>
       </Box>
 
       <Box>
-        <Typography variant="h3">8. Contact Information</Typography>
+        <Typography variant="h3">8. Limitation of Liability</Typography>
         <Typography variant="body1">
-          If you have any questions about these Terms of Service, please contact us through the
-          feedback page on our website.
+          To the maximum extent permitted by law, Just Recordings shall not be liable for indirect,
+          incidental, consequential, or punitive damages. Our total liability shall not exceed the
+          amount you paid us in the twelve months preceding the claim.
+        </Typography>
+      </Box>
+
+      <Box>
+        <Typography variant="h3">9. Changes to Terms</Typography>
+        <Typography variant="body1">
+          We may update these terms from time to time. Continued use of the service constitutes
+          acceptance of the updated terms.
+        </Typography>
+      </Box>
+
+      <Box>
+        <Typography variant="h3">10. Governing Law</Typography>
+        <Typography variant="body1">
+          These terms are governed by the laws of the jurisdiction in which Just Recordings
+          operates, without regard to conflict of law principles.
+        </Typography>
+      </Box>
+
+      <Box>
+        <Typography variant="h3">11. Contact</Typography>
+        <Typography variant="body1">
+          Questions about these terms can be sent via the feedback page on our website.
         </Typography>
       </Box>
     </PageWrapper>
