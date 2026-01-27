@@ -1,67 +1,29 @@
+import { initLogging } from '@just-recordings/shared'
+import * as Sentry from '@sentry/electron'
 import { app } from 'electron'
-import { initLogging, type LogTransport } from '@just-recordings/shared'
 
-// Sentry DSN from environment variable
-const SENTRY_DSN = process.env.SENTRY_DSN
+const DSN = 'https://23b65098bd03d9bb6af26d37ed5234bb@o196886.ingest.us.sentry.io/4510784881426432'
 
-// Check if running in production (packaged app)
-const isProduction = app.isPackaged
+export function initSentry(): void {
+  const isProduction = app.isPackaged
 
-// Dynamic import for Sentry to avoid issues in development
-let Sentry: typeof import('@sentry/electron').default | null = null
-
-/**
- * Create a Sentry transport for the shared logging utility
- */
-function createSentryTransport(): LogTransport {
-  return {
-    captureMessage: (message, context) => {
-      if (Sentry) {
-        Sentry.captureMessage(message, {
-          extra: context,
-        })
-      }
-    },
-    captureException: (error, context) => {
-      if (Sentry) {
-        if (typeof error === 'string') {
-          Sentry.captureException(new Error(error), {
-            extra: context,
-          })
-        } else {
-          Sentry.captureException(error, {
-            extra: context,
-          })
-        }
-      }
-    },
-  }
-}
-
-/**
- * Initialize Sentry and logging for the Electron main process.
- * Only initializes Sentry in production (packaged builds) with a valid DSN.
- */
-export async function initSentry(): Promise<void> {
-  const shouldInitSentry = isProduction && SENTRY_DSN
-
-  if (shouldInitSentry) {
-    // Dynamically import Sentry only when needed
-    const SentryModule = await import('@sentry/electron')
-    Sentry = SentryModule.default
-
+  if (isProduction) {
     Sentry.init({
-      dsn: SENTRY_DSN,
+      dsn: DSN,
       environment: 'production',
     })
   }
 
-  // Initialize shared logging with Sentry transport (if in production)
   initLogging(
-    {
-      isProduction,
-      sentryDsn: SENTRY_DSN,
-    },
-    shouldInitSentry ? createSentryTransport() : undefined,
+    { isProduction },
+    isProduction
+      ? {
+          captureMessage: (message, context) => Sentry.captureMessage(message, { extra: context }),
+          captureException: (error, context) =>
+            Sentry.captureException(typeof error === 'string' ? new Error(error) : error, {
+              extra: context,
+            }),
+        }
+      : undefined,
   )
 }

@@ -5,16 +5,10 @@ import config from './config.js'
 import { cloudinaryRouter } from './routes/cloudinary/index.js'
 import { recordingsRouter } from './routes/recordings/index.js'
 import { sharesAuthenticatedRouter, sharesPublicRouter } from './routes/shares/index.js'
-import { getSentryMiddleware } from './sentry.js'
 import { usersRouter } from './routes/users.js'
+import { setupSentryErrorHandler } from './sentry.js'
 
 const app = express()
-
-// Sentry request handler must be the first middleware
-const { requestHandler, errorHandler } = getSentryMiddleware()
-if (requestHandler) {
-  app.use(requestHandler)
-}
 
 // Middleware
 app.use(cors())
@@ -31,10 +25,8 @@ app.use('/api/recordings/:id/shares', sharesAuthenticatedRouter)
 app.use('/api/share', sharesPublicRouter)
 app.use('/api/users', usersRouter)
 
-// Sentry error handler must be before other error handlers
-if (errorHandler) {
-  app.use(errorHandler)
-}
+// Sentry error handler (must be after routes, before other error handlers)
+setupSentryErrorHandler(app)
 
 // In production, serve the frontend static files
 if (config.isProduction) {
