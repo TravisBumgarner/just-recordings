@@ -1,0 +1,180 @@
+project: Chrome Extension
+repo: travisbumgarner/just-recordings
+design_file: null
+scoping_date: 2026-01-28
+
+milestones:
+  - number: 55
+    title: "55. Chrome Extension Package"
+    description: |
+      Create the packages/chrome-extension package with Manifest V3, Vite build,
+      React popup, auth/config wiring, and personalized home page with recordings list.
+    branch:
+      working: milestone-55-chrome-extension-package
+      base: main
+
+  - number: 56
+    title: "56. Chrome Extension Recording & Upload"
+    description: |
+      Integrate recording flow, upload queue, and recording list into the
+      Chrome extension popup. Add deployment documentation.
+    branch:
+      working: milestone-56-chrome-extension-recording
+      base: milestone-55-chrome-extension-package
+
+tasks:
+  - id: 1
+    github_issue: 358
+    milestone: 55
+    title: Scaffold chrome-extension package with Manifest V3 and Vite build
+    description: |
+      Create `packages/chrome-extension/` as a new workspace package:
+      - `package.json` named `@just-recordings/chrome-extension` with deps on
+        recorder, shared, React, MUI, Supabase (matching web package)
+      - `manifest.json` — Manifest V3, permissions: activeTab, storage;
+        popup action pointing to popup.html
+      - `vite.config.ts` — builds popup.html entry, copies manifest + icons
+        to dist/, resolves `@/` alias to `src/`
+      - `tsconfig.json` extending base with JSX + DOM libs
+      - `popup.html` with `<div id="root">` + script tag
+      - `src/main.tsx` rendering React root with ThemeProvider
+      - `src/config.ts` — Zod-validated VITE_PUBLIC_* env vars (copy from web)
+      - Copy icon PNGs from explorations/chrome-extension/icons/
+
+      Add root scripts: `dev:chrome`, `build:chrome`.
+    acceptance_criteria:
+      - packages/chrome-extension/ exists as a workspace package
+      - npm run build produces dist/ with manifest.json, popup.html, JS bundle, icons
+      - Extension loads in Chrome via Load unpacked
+      - Popup opens showing empty React shell
+    depends_on: []
+    effort: 2
+    status: testing
+
+  - id: 2
+    github_issue: 359
+    milestone: 55
+    title: Add auth and Supabase wiring to chrome-extension popup
+    description: |
+      Wire Supabase auth into the extension popup:
+      - `src/services/supabase.ts` — same wrapper pattern as web, creating
+        client from config and re-exporting bound functions
+      - `src/auth/` — reuse auth modules from web (client, service, index, validation)
+      - `src/store.ts` — Zustand store for auth user state (copy from web)
+      - `src/App.tsx` — simplified: load user on mount, conditional render
+        Login or Home (no router, no Header/Footer like desktop)
+      - `src/utils/loadUserIntoState.ts` — copy from web
+      - `src/pages/Login.tsx` — reuse or copy the web Login page
+        (email/password + MFA verification)
+
+      Uses same Supabase project/keys as web (VITE env vars at build time).
+    acceptance_criteria:
+      - Supabase client initializes in extension context
+      - Login form works (email/password) and stores session
+      - Auth persists across popup open/close
+      - Authenticated users see home; unauthenticated see login
+      - MFA verification flow works
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  - id: 3
+    github_issue: 360
+    milestone: 55
+    title: Add chrome-extension Home page with recording list
+    description: |
+      Create authenticated Home page showing cloud recordings from the API:
+      - Recording list with name, duration, date
+      - Click opens recording in new browser tab (full web app URL)
+      - Kebab menu: Share, Edit Title, Delete (reuse RecordingCard pattern)
+      - Pagination
+      - Link to open full web app in browser
+      - "Start Recording" button placeholder (wired in Task 4)
+      - Reuse hooks: useRecordings, useDeleteRecording, useUpdateRecording
+      - Wire React Query provider in App.tsx
+
+      Layout must fit ~400px wide Chrome popup. Compact like desktop
+      but with scrollable recording list.
+    acceptance_criteria:
+      - Authenticated users see recordings list from API
+      - Recordings show name, duration, date
+      - Click opens recording in new tab
+      - Share, Edit Title, Delete actions work
+      - Empty, loading, error states handled
+      - Layout fits popup dimensions
+    depends_on: [2]
+    effort: 3
+    status: scoped
+
+  - id: 4
+    github_issue: 361
+    milestone: 56
+    title: Integrate recording flow into chrome-extension popup
+    description: |
+      Wire the full recording flow using existing shared code:
+      - RecorderService, RecorderDatabase, UploadManager from recorder package
+      - useRecordingFlow hook for state machine
+      - Shared components: RecordingSettingsModal, CountdownOverlay,
+        RecordingControlsModal, RecordingNameModal
+      - "Start Recording" button calls openSettings()
+      - After naming, auto-enqueue for upload
+
+      No floating window or tray icon (Electron-only). Chrome keeps popup
+      alive during getDisplayMedia recording. The exploration prototype
+      already validated this works.
+    acceptance_criteria:
+      - Start Recording opens settings modal
+      - Screen picker appears after confirming settings
+      - Countdown overlay shows
+      - Recording controls (pause/resume/stop/cancel) work
+      - Name modal appears after stop
+      - Recording saved to IndexedDB and enqueued for upload
+      - Stream end auto-stops recording
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 5
+    github_issue: 362
+    milestone: 56
+    title: Add upload queue display to chrome-extension Home
+    description: |
+      Show upload queue on Home page (same pattern as Home.Desktop.tsx):
+      - Subscribe to uploadManager.onQueueChange()
+      - Each item: name, status chip, progress bar, error message
+      - Retry button for failed, Cancel/Delete for all
+      - On upload completion, invalidate recordings query
+      - Initialize upload manager on mount to resume pending uploads
+    acceptance_criteria:
+      - Queue section appears when items are queued
+      - Shows name, status chip, progress percentage
+      - Progress bar animates during upload
+      - Retry and Cancel/Delete buttons work
+      - Completed uploads refresh recordings list
+      - Queue persists across popup close/reopen
+    depends_on: [4]
+    effort: 2
+    status: scoped
+
+  - id: 6
+    github_issue: 363
+    milestone: 56
+    title: Add Chrome extension deployment README
+    description: |
+      Create `docs/CHROME_EXTENSION_DEPLOYMENT.md` covering:
+      1. Prerequisites (Node 22, npm, Chrome)
+      2. Environment variables (.env in packages/chrome-extension/)
+      3. Development (dev:chrome, loading unpacked, reloading)
+      4. Production build (build:chrome, output location)
+      5. Loading in Chrome (step-by-step)
+      6. Chrome Web Store publishing (zip, developer account, submission)
+      7. Troubleshooting (blank popup, auth failures, permissions)
+    acceptance_criteria:
+      - docs/CHROME_EXTENSION_DEPLOYMENT.md exists
+      - Covers dev setup, build, and loading steps
+      - Covers env var configuration
+      - Covers Chrome Web Store publishing
+      - Troubleshooting section included
+    depends_on: [1, 2, 3, 4, 5]
+    effort: 1
+    status: scoped
