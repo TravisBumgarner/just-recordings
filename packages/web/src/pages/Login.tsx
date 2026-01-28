@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography'
 import { type ChangeEvent, useCallback, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../consts'
-import { login } from '../services/supabase'
+import { getAssuranceLevel, listMfaFactors, login, verifyMfa } from '../services/supabase'
 import Link from '../sharedComponents/Link'
 import Message from '../sharedComponents/Message'
 import useGlobalStore from '../store'
@@ -23,6 +23,9 @@ export default function LoginPage() {
   const appUser = useGlobalStore((state) => state.appUser)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null)
+  const [totpCode, setTotpCode] = useState('')
+
   const handleEmailChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setError(null)
     setEmail(e.target.value)
@@ -31,6 +34,11 @@ export default function LoginPage() {
   const handlePasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setError(null)
     setPassword(e.target.value)
+  }, [])
+
+  const handleTotpCodeChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    setTotpCode(e.target.value)
   }, [])
 
   const handleSubmit = useCallback(
@@ -47,6 +55,16 @@ export default function LoginPage() {
       const response = await login({ email, password })
 
       if (response.success) {
+        const aalResponse = await getAssuranceLevel()
+        if (aalResponse.success && aalResponse.nextLevel === 'aal2') {
+          const factorsResponse = await listMfaFactors()
+          if (factorsResponse.success && factorsResponse.factors.length > 0) {
+            setMfaFactorId(factorsResponse.factors[0].id)
+            setIsSubmitting(false)
+            return
+          }
+        }
+
         const success = await loadUserIntoState()
         if (success) {
           navigate(ROUTES.home.href())
@@ -59,8 +77,66 @@ export default function LoginPage() {
     [navigate, email, password],
   )
 
+  const handleMfaSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      if (!mfaFactorId) return
+
+      setIsSubmitting(true)
+      const response = await verifyMfa(mfaFactorId, totpCode)
+
+      if (response.success) {
+        const success = await loadUserIntoState()
+        if (success) {
+          navigate(ROUTES.home.href())
+        } else {
+          setError('Failed to load user details')
+        }
+      } else {
+        setError(response.error)
+      }
+      setIsSubmitting(false)
+    },
+    [mfaFactorId, totpCode, navigate],
+  )
+
   if (appUser) {
     return <Navigate to="/" />
+  }
+
+  if (mfaFactorId) {
+    return (
+      <PageWrapper minHeight verticallyAlign width="small">
+        <form onSubmit={handleMfaSubmit} style={authFormCSS}>
+          <PageTitle text="Two-Factor Authentication" center />
+          <Typography variant="body1" sx={{ textAlign: 'center' }}>
+            Enter the 6-digit code from your authenticator app.
+          </Typography>
+          {error && <Message includeVerticalMargin color="error" message={error} />}
+          <TextField
+            id="totp-code"
+            name="totp-code"
+            type="text"
+            required
+            label="Authentication Code"
+            autoComplete="one-time-code"
+            fullWidth
+            value={totpCode}
+            onChange={handleTotpCodeChange}
+            inputProps={{ maxLength: 6, pattern: '[0-9]{6}', inputMode: 'numeric' }}
+            autoFocus
+          />
+          <Button
+            variant="contained"
+            type="submit"
+            fullWidth
+            disabled={totpCode.length !== 6 || isSubmitting}
+          >
+            Verify
+          </Button>
+        </form>
+      </PageWrapper>
+    )
   }
 
   return (

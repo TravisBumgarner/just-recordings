@@ -1,0 +1,99 @@
+project: Supabase MFA (TOTP)
+repo: travisbumgarner/just-recordings
+design_file: null
+scoping_date: 2026-01-27
+
+milestones:
+  - number: 54
+    title: "Supabase MFA (TOTP)"
+    description: |
+      Add optional TOTP-based MFA for email login users. Users enable MFA from
+      Settings. When enabled, login requires a 6-digit authenticator code after password.
+    branch:
+      working: milestone-54-supabase-mfa-totp
+      base: main
+
+tasks:
+  - id: 1
+    github_issue: 353
+    milestone: 54
+    title: Add MFA service functions and supabase wrappers
+    description: |
+      Add 5 functions wrapping client.auth.mfa.*:
+      - enrollMfa(client, friendlyName?) - enroll TOTP factor, returns QR code + secret
+      - verifyMfa(client, factorId, code) - challenge + verify in one call
+      - unenrollMfa(client, factorId) - remove a factor
+      - listMfaFactors(client) - list verified TOTP factors
+      - getAssuranceLevel(client) - get current/next AAL
+
+      Plus response types. Wrappers in supabase.ts follow existing pattern.
+    acceptance_criteria:
+      - All 5 MFA functions are implemented in auth/service.ts
+      - Response types are defined
+      - Wrapper functions are added to services/supabase.ts following existing pattern
+      - Functions are exported from auth/index.ts
+    depends_on: []
+    effort: 1
+    status: scoped
+
+  - id: 2
+    github_issue: 354
+    milestone: 54
+    title: Update Login page with MFA verification step
+    description: |
+      After successful login(), call getAssuranceLevel(). If nextLevel === 'aal2',
+      show inline TOTP code form instead of email/password form. On verify success,
+      call loadUserIntoState() and navigate home. All MFA state is local to the
+      component (no store changes).
+    acceptance_criteria:
+      - After password login, AAL is checked
+      - If MFA required, TOTP code input form is shown
+      - Successful TOTP verification loads user and navigates home
+      - Failed TOTP shows error message
+      - Non-MFA users login unchanged
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  - id: 3
+    github_issue: 355
+    milestone: 54
+    title: Add MFA enrollment UI to Settings page
+    description: |
+      For email auth users, add MFA section with three states:
+      - Not enrolled: "Enable Two-Factor Authentication" button
+      - Enrolling: QR code + secret display + verification code input
+      - Enrolled: Status text + "Disable" button (with confirmation dialog)
+
+      On mount, calls listMfaFactors() to determine state. Cancel during
+      enrollment calls unenrollMfa() to clean up pending factors.
+    acceptance_criteria:
+      - Email users see MFA section in Settings
+      - Google OAuth users do NOT see MFA section
+      - Enable button starts enrollment showing QR code and secret
+      - User can verify enrollment with authenticator code
+      - Cancel during enrollment cleans up pending factor
+      - Enrolled users see status and Disable button
+      - Disable requires confirmation dialog
+      - Error states are handled and displayed
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  - id: 4
+    github_issue: 356
+    milestone: 54
+    title: Add AAL check to loadUserIntoState
+    description: |
+      After fetching the auth user, call getAssuranceLevel(). If the user needs
+      AAL2 (has MFA enrolled) but is currently at AAL1 (only completed password),
+      don't load the user into state. This handles page refresh — MFA users will
+      see the login page and need to re-authenticate fully.
+    acceptance_criteria:
+      - Users without MFA are loaded normally
+      - MFA users at AAL2 are loaded normally
+      - MFA users at AAL1 (incomplete MFA) are NOT loaded into state
+      - MFA users at AAL1 see the login page on refresh
+    depends_on: [1]
+    effort: 1
+    status: scoped

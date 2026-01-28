@@ -1,16 +1,26 @@
 export { type AuthClient, createAuthClient } from './client'
 export {
   type AuthResponse,
+  type EnrollMfaResponse,
+  enrollMfa,
+  type GetAssuranceLevelResponse,
   type GetTokenResponse,
   type GetUserResponse,
+  getAssuranceLevel,
   getToken,
   getUser,
+  type ListMfaFactorsResponse,
+  listMfaFactors,
   login,
   logout,
   resetPassword,
   signup,
+  type UnenrollMfaResponse,
   type User,
+  unenrollMfa,
   updatePassword,
+  type VerifyMfaResponse,
+  verifyMfa,
 } from './service'
 export {
   emailSchema,
