@@ -14,6 +14,7 @@ import RenderModal from './sharedComponents/Modal'
 import useGlobalStore from './store'
 import { Z_INDICES } from './styles/styleConsts'
 import AppThemeProvider from './styles/Theme'
+import { isChromeExtensionCheck } from './utils/chromeExtension'
 import { isElectronCheck } from './utils/electron'
 
 const queryClient = new QueryClient({
@@ -65,28 +66,40 @@ function App() {
     )
   }
 
-  // Hide footer in desktop app to save vertical space in the smaller window
+  // Hide header/footer in desktop app and chrome extension to save vertical space
   const isElectron = isElectronCheck()
+  const isChromeExtension = isChromeExtensionCheck()
+  const showChrome = !isElectron && !isChromeExtension
 
   return (
     <>
-      {!isElectron && <Header />}
-      <Router isElectron={isElectron} />
-      {!isElectron && <Footer />}
+      {showChrome && <Header />}
+      <Router isElectron={isElectron} isChromeExtension={isChromeExtension} />
+      {showChrome && <Footer />}
       <RenderModal />
     </>
   )
 }
 
-const WrappedApp = () => {
+interface WrappedAppProps {
+  RouterComponent?: React.ComponentType<{ children: React.ReactNode }>
+}
+
+const WrappedApp = ({ RouterComponent }: WrappedAppProps) => {
+  const RouterProvider = RouterComponent ?? (({ children }: { children: React.ReactNode }) => (
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      {children}
+    </BrowserRouter>
+  ))
+
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <RouterProvider>
         <AppThemeProvider>
           <App />
           <ScrollToTop />
         </AppThemeProvider>
-      </BrowserRouter>
+      </RouterProvider>
     </QueryClientProvider>
   )
 }

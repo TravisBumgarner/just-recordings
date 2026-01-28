@@ -54,20 +54,16 @@ tasks:
   - id: 2
     github_issue: 359
     milestone: 55
-    title: Add auth and Supabase wiring to chrome-extension popup
+    title: Wire auth into chrome-extension thin shell
     description: |
-      Wire Supabase auth into the extension popup:
-      - `src/services/supabase.ts` — same wrapper pattern as web, creating
-        client from config and re-exporting bound functions
-      - `src/auth/` — reuse auth modules from web (client, service, index, validation)
-      - `src/store.ts` — Zustand store for auth user state (copy from web)
-      - `src/App.tsx` — simplified: load user on mount, conditional render
-        Login or Home (no router, no Header/Footer like desktop)
-      - `src/utils/loadUserIntoState.ts` — copy from web
-      - `src/pages/Login.tsx` — reuse or copy the web Login page
-        (email/password + MFA verification)
-
-      Uses same Supabase project/keys as web (VITE env vars at build time).
+      The chrome-extension is now a thin shell consuming packages/web/ via
+      Vite alias. Auth, Supabase client, store, and Login page all come from
+      web source. This task verifies wiring and fixes any chrome-specific issues:
+      - Ensure `.env` has VITE_PUBLIC_SUPABASE_URL, VITE_PUBLIC_SUPABASE_ANON_KEY,
+        VITE_PUBLIC_ENVIRONMENT, VITE_API_URL (full URL, not /api)
+      - Verify Login page renders in popup (LandingPage.Chrome.tsx in web/src/pages/)
+      - Verify session persists across popup open/close
+      - Fix any chrome-extension-specific auth quirks (CSP, cookies, etc.)
     acceptance_criteria:
       - Supabase client initializes in extension context
       - Login form works (email/password) and stores session
@@ -81,9 +77,10 @@ tasks:
   - id: 3
     github_issue: 360
     milestone: 55
-    title: Add chrome-extension Home page with recording list
+    title: Build Home.Chrome.tsx page with recording list
     description: |
-      Create authenticated Home page showing cloud recordings from the API:
+      Flesh out `packages/web/src/pages/Home.Chrome.tsx` (placeholder created
+      in task 1 restructure) into a full authenticated Home page:
       - Recording list with name, duration, date
       - Click opens recording in new browser tab (full web app URL)
       - Kebab menu: Share, Edit Title, Delete (reuse RecordingCard pattern)
@@ -91,10 +88,9 @@ tasks:
       - Link to open full web app in browser
       - "Start Recording" button placeholder (wired in Task 4)
       - Reuse hooks: useRecordings, useDeleteRecording, useUpdateRecording
-      - Wire React Query provider in App.tsx
 
       Layout must fit ~400px wide Chrome popup. Compact like desktop
-      but with scrollable recording list.
+      but with scrollable recording list. All code lives in packages/web/src/.
     acceptance_criteria:
       - Authenticated users see recordings list from API
       - Recordings show name, duration, date
@@ -111,7 +107,8 @@ tasks:
     milestone: 56
     title: Integrate recording flow into chrome-extension popup
     description: |
-      Wire the full recording flow using existing shared code:
+      Wire the full recording flow into Home.Chrome.tsx (in packages/web/src/pages/)
+      using existing shared code:
       - RecorderService, RecorderDatabase, UploadManager from recorder package
       - useRecordingFlow hook for state machine
       - Shared components: RecordingSettingsModal, CountdownOverlay,
@@ -121,7 +118,7 @@ tasks:
 
       No floating window or tray icon (Electron-only). Chrome keeps popup
       alive during getDisplayMedia recording. The exploration prototype
-      already validated this works.
+      already validated this works. All UI code lives in packages/web/src/.
     acceptance_criteria:
       - Start Recording opens settings modal
       - Screen picker appears after confirming settings
@@ -137,9 +134,10 @@ tasks:
   - id: 5
     github_issue: 362
     milestone: 56
-    title: Add upload queue display to chrome-extension Home
+    title: Add upload queue display to Home.Chrome.tsx
     description: |
-      Show upload queue on Home page (same pattern as Home.Desktop.tsx):
+      Show upload queue on Home.Chrome.tsx (in packages/web/src/pages/),
+      same pattern as Home.Desktop.tsx:
       - Subscribe to uploadManager.onQueueChange()
       - Each item: name, status chip, progress bar, error message
       - Retry button for failed, Cancel/Delete for all

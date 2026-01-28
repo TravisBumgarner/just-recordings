@@ -54,7 +54,7 @@ import Router from '../components/Router'
 const renderRouter = (initialRoute = '/') => {
   return render(
     <MemoryRouter initialEntries={[initialRoute]}>
-      <Router isElectron={false} />
+      <Router isElectron={false} isChromeExtension={false} />
     </MemoryRouter>,
   )
 }

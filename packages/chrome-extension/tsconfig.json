@@ -5,9 +5,9 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["../web/src/*"]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*", "../web/src/**/*"],
+  "exclude": ["node_modules", "dist", "../web/src/__tests__/**/*"]
 }

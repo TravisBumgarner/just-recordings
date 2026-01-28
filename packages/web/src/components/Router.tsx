@@ -1,8 +1,10 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { ROUTES } from '../consts'
+import HomeChrome from '../pages/Home.Chrome'
 import HomeDesktop from '../pages/Home.Desktop'
 import HomeWeb from '../pages/Home.Web'
+import LandingPageChrome from '../pages/LandingPage.Chrome'
 import LandingPageDesktop from '../pages/LandingPage.Desktop'
 import LandingPageHome from '../pages/LandingPage.Web'
 import Settings from '../pages/Settings'
@@ -48,10 +50,15 @@ interface HomeRouteProps {
   recorderService: RecorderService
   uploadManager: UploadManager
   isElectron: boolean
+  isChromeExtension: boolean
 }
 
-const HomeRoute = ({ recorderService, uploadManager, isElectron }: HomeRouteProps) => {
+const HomeRoute = ({ recorderService, uploadManager, isElectron, isChromeExtension }: HomeRouteProps) => {
   const appUser = useGlobalStore((state) => state.appUser)
+
+  if (isChromeExtension) {
+    return appUser ? <HomeChrome /> : <LandingPageChrome />
+  }
 
   if (isElectron) {
     return appUser ? (
@@ -68,7 +75,7 @@ const HomeRoute = ({ recorderService, uploadManager, isElectron }: HomeRouteProp
   )
 }
 
-const Router = ({ isElectron }: { isElectron: boolean }) => {
+const Router = ({ isElectron, isChromeExtension }: { isElectron: boolean; isChromeExtension: boolean }) => {
   const db = useMemo(() => new RecorderDatabase(), [])
   const recorderService = useMemo(() => new RecorderService(db), [db])
   const tokenGetter = useMemo(() => createTokenGetter(), [])
@@ -87,6 +94,7 @@ const Router = ({ isElectron }: { isElectron: boolean }) => {
           element={
             <HomeRoute
               isElectron={isElectron}
+              isChromeExtension={isChromeExtension}
               recorderService={recorderService}
               uploadManager={uploadManager}
             />

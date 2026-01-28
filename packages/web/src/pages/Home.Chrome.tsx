@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material'
 
-function App() {
+function HomeChrome() {
   return (
     <Box
       sx={{
@@ -20,4 +20,4 @@ function App() {
   )
 }
 
-export default App
+export default HomeChrome
