@@ -1,6 +1,9 @@
 export { type AuthClient, createAuthClient } from './client'
 export {
   type AuthResponse,
+  challengeMfa,
+  type ChallengeMfaResponse,
+  type EnrollMfaParams,
   type EnrollMfaResponse,
   enrollMfa,
   type GetAssuranceLevelResponse,

@@ -2,10 +2,16 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import { type ChangeEvent, useCallback, useState } from 'react'
+import { type ChangeEvent, useCallback, useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../consts'
-import { getAssuranceLevel, listMfaFactors, login, verifyMfa } from '../services/supabase'
+import {
+  challengeMfa,
+  getAssuranceLevel,
+  listMfaFactors,
+  login,
+  verifyMfa,
+} from '../services/supabase'
 import Link from '../sharedComponents/Link'
 import Message from '../sharedComponents/Message'
 import useGlobalStore from '../store'
@@ -24,7 +30,9 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null)
-  const [totpCode, setTotpCode] = useState('')
+  const [mfaFactorType, setMfaFactorType] = useState<'totp' | 'phone' | null>(null)
+  const [challengeId, setChallengeId] = useState<string | null>(null)
+  const [mfaCode, setMfaCode] = useState('')
 
   const handleEmailChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setError(null)
@@ -36,9 +44,9 @@ export default function LoginPage() {
     setPassword(e.target.value)
   }, [])
 
-  const handleTotpCodeChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+  const handleMfaCodeChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setError(null)
-    setTotpCode(e.target.value)
+    setMfaCode(e.target.value)
   }, [])
 
   const handleSubmit = useCallback(
@@ -59,7 +67,9 @@ export default function LoginPage() {
         if (aalResponse.success && aalResponse.nextLevel === 'aal2') {
           const factorsResponse = await listMfaFactors()
           if (factorsResponse.success && factorsResponse.factors.length > 0) {
-            setMfaFactorId(factorsResponse.factors[0].id)
+            const factor = factorsResponse.factors[0]
+            setMfaFactorId(factor.id)
+            setMfaFactorType(factor.factor_type as 'totp' | 'phone')
             setIsSubmitting(false)
             return
           }
@@ -77,13 +87,41 @@ export default function LoginPage() {
     [navigate, email, password],
   )
 
+  // For phone MFA, send the SMS challenge when the MFA screen appears
+  useEffect(() => {
+    if (mfaFactorId && mfaFactorType === 'phone') {
+      challengeMfa(mfaFactorId).then((res) => {
+        if (res.success) {
+          setChallengeId(res.challengeId)
+        } else {
+          setError(res.error)
+        }
+      })
+    }
+  }, [mfaFactorId, mfaFactorType])
+
+  const handleResendCode = useCallback(async () => {
+    if (!mfaFactorId) return
+    setError(null)
+    const res = await challengeMfa(mfaFactorId)
+    if (res.success) {
+      setChallengeId(res.challengeId)
+    } else {
+      setError(res.error)
+    }
+  }, [mfaFactorId])
+
   const handleMfaSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault()
       if (!mfaFactorId) return
 
       setIsSubmitting(true)
-      const response = await verifyMfa(mfaFactorId, totpCode)
+      const response = await verifyMfa(
+        mfaFactorId,
+        mfaCode,
+        mfaFactorType === 'phone' ? challengeId ?? undefined : undefined,
+      )
 
       if (response.success) {
         const success = await loadUserIntoState()
@@ -97,7 +135,7 @@ export default function LoginPage() {
       }
       setIsSubmitting(false)
     },
-    [mfaFactorId, totpCode, navigate],
+    [mfaFactorId, mfaFactorType, challengeId, mfaCode, navigate],
   )
 
   if (appUser) {
@@ -110,19 +148,21 @@ export default function LoginPage() {
         <form onSubmit={handleMfaSubmit} style={authFormCSS}>
           <PageTitle text="Two-Factor Authentication" center />
           <Typography variant="body1" sx={{ textAlign: 'center' }}>
-            Enter the 6-digit code from your authenticator app.
+            {mfaFactorType === 'phone'
+              ? 'Enter the 6-digit code sent to your phone via SMS.'
+              : 'Enter the 6-digit code from your authenticator app.'}
           </Typography>
           {error && <Message includeVerticalMargin color="error" message={error} />}
           <TextField
-            id="totp-code"
-            name="totp-code"
+            id="mfa-code"
+            name="mfa-code"
             type="text"
             required
             label="Authentication Code"
             autoComplete="one-time-code"
             fullWidth
-            value={totpCode}
-            onChange={handleTotpCodeChange}
+            value={mfaCode}
+            onChange={handleMfaCodeChange}
             inputProps={{ maxLength: 6, pattern: '[0-9]{6}', inputMode: 'numeric' }}
             autoFocus
           />
@@ -130,10 +170,15 @@ export default function LoginPage() {
             variant="contained"
             type="submit"
             fullWidth
-            disabled={totpCode.length !== 6 || isSubmitting}
+            disabled={mfaCode.length !== 6 || isSubmitting}
           >
             Verify
           </Button>
+          {mfaFactorType === 'phone' && (
+            <Button variant="text" fullWidth onClick={handleResendCode}>
+              Resend Code
+            </Button>
+          )}
         </form>
       </PageWrapper>
     )

@@ -1,6 +1,9 @@
 import {
   type AuthResponse,
+  challengeMfa as sharedChallengeMfa,
+  type ChallengeMfaResponse,
   createAuthClient,
+  type EnrollMfaParams,
   type EnrollMfaResponse,
   type GetAssuranceLevelResponse,
   type GetTokenResponse,
@@ -32,7 +35,9 @@ export type {
   AuthResponse,
   GetUserResponse,
   GetTokenResponse,
+  EnrollMfaParams,
   EnrollMfaResponse,
+  ChallengeMfaResponse,
   VerifyMfaResponse,
   UnenrollMfaResponse,
   ListMfaFactorsResponse,
@@ -81,12 +86,20 @@ export async function updatePassword(password: string): Promise<AuthResponse> {
   return sharedUpdatePassword(client, password)
 }
 
-export async function enrollMfa(friendlyName?: string): Promise<EnrollMfaResponse> {
-  return sharedEnrollMfa(client, friendlyName)
+export async function enrollMfa(params: EnrollMfaParams): Promise<EnrollMfaResponse> {
+  return sharedEnrollMfa(client, params)
 }
 
-export async function verifyMfa(factorId: string, code: string): Promise<VerifyMfaResponse> {
-  return sharedVerifyMfa(client, factorId, code)
+export async function challengeMfa(factorId: string): Promise<ChallengeMfaResponse> {
+  return sharedChallengeMfa(client, factorId)
+}
+
+export async function verifyMfa(
+  factorId: string,
+  code: string,
+  challengeId?: string,
+): Promise<VerifyMfaResponse> {
+  return sharedVerifyMfa(client, factorId, code, challengeId)
 }
 
 export async function unenrollMfa(factorId: string): Promise<UnenrollMfaResponse> {

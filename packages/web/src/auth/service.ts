@@ -13,8 +13,16 @@ export type GetTokenResponse =
   | { token: string | undefined; success: true }
   | { message: string; success: false }
 
+export type EnrollMfaParams =
+  | { factorType: 'totp'; friendlyName?: string }
+  | { factorType: 'phone'; phone: string; friendlyName?: string }
+
 export type EnrollMfaResponse =
   | { success: true; data: AuthMFAEnrollResponse['data'] }
+  | { error: string; success: false }
+
+export type ChallengeMfaResponse =
+  | { success: true; challengeId: string }
   | { error: string; success: false }
 
 export type VerifyMfaResponse = { success: true } | { error: string; success: false }
@@ -110,14 +118,16 @@ export async function updatePassword(client: AuthClient, password: string): Prom
 
 export async function enrollMfa(
   client: AuthClient,
-  friendlyName?: string,
+  params: EnrollMfaParams,
 ): Promise<EnrollMfaResponse> {
-  const { data, error } = await client.auth.mfa.enroll({
-    factorType: 'totp',
-    friendlyName,
-  })
+  const enrollParams =
+    params.factorType === 'phone'
+      ? { factorType: 'phone' as const, phone: params.phone, friendlyName: params.friendlyName }
+      : { factorType: 'totp' as const, friendlyName: params.friendlyName }
+
+  const { data, error } = await client.auth.mfa.enroll(enrollParams)
   if (error) {
-    return { error: 'Failed to enroll MFA', success: false }
+    return { error: error.message || 'Failed to enroll MFA', success: false }
   }
   return { success: true, data }
 }
@@ -126,17 +136,22 @@ export async function verifyMfa(
   client: AuthClient,
   factorId: string,
   code: string,
+  challengeId?: string,
 ): Promise<VerifyMfaResponse> {
-  const { data: challengeData, error: challengeError } = await client.auth.mfa.challenge({
-    factorId,
-  })
-  if (challengeError) {
-    return { error: 'Failed to create MFA challenge', success: false }
+  let resolvedChallengeId = challengeId
+  if (!resolvedChallengeId) {
+    const { data: challengeData, error: challengeError } = await client.auth.mfa.challenge({
+      factorId,
+    })
+    if (challengeError) {
+      return { error: 'Failed to create MFA challenge', success: false }
+    }
+    resolvedChallengeId = challengeData.id
   }
 
   const { error: verifyError } = await client.auth.mfa.verify({
     factorId,
-    challengeId: challengeData.id,
+    challengeId: resolvedChallengeId,
     code,
   })
   if (verifyError) {
@@ -144,6 +159,17 @@ export async function verifyMfa(
   }
 
   return { success: true }
+}
+
+export async function challengeMfa(
+  client: AuthClient,
+  factorId: string,
+): Promise<ChallengeMfaResponse> {
+  const { data, error } = await client.auth.mfa.challenge({ factorId })
+  if (error) {
+    return { error: 'Failed to send verification code', success: false }
+  }
+  return { success: true, challengeId: data.id }
 }
 
 export async function unenrollMfa(
@@ -162,7 +188,9 @@ export async function listMfaFactors(client: AuthClient): Promise<ListMfaFactors
   if (error) {
     return { error: 'Failed to list MFA factors', success: false }
   }
-  const verifiedFactors = data.totp.filter((f) => f.status === 'verified')
+  const verifiedFactors = [...data.totp, ...(data.phone ?? [])].filter(
+    (f) => f.status === 'verified',
+  )
   return { success: true, factors: verifiedFactors }
 }
 

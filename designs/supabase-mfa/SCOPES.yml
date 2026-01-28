@@ -97,3 +97,67 @@ tasks:
     depends_on: [1]
     effort: 1
     status: scoped
+
+  - id: 5
+    github_issue: null
+    milestone: 54
+    title: Generalize service layer for phone MFA
+    description: |
+      Extend enrollMfa to accept a discriminated union param (totp or phone).
+      Update listMfaFactors to include phone factors. Add optional challengeId
+      to verifyMfa for pre-challenged phone factors. Add standalone challengeMfa
+      function for triggering SMS delivery. Update supabase.ts wrappers and
+      auth/index.ts exports accordingly.
+    acceptance_criteria:
+      - enrollMfa accepts { factorType: 'totp' } or { factorType: 'phone', phone }
+      - listMfaFactors returns both totp and phone verified factors
+      - verifyMfa accepts optional challengeId, skipping internal challenge when provided
+      - challengeMfa function exists and returns challengeId
+      - New types (EnrollMfaParams, ChallengeMfaResponse) are exported
+      - supabase.ts wrappers updated for new signatures
+    depends_on: []
+    effort: 1
+    status: scoped
+
+  - id: 6
+    github_issue: null
+    milestone: 54
+    title: Update Login page for phone MFA
+    description: |
+      After login, capture factor_type from the enrolled factor. For phone MFA,
+      fire challengeMfa to send SMS and store challengeId. Show conditional
+      instruction text for phone vs totp. Add Resend Code button for phone.
+      Pass challengeId to verifyMfa for phone factors.
+    acceptance_criteria:
+      - Login detects phone vs totp factor type
+      - Phone MFA triggers SMS via challengeMfa on screen appearance
+      - Instruction text differs for phone ("sent to your phone via SMS") vs totp ("authenticator app")
+      - Resend Code button appears for phone factors
+      - challengeId is passed to verifyMfa for phone; omitted for totp
+      - Existing TOTP login flow unchanged
+    depends_on: [5]
+    effort: 2
+    status: scoped
+
+  - id: 7
+    github_issue: null
+    milestone: 54
+    title: Update Settings page for phone MFA enrollment
+    description: |
+      Add method choice (Authenticator App / Phone SMS) when not enrolled.
+      Phone flow: enter phone number, call enrollMfa with phone params, send
+      SMS via challengeMfa, show code input. TOTP flow unchanged but passes
+      { factorType: 'totp' }. Enrolled state shows factor type. Cancel/disable
+      flows reset new state vars.
+    acceptance_criteria:
+      - Not enrolled state shows two buttons: Authenticator App and Phone (SMS)
+      - Phone enrollment collects phone number then sends SMS
+      - Phone enrolling UI shows "code sent" text and Resend Code button
+      - TOTP enrolling UI unchanged (QR + secret)
+      - Verify form is shared between both methods
+      - Enrolled state shows "via authenticator app" or "via SMS"
+      - Cancel during phone enrollment cleans up pending factor
+      - Disable phone MFA works with confirmation dialog
+    depends_on: [5]
+    effort: 2
+    status: scoped
