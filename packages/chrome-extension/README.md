@@ -13,6 +13,15 @@ This package contains only Chrome-extension-specific plumbing:
 
 All UI code lives in `packages/web/src/`. The Vite `@/` alias points to `../web/src/`, so imports like `@/App` resolve to the web package. Chrome-specific pages (`Home.Chrome.tsx`, `LandingPage.Chrome.tsx`) also live in web and are routed via `isChromeExtensionCheck()`.
 
+## Getting Started
+
+1. Run an initial build: `npm run build:chrome`
+2. Open `chrome://extensions`
+3. Enable "Developer mode" (top right)
+4. Click "Load unpacked"
+5. Select `packages/chrome-extension/dist/`
+6. Click the extension icon in the toolbar to open the popup
+
 ## Development
 
 ```sh
@@ -22,7 +31,7 @@ npm run dev:chrome
 
 This runs `vite build --watch`, rebuilding on file changes. After each rebuild, go to `chrome://extensions` and click the reload button on the unpacked extension.
 
-## Build
+## Production Build
 
 ```sh
 # From repo root
@@ -30,15 +39,6 @@ npm run build:chrome
 ```
 
 Output goes to `packages/chrome-extension/dist/` containing manifest.json, popup.html, JS bundle, and icons.
-
-## Loading in Chrome
-
-1. Run `npm run build:chrome`
-2. Open `chrome://extensions`
-3. Enable "Developer mode" (top right)
-4. Click "Load unpacked"
-5. Select `packages/chrome-extension/dist/`
-6. Click the extension icon in the toolbar to open the popup
 
 ## Environment Variables
 
