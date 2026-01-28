@@ -2,7 +2,7 @@ import { initLogging } from '@just-recordings/shared'
 import * as Sentry from '@sentry/electron'
 import { app } from 'electron'
 
-const DSN = 'https://23b65098bd03d9bb6af26d37ed5234bb@o196886.ingest.us.sentry.io/4510784881426432'
+const DSN = 'https://3d95c24444d6d9259dd763bc9108b63e@o196886.ingest.us.sentry.io/4510785085767680'
 
 export function initSentry(): void {
   const isProduction = app.isPackaged
