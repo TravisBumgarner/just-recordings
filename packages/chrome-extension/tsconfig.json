@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../web/src/*"]
+    }
+  },
+  "include": ["src/**/*", "../web/src/**/*"],
+  "exclude": ["node_modules", "dist", "../web/src/__tests__/**/*"]
+}

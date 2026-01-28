@@ -23,7 +23,7 @@ vi.mock('../api/recordings', () => ({
 }))
 
 import { deleteRecording, getRecordings, updateRecording } from '../api/recordings'
-import Home from '../pages/Home.Web'
+import Home from '../pages/Home/Web'
 import RenderModal from '../sharedComponents/Modal'
 
 const mockGetRecordings = vi.mocked(getRecordings)

@@ -1,4 +1,4 @@
-import LoginPage from './Login'
+import LoginPage from '../Login'
 
 function LandingPage() {
   return <LoginPage />

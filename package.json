@@ -9,6 +9,8 @@
     "dev:web": "docker-compose up -d && concurrently -n api,web -c blue,green \"npm run dev -w @just-recordings/api\" \"npm run dev -w @just-recordings/web\"",
     "dev:desktop": "docker-compose up -d && concurrently -n api,desktop -c blue,yellow \"npm run dev -w @just-recordings/api\" \"npm run dev -w @just-recordings/desktop\"",
     "dev:all": "docker-compose up -d && concurrently -n api,web,desktop -c blue,green,yellow \"npm run dev -w @just-recordings/api\" \"npm run dev -w @just-recordings/web\" \"npm run dev -w @just-recordings/desktop\"",
+    "dev:chrome": "docker-compose up -d && concurrently -n api,chrome -c blue,magenta \"npm run dev -w @just-recordings/api\" \"npm run dev -w @just-recordings/chrome-extension\"",
+    "build:chrome": "npm run build -w @just-recordings/chrome-extension",
     "build": "npm run build --workspaces --if-present",
     "build:desktop": "npm run build -w @just-recordings/web && npm run build -w @just-recordings/desktop",
     "build:heroku": "npm run build -w @just-recordings/shared && npm run build -w @just-recordings/web && npm run build -w @just-recordings/api",

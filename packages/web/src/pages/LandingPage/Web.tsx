@@ -1,8 +1,8 @@
 import { Box, Button, Container, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { FaApple, FaLinux, FaWindows } from 'react-icons/fa'
-import { APP_VERSION, EXTERNAL_LINKS, ROUTES } from '../consts'
-import { ComparisonTable } from '../components/ComparisonTable'
+import { APP_VERSION, EXTERNAL_LINKS, ROUTES } from '../../consts'
+import { ComparisonTable } from '../../components/ComparisonTable'
 
 const platforms = [
   { name: 'Windows', icon: FaWindows, url: EXTERNAL_LINKS.windows },

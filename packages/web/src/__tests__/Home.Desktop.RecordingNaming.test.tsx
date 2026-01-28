@@ -12,7 +12,7 @@ vi.mock('../utils/electron', () => ({
   countdownEnd: vi.fn(),
 }))
 
-import Home from '../pages/Home.Desktop'
+import Home from '../pages/Home/Desktop'
 
 // Create mock recorder service
 const createMockRecorderService = () => {
