@@ -1,15 +1,28 @@
 import {
   type AuthResponse,
+  challengeMfa as sharedChallengeMfa,
+  type ChallengeMfaResponse,
   createAuthClient,
+  type EnrollMfaParams,
+  type EnrollMfaResponse,
+  type GetAssuranceLevelResponse,
   type GetTokenResponse,
   type GetUserResponse,
+  type ListMfaFactorsResponse,
+  enrollMfa as sharedEnrollMfa,
+  getAssuranceLevel as sharedGetAssuranceLevel,
   getToken as sharedGetToken,
   getUser as sharedGetUser,
+  listMfaFactors as sharedListMfaFactors,
   login as sharedLogin,
   logout as sharedLogout,
   resetPassword as sharedResetPassword,
   signup as sharedSignup,
+  unenrollMfa as sharedUnenrollMfa,
   updatePassword as sharedUpdatePassword,
+  verifyMfa as sharedVerifyMfa,
+  type UnenrollMfaResponse,
+  type VerifyMfaResponse,
 } from '@/auth'
 import config from '../config'
 import { ROUTES } from '../consts'
@@ -18,7 +31,18 @@ import { ROUTES } from '../consts'
 export const client = createAuthClient(config.supabaseUrl, config.supabaseAnonKey)
 
 // Re-export types for convenience
-export type { AuthResponse, GetUserResponse, GetTokenResponse }
+export type {
+  AuthResponse,
+  GetUserResponse,
+  GetTokenResponse,
+  EnrollMfaParams,
+  EnrollMfaResponse,
+  ChallengeMfaResponse,
+  VerifyMfaResponse,
+  UnenrollMfaResponse,
+  ListMfaFactorsResponse,
+  GetAssuranceLevelResponse,
+}
 
 // Wrap shared functions to use the client
 export async function getUser(): Promise<GetUserResponse> {
@@ -60,4 +84,32 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
 
 export async function updatePassword(password: string): Promise<AuthResponse> {
   return sharedUpdatePassword(client, password)
+}
+
+export async function enrollMfa(params: EnrollMfaParams): Promise<EnrollMfaResponse> {
+  return sharedEnrollMfa(client, params)
+}
+
+export async function challengeMfa(factorId: string): Promise<ChallengeMfaResponse> {
+  return sharedChallengeMfa(client, factorId)
+}
+
+export async function verifyMfa(
+  factorId: string,
+  code: string,
+  challengeId?: string,
+): Promise<VerifyMfaResponse> {
+  return sharedVerifyMfa(client, factorId, code, challengeId)
+}
+
+export async function unenrollMfa(factorId: string): Promise<UnenrollMfaResponse> {
+  return sharedUnenrollMfa(client, factorId)
+}
+
+export async function listMfaFactors(): Promise<ListMfaFactorsResponse> {
+  return sharedListMfaFactors(client)
+}
+
+export async function getAssuranceLevel(): Promise<GetAssuranceLevelResponse> {
+  return sharedGetAssuranceLevel(client)
 }

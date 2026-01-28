@@ -103,7 +103,7 @@ function LandingPage() {
               gap: 6,
             }}
           >
-            {['Save locally or to the cloud', 'Share with a link', 'Record from desktop or browser'].map(
+            {['Save locally or to the cloud', 'Share with a link', 'Record from desktop or browser', 'MFA with phone — coming soon'].map(
               (item) => (
                 <Typography
                   key={item}
