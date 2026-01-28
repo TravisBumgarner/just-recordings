@@ -10,19 +10,27 @@ vi.mock('../store', () => ({
 }))
 
 // Mock lazy-loaded components to avoid complexity
-vi.mock('../pages/Home.Web', () => ({
+vi.mock('../pages/Home/Web', () => ({
   default: () => <div data-testid="home-dashboard">Home Dashboard</div>,
 }))
 
-vi.mock('../pages/Home.Desktop', () => ({
+vi.mock('../pages/Home/Desktop', () => ({
   default: () => <div data-testid="home-dashboard">Home Dashboard</div>,
 }))
 
-vi.mock('../pages/LandingPage.Web', () => ({
+vi.mock('../pages/Home/Chrome', () => ({
+  default: () => <div data-testid="home-dashboard">Home Dashboard</div>,
+}))
+
+vi.mock('../pages/LandingPage/Web', () => ({
   default: () => <div data-testid="landing-page">Landing Page</div>,
 }))
 
-vi.mock('../pages/LandingPage.Desktop', () => ({
+vi.mock('../pages/LandingPage/Desktop', () => ({
+  default: () => <div data-testid="landing-page">Landing Page</div>,
+}))
+
+vi.mock('../pages/LandingPage/Chrome', () => ({
   default: () => <div data-testid="landing-page">Landing Page</div>,
 }))
 

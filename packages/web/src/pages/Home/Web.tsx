@@ -38,12 +38,12 @@ import { queryKeys } from '@/lib/queryKeys'
 import { MODAL_ID } from '@/sharedComponents/Modal/Modal.consts'
 import { activeModalSignal } from '@/signals'
 import PageWrapper from '@/styles/shared/PageWrapper'
-import { CountdownOverlay } from '../components/CountdownOverlay'
-import { RecordingControlsModal } from '../components/RecordingControlsModal'
-import { generateDefaultRecordingName, RecordingNameModal } from '../components/RecordingNameModal'
-import { RecordingSettingsModal } from '../components/RecordingSettingsModal'
-import { type RecordingSettings, useRecordingFlow } from '../hooks/useRecordingFlow'
-import { setRecordingState } from '../utils/electron'
+import { CountdownOverlay } from '../../components/CountdownOverlay'
+import { RecordingControlsModal } from '../../components/RecordingControlsModal'
+import { generateDefaultRecordingName, RecordingNameModal } from '../../components/RecordingNameModal'
+import { RecordingSettingsModal } from '../../components/RecordingSettingsModal'
+import { type RecordingSettings, useRecordingFlow } from '../../hooks/useRecordingFlow'
+import { setRecordingState } from '../../utils/electron'
 
 export interface HomeProps {
   recorderService: RecorderService

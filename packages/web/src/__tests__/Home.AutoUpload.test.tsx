@@ -19,7 +19,7 @@ vi.mock('../api/recordings', () => ({
   getThumbnailUrl: vi.fn(),
 }))
 
-import Home from '../pages/Home.Web'
+import Home from '../pages/Home/Web'
 
 // Create mock recorder service
 const createMockRecorderService = () => {

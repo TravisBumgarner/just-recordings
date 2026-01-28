@@ -1,12 +1,12 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { ROUTES } from '../consts'
-import HomeChrome from '../pages/Home.Chrome'
-import HomeDesktop from '../pages/Home.Desktop'
-import HomeWeb from '../pages/Home.Web'
-import LandingPageChrome from '../pages/LandingPage.Chrome'
-import LandingPageDesktop from '../pages/LandingPage.Desktop'
-import LandingPageHome from '../pages/LandingPage.Web'
+import HomeChrome from '../pages/Home/Chrome'
+import HomeDesktop from '../pages/Home/Desktop'
+import HomeWeb from '../pages/Home/Web'
+import LandingPageChrome from '../pages/LandingPage/Chrome'
+import LandingPageDesktop from '../pages/LandingPage/Desktop'
+import LandingPageHome from '../pages/LandingPage/Web'
 import Settings from '../pages/Settings'
 import useGlobalStore from '../store'
 
@@ -57,7 +57,11 @@ const HomeRoute = ({ recorderService, uploadManager, isElectron, isChromeExtensi
   const appUser = useGlobalStore((state) => state.appUser)
 
   if (isChromeExtension) {
-    return appUser ? <HomeChrome /> : <LandingPageChrome />
+    return appUser ? (
+      <HomeChrome recorderService={recorderService} uploadManager={uploadManager} />
+    ) : (
+      <LandingPageChrome />
+    )
   }
 
   if (isElectron) {
